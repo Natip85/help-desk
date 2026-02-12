@@ -37,7 +37,6 @@ export const TicketList = () => {
 
   return (
     <div className="bg-secondary m-2 flex-1 rounded-xl p-3">
-      {" "}
       <div className="@container">
         <ListRenderer
           hasData={data.items.length > 0}

@@ -78,7 +78,7 @@ export const TicketFilterSidebar = () => {
                           {priorityConfig[value]?.label ?? value}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "priorities"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "priority"} />
                     </Fragment>
                   );
                 }}
@@ -131,7 +131,7 @@ export const TicketFilterSidebar = () => {
                           {statusConfig[value]?.label ?? value}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "statuses"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "status"} />
                     </Fragment>
                   );
                 }}

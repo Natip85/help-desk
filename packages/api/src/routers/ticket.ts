@@ -1,13 +1,18 @@
 import { TRPCError } from "@trpc/server";
-import { and, eq, getTableColumns } from "drizzle-orm";
+import { and, desc, eq, getTableColumns } from "drizzle-orm";
 import { z } from "zod";
 
 import {
   conversation,
   conversationPriority,
   conversationStatus,
+  message,
 } from "@help-desk/db/schema/conversations";
+import { conversationEvent } from "@help-desk/db/schema/events";
+import { mailbox } from "@help-desk/db/schema/mailboxes";
+import { env } from "@help-desk/env/server";
 
+import { resend } from "../lib/resend";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 import { createListInput } from "../utils/list-input-schema";
 import { buildTicketOrderBy, buildTicketWhereConditions } from "../utils/ticket-filters";
@@ -113,6 +118,45 @@ export const ticketRouter = createTRPCRouter({
     }
   }),
 
+  getById: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const conv = await ctx.db.query.conversation.findFirst({
+      where: and(eq(conversation.id, input), eq(conversation.organizationId, organizationId)),
+      with: {
+        contact: {
+          columns: { id: true, email: true, firstName: true, lastName: true, displayName: true },
+        },
+        mailbox: {
+          columns: { id: true, email: true, name: true },
+        },
+      },
+    });
+
+    if (!conv) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Ticket not found" });
+    }
+
+    // Resolve the "from" email the same way sendReply does
+    let fromEmail = conv.mailbox?.email;
+    if (!fromEmail) {
+      const defaultMailbox = await ctx.db.query.mailbox.findFirst({
+        where: and(eq(mailbox.organizationId, organizationId), eq(mailbox.isDefault, true)),
+        columns: { email: true },
+      });
+      fromEmail = defaultMailbox?.email ?? env.SENDER_EMAIL;
+    }
+
+    return { ...conv, fromEmail };
+  }),
+
   updatePriority: protectedProcedure
     .input(
       z.object({
@@ -176,5 +220,155 @@ export const ticketRouter = createTRPCRouter({
       }
 
       return updated;
+    }),
+
+  sendReply: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        htmlBody: z.string().min(1),
+        textBody: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      // 1. Fetch the conversation with mailbox, contact, and latest inbound message
+      const conv = await ctx.db.query.conversation.findFirst({
+        where: and(
+          eq(conversation.id, input.conversationId),
+          eq(conversation.organizationId, organizationId)
+        ),
+        with: {
+          mailbox: true,
+          contact: true,
+        },
+      });
+
+      if (!conv) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      // 2. Resolve the mailbox to send from:
+      //    conversation mailbox -> org default mailbox -> SENDER_EMAIL fallback
+      const resolvedMailbox =
+        conv.mailbox ??
+        (await ctx.db.query.mailbox.findFirst({
+          where: and(eq(mailbox.organizationId, organizationId), eq(mailbox.isDefault, true)),
+        }));
+
+      const fromEmail = resolvedMailbox?.email ?? env.SENDER_EMAIL;
+      const fromName = resolvedMailbox?.name ?? "Support";
+
+      // 3. Find the last inbound message for email threading headers
+      const lastInboundMessage = await ctx.db.query.message.findFirst({
+        where: and(eq(message.conversationId, conv.id), eq(message.direction, "inbound")),
+        orderBy: desc(message.createdAt),
+      });
+
+      // 4. Build email fields
+      const toEmail = conv.contact.email;
+      const subject =
+        conv.subject ?
+          conv.subject.startsWith("Re:") ?
+            conv.subject
+          : `Re: ${conv.subject}`
+        : "Re: (no subject)";
+
+      // 5. Build In-Reply-To and References headers for proper email threading
+      let inReplyToHeader: string | null = null;
+      let referencesHeader: string | null = null;
+      if (lastInboundMessage?.emailMessageId) {
+        inReplyToHeader = lastInboundMessage.emailMessageId;
+        const existingRefs = lastInboundMessage.references ?? "";
+        referencesHeader =
+          existingRefs ?
+            `${existingRefs} ${lastInboundMessage.emailMessageId}`
+          : lastInboundMessage.emailMessageId;
+      }
+
+      // 6. Send the email via Resend
+      const { data: emailData, error: emailError } = await resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [toEmail],
+        subject,
+        html: input.htmlBody,
+        text: input.textBody,
+        headers:
+          inReplyToHeader ?
+            { "In-Reply-To": inReplyToHeader, References: referencesHeader ?? "" }
+          : undefined,
+      });
+
+      if (emailError) {
+        // eslint-disable-next-line no-console
+        console.error("[tickets|sendReply|resend-error]", emailError);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to send email",
+        });
+      }
+
+      // 7. Persist message + update conversation + log event in a transaction
+      const result = await ctx.db.transaction(async (tx) => {
+        // Insert outbound message
+        const [newMessage] = await tx
+          .insert(message)
+          .values({
+            conversationId: conv.id,
+            senderId: ctx.session.user.id,
+            direction: "outbound",
+            resendEmailId: emailData?.id ?? null,
+            fromEmail,
+            toEmail: [toEmail],
+            subject,
+            textBody: input.textBody,
+            htmlBody: input.htmlBody,
+            emailMessageId: null,
+            inReplyTo: inReplyToHeader,
+            references: referencesHeader,
+          })
+          .returning();
+
+        if (!newMessage) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create message record",
+          });
+        }
+
+        // Update conversation lastMessageAt
+        await tx
+          .update(conversation)
+          .set({ lastMessageAt: new Date() })
+          .where(eq(conversation.id, conv.id));
+
+        // Log email_sent event
+        await tx.insert(conversationEvent).values({
+          organizationId,
+          conversationId: conv.id,
+          actorId: ctx.session.user.id,
+          type: "email_sent",
+          payload: {
+            messageId: newMessage.id,
+            to: toEmail,
+            subject,
+          },
+        });
+
+        return newMessage;
+      });
+
+      return { messageId: result.id };
     }),
 });

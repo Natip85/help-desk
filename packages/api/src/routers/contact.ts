@@ -50,49 +50,6 @@ export const contactRouter = createTRPCRouter({
       });
     }
 
-    const [totalTickets, openTickets, pendingTickets, resolvedTickets, closedTickets] =
-      await Promise.all([
-        ctx.db.$count(
-          conversation,
-          and(
-            eq(conversation.organizationId, organizationId),
-            eq(conversation.contactId, contactId)
-          )
-        ),
-        ctx.db.$count(
-          conversation,
-          and(
-            eq(conversation.organizationId, organizationId),
-            eq(conversation.contactId, contactId),
-            eq(conversation.status, "open")
-          )
-        ),
-        ctx.db.$count(
-          conversation,
-          and(
-            eq(conversation.organizationId, organizationId),
-            eq(conversation.contactId, contactId),
-            eq(conversation.status, "pending")
-          )
-        ),
-        ctx.db.$count(
-          conversation,
-          and(
-            eq(conversation.organizationId, organizationId),
-            eq(conversation.contactId, contactId),
-            eq(conversation.status, "resolved")
-          )
-        ),
-        ctx.db.$count(
-          conversation,
-          and(
-            eq(conversation.organizationId, organizationId),
-            eq(conversation.contactId, contactId),
-            eq(conversation.status, "closed")
-          )
-        ),
-      ]);
-
     const recentTicketsRaw = await ctx.db.query.conversation.findMany({
       where: and(
         eq(conversation.organizationId, organizationId),
@@ -150,15 +107,6 @@ export const contactRouter = createTRPCRouter({
           },
         });
 
-    const lastConversationWithMessage = await ctx.db.query.conversation.findFirst({
-      where: and(
-        eq(conversation.organizationId, organizationId),
-        eq(conversation.contactId, contactId)
-      ),
-      orderBy: desc(conversation.lastMessageAt),
-      columns: { lastMessageAt: true },
-    });
-
     return {
       contact: {
         id: found.id,
@@ -172,14 +120,6 @@ export const contactRouter = createTRPCRouter({
         updatedAt: found.updatedAt,
       },
       company: found.company,
-      stats: {
-        totalTickets,
-        openTickets,
-        pendingTickets,
-        resolvedTickets,
-        closedTickets,
-        lastMessageAt: lastConversationWithMessage?.lastMessageAt ?? null,
-      },
       recentTickets,
       recentEvents,
     };
