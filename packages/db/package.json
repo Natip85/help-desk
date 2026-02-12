@@ -1,0 +1,52 @@
+{
+  "name": "@help-desk/db",
+  "type": "module",
+  "exports": {
+    ".": {
+      "default": "./src/index.ts"
+    },
+    "./*": {
+      "default": "./src/*.ts"
+    },
+    "./schema/*": {
+      "default": "./src/schema/*.ts"
+    },
+    "./validators": {
+      "default": "./src/validators/index.ts"
+    },
+    "./validators/*": {
+      "default": "./src/validators/*.ts"
+    }
+  },
+  "scripts": {
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:studio": "drizzle-kit studio",
+    "db:migrate": "drizzle-kit migrate",
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint"
+  },
+  "dependencies": {
+    "@help-desk/env": "workspace:*",
+    "@neondatabase/serverless": "^1.0.2",
+    "@paralleldrive/cuid2": "^3.3.0",
+    "dotenv": "catalog:",
+    "drizzle-orm": "^0.45.1",
+    "pg": "^8.17.2",
+    "ws": "^8.18.3",
+    "zod": "catalog:"
+  },
+  "devDependencies": {
+    "@help-desk/eslint-config": "workspace:*",
+    "@help-desk/prettier-config": "workspace:*",
+    "@help-desk/typescript-config": "workspace:*",
+    "@types/pg": "^8.16.0",
+    "@types/ws": "^8.18.1",
+    "drizzle-kit": "^0.31.8",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "typescript": "catalog:"
+  },
+  "prettier": "@help-desk/prettier-config"
+}

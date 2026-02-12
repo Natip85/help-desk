@@ -1,0 +1,4 @@
+{
+  "extends": "@help-desk/typescript-config/base.json",
+  "include": ["src/**/*", "*.ts", "../../types/**/*.d.ts"]
+}

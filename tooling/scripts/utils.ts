@@ -1,0 +1,3 @@
+export const log = (message: string) => {
+  process.stdout.write(message);
+};

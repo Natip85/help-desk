@@ -1,0 +1,29 @@
+{
+  "name": "@help-desk/scripts",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "clean": "git clean -xdf .cache .turbo dist node_modules",
+    "typecheck": "tsc --noEmit --emitDeclarationOnly false",
+    "with-env": "dotenv -e ../../.env${ENV:+.${ENV}} --",
+    "x": "pnpm with-env tsx -- ",
+    "format": "prettier --check . --ignore-path ../../.gitignore",
+    "lint": "eslint"
+  },
+  "devDependencies": {
+    "@help-desk/db": "workspace:*",
+    "@help-desk/eslint-config": "workspace:*",
+    "@help-desk/prettier-config": "workspace:*",
+    "@help-desk/typescript-config": "workspace:*",
+    "@types/node": "catalog:",
+    "dotenv-cli": "catalog:",
+    "drizzle-orm": "catalog:",
+    "eslint": "catalog:",
+    "prettier": "catalog:",
+    "tsx": "catalog:",
+    "typescript": "catalog:",
+    "zod": "catalog:"
+  },
+  "prettier": "@help-desk/prettier-config"
+}
