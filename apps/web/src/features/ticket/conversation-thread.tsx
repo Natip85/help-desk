@@ -1,8 +1,9 @@
 "use client";
 
+import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { Paperclip } from "lucide-react";
+import { Notebook, Paperclip } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -19,6 +20,9 @@ import { useTRPC } from "@/trpc";
 
 type ThreadData = RouterOutputs["contact"]["conversationThread"];
 type ThreadMessage = ThreadData["messages"][number];
+type ThreadNote = ThreadData["notes"][number];
+
+type TimelineItem = { kind: "message"; data: ThreadMessage } | { kind: "note"; data: ThreadNote };
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -51,6 +55,17 @@ function sanitizeHtml(html: string): string {
   }) as string;
 }
 
+function buildTimeline(messages: ThreadMessage[], notes: ThreadNote[]): TimelineItem[] {
+  const items: TimelineItem[] = [
+    ...messages.map((m) => ({ kind: "message" as const, data: m })),
+    ...notes.map((n) => ({ kind: "note" as const, data: n })),
+  ];
+
+  return items.sort(
+    (a, b) => new Date(a.data.createdAt).getTime() - new Date(b.data.createdAt).getTime()
+  );
+}
+
 // ---------------------------------------------------------------------------
 // MessageBubble
 // ---------------------------------------------------------------------------
@@ -73,7 +88,7 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
     <div
       className={cn(
         "rounded-lg p-4",
-        isOutbound ? "bg-primary/6 dark:bg-primary/10" : "bg-transparent"
+        isOutbound ? "bg-primary/30 dark:bg-primary/30" : "bg-transparent"
       )}
     >
       {/* Header */}
@@ -89,11 +104,9 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
         </Avatar>
         <div className="flex min-w-0 flex-1 items-baseline gap-2">
           <span className="truncate text-sm font-semibold">{authorName}</span>
-          {isOutbound && <span className="text-muted-foreground text-xs italic">replied</span>}
+          {isOutbound && <span className="text-xs italic">replied</span>}
         </div>
-        <time className="text-muted-foreground shrink-0 text-xs">
-          {formatMessageDateTime(message.createdAt)}
-        </time>
+        <time className="shrink-0 text-xs">{formatMessageDateTime(message.createdAt)}</time>
       </div>
 
       {/* Body */}
@@ -103,10 +116,7 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
             className="prose prose-sm dark:prose-invert max-w-none wrap-break-word"
             dangerouslySetInnerHTML={{ __html: sanitizeHtml(htmlBody) }}
           />
-        : <p className="text-muted-foreground text-sm whitespace-pre-wrap">
-            {textBody ?? "(no content)"}
-          </p>
-        }
+        : <p className="text-sm whitespace-pre-wrap">{textBody ?? "(no content)"}</p>}
 
         {/* Attachments */}
         {message.attachments.length > 0 && (
@@ -131,6 +141,51 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
 }
 
 // ---------------------------------------------------------------------------
+// NoteBubble
+// ---------------------------------------------------------------------------
+
+function NoteBubble({ note }: { note: ThreadNote }) {
+  const authorName = note.author?.name ?? "Agent";
+  const authorImage = note.author?.image;
+  const initials = getInitials(authorName);
+
+  return (
+    <div className="rounded-lg border border-amber-300/50 bg-amber-50 p-4 dark:border-amber-500/30 dark:bg-amber-950/30">
+      {/* Header */}
+      <div className="flex items-center gap-3">
+        <Avatar size="sm">
+          {authorImage && (
+            <AvatarImage
+              src={authorImage}
+              alt={authorName}
+            />
+          )}
+          <AvatarFallback>{initials}</AvatarFallback>
+        </Avatar>
+        <div className="flex min-w-0 flex-1 items-baseline gap-2">
+          <span className="truncate text-sm font-semibold">{authorName}</span>
+          <span className="inline-flex items-center gap-1 text-xs text-amber-700 dark:text-amber-400">
+            <Notebook className="size-3" />
+            added a note
+          </span>
+        </div>
+        <time className="text-muted-foreground shrink-0 text-xs">
+          {formatMessageDateTime(note.createdAt)}
+        </time>
+      </div>
+
+      {/* Body */}
+      <div className="mt-3 pl-9">
+        <div
+          className="prose prose-sm dark:prose-invert max-w-none wrap-break-word"
+          dangerouslySetInnerHTML={{ __html: sanitizeHtml(note.body) }}
+        />
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // ConversationThread
 // ---------------------------------------------------------------------------
 
@@ -148,6 +203,11 @@ export function ConversationThread({ ticketId }: ConversationThreadProps) {
     error,
     refetch,
   } = useQuery(trpc.contact.conversationThread.queryOptions({ conversationId: ticketId }));
+
+  const timeline = useMemo(() => {
+    if (!thread) return [];
+    return buildTimeline(thread.messages ?? [], thread.notes ?? []);
+  }, [thread]);
 
   // Loading
   if (isPending) {
@@ -191,9 +251,7 @@ export function ConversationThread({ ticketId }: ConversationThreadProps) {
     );
   }
 
-  const messages = thread?.messages ?? [];
-
-  if (messages.length === 0) {
+  if (timeline.length === 0) {
     return (
       <div className="text-muted-foreground rounded-lg border border-dashed p-4 text-center text-sm">
         No messages in this conversation yet.
@@ -203,10 +261,12 @@ export function ConversationThread({ ticketId }: ConversationThreadProps) {
 
   return (
     <div className="space-y-1 pb-2">
-      {messages.map((m, idx) => (
-        <div key={m.id}>
-          <MessageBubble message={m} />
-          {idx < messages.length - 1 && <Separator className="my-1" />}
+      {timeline.map((item, idx) => (
+        <div key={item.data.id}>
+          {item.kind === "message" ?
+            <MessageBubble message={item.data} />
+          : <NoteBubble note={item.data} />}
+          {idx < timeline.length - 1 && <Separator className="my-1" />}
         </div>
       ))}
     </div>

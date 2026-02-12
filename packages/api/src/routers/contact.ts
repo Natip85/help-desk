@@ -1,10 +1,11 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, inArray } from "drizzle-orm";
 import { z } from "zod";
 
 import { contact } from "@help-desk/db/schema/contacts";
 import { conversation, conversationStatus } from "@help-desk/db/schema/conversations";
 import { conversationEvent } from "@help-desk/db/schema/events";
+import { note } from "@help-desk/db/schema/notes";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -247,10 +248,22 @@ export const contactRouter = createTRPCRouter({
         });
       }
 
+      // Fetch notes separately to avoid circular schema imports
+      const notes = await ctx.db.query.note.findMany({
+        where: eq(note.conversationId, input.conversationId),
+        orderBy: asc(note.createdAt),
+        with: {
+          author: {
+            columns: { id: true, name: true, image: true },
+          },
+        },
+      });
+
       const { conversationTags, ...rest } = found;
       return {
         ...rest,
         tags: conversationTags.map((ct) => ct.tag),
+        notes,
       };
     }),
 });

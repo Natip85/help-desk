@@ -1,12 +1,14 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Forward, GitBranchPlus, Notebook, Reply, Trash2, X } from "lucide-react";
+import { Forward, GitBranchPlus, Reply, Trash2, X } from "lucide-react";
 import { parseAsBoolean, useQueryState } from "nuqs";
 
 import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/trpc";
+import { AddNoteDialog } from "./add-note-dialog";
 import { ToggleContactSidebarButton } from "./toggle-contact-sidebar-button";
+import { ToggleTicketStatusesSidebarButton } from "./toggle-ticket-statuses-sidebar-button";
 
 export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
   const trpc = useTRPC();
@@ -14,7 +16,7 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
   const [, setIsOpen] = useQueryState("emailEditorOpen", parseAsBoolean.withDefault(false));
   return (
     <div className="flex items-center justify-between gap-3">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Button
           variant="outline"
           onClick={() => void setIsOpen(true)}
@@ -22,10 +24,7 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
           <Reply />
           Reply
         </Button>
-        <Button variant="outline">
-          <Notebook />
-          Add note
-        </Button>
+        <AddNoteDialog ticketId={ticketId} />
         <Button variant="outline">
           <Forward />
           Forward
@@ -43,8 +42,9 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
           Delete
         </Button>
       </div>
-      <div>
+      <div className="flex items-center gap-2">
         <ToggleContactSidebarButton contactId={ticket?.contact?.id} />
+        <ToggleTicketStatusesSidebarButton ticketId={ticketId} />
       </div>
     </div>
   );

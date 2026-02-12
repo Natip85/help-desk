@@ -7,6 +7,7 @@ import { AnimatePresence, motion } from "motion/react";
 
 import { useSidebarParams } from "./query-params";
 import { RightSidebar, useSidebar } from "./right-sidebar";
+import { TicketStatusesSidebar } from "./ticket-statuses-sidebar";
 
 const TicketFilterSidebar = dynamic(() =>
   import("./ticket-filter-sidebar").then((mod) => ({
@@ -63,7 +64,8 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
   // Get the current active component key for animation
   const getActiveKey = () => {
     if (sidebarParams.contactId) return "contact-info";
-    if (sidebarParams.filterSaving) return "create-smart-list";
+    // if (sidebarParams.filterSaving) return "create-smart-list";
+    if (sidebarParams.ticketStatusesId) return "ticket-statuses";
     if (sidebarParams.filterOpen && !sidebarParams.filterSaving) return "ticket-filter";
 
     return null;
@@ -89,6 +91,7 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
           >
             {sidebarParams.contactId && <ContactInfoSidebar />}
             {sidebarParams.filterOpen && !sidebarParams.filterSaving && <TicketFilterSidebar />}
+            {sidebarParams.ticketStatusesId && <TicketStatusesSidebar />}
           </motion.div>
         )}
       </AnimatePresence>

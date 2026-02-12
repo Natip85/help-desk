@@ -1,11 +1,12 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsLeft, ChevronsRight, Menu, Ticket } from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Menu, Shield, Ticket } from "lucide-react";
 
 import {
   Sidebar,
   SidebarContent,
+  SidebarFooter,
   SidebarHeader,
   SidebarRail,
   SidebarTrigger,
@@ -52,7 +53,13 @@ const data = {
       url: "/tickets",
       icon: Ticket,
     },
+    {
+      title: "Admin",
+      url: "/admin",
+      icon: Shield,
+    },
   ],
+  footerItems: [],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -65,17 +72,14 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {...props}
       >
         <CustomSidebarTrigger />
-        <SidebarHeader>
-          {/* <TeamSwitcher teams={data.teams} /> */}
-          <NavMain items={data.navMain} />
-        </SidebarHeader>
+        <SidebarHeader>{/* <TeamSwitcher teams={data.teams} /> */}</SidebarHeader>
         <SidebarContent>
-          {/* <NavWorkspaces workspaces={data.workspaces} />
-        <NavSecondary
-        items={data.navSecondary}
-        className="mt-auto"
-        /> */}
+          <NavMain
+            items={data.navMain}
+            footerItems={data.footerItems}
+          />
         </SidebarContent>
+        <SidebarFooter></SidebarFooter>
         <SidebarRail />
       </Sidebar>
     </>

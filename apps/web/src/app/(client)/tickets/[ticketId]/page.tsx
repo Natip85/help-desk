@@ -22,7 +22,7 @@ export default async function TicketPage({ params }: PageProps) {
         </PageTitle>
         <TicketHeader ticketId={ticketId} />
       </div>
-      <div className="bg-secondary m-2 flex-1 rounded-xl p-3">
+      <div className="bg-secondary/30 m-2 flex-1 rounded-xl p-3">
         <ConversationThread ticketId={ticketId} />
         <EmailEditor ticketId={ticketId} />
       </div>

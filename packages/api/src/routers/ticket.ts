@@ -10,6 +10,7 @@ import {
 } from "@help-desk/db/schema/conversations";
 import { conversationEvent } from "@help-desk/db/schema/events";
 import { mailbox } from "@help-desk/db/schema/mailboxes";
+import { note } from "@help-desk/db/schema/notes";
 import { env } from "@help-desk/env/server";
 
 import { resend } from "../lib/resend";
@@ -370,5 +371,70 @@ export const ticketRouter = createTRPCRouter({
       });
 
       return { messageId: result.id };
+    }),
+
+  addNote: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        body: z.string().min(1),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      // Verify conversation belongs to the organization
+      const conv = await ctx.db.query.conversation.findFirst({
+        where: and(
+          eq(conversation.id, input.conversationId),
+          eq(conversation.organizationId, organizationId)
+        ),
+        columns: { id: true },
+      });
+
+      if (!conv) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      // Insert note + event in a transaction
+      const result = await ctx.db.transaction(async (tx) => {
+        const [newNote] = await tx
+          .insert(note)
+          .values({
+            conversationId: conv.id,
+            authorId: ctx.session.user.id,
+            body: input.body,
+          })
+          .returning();
+
+        if (!newNote) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create note",
+          });
+        }
+
+        await tx.insert(conversationEvent).values({
+          organizationId,
+          conversationId: conv.id,
+          actorId: ctx.session.user.id,
+          type: "note_added",
+          payload: { noteId: newNote.id },
+        });
+
+        return newNote;
+      });
+
+      return { noteId: result.id };
     }),
 });

@@ -1,86 +1,134 @@
 "use client";
 
-import type { LucideIcon } from "lucide-react";
-import { ArrowUpRight, Link, MoreHorizontal, StarOff, Trash2 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import type { NavigationItems } from "./nav-types";
+import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  useSidebar,
 } from "@/components/ui/sidebar";
+import { cn } from "@/lib/utils";
 
-export function NavMain({
-  items,
-}: {
-  items: {
-    title: string;
-    url: string;
-    icon: LucideIcon;
-    isActive?: boolean;
-  }[];
-}) {
+type NavMainProps = NavigationItems & React.ComponentProps<typeof SidebarGroup>;
+
+export function NavMain({ items, children, footerItems, ...props }: NavMainProps) {
+  const pathname = usePathname();
+  const { state } = useSidebar();
+
   return (
-    <SidebarGroup>
-      {/* <SidebarGroupLabel>Favorites</SidebarGroupLabel> */}
-      <SidebarMenu>
-        {items.map((item) => (
-          <SidebarMenuItem key={item.title}>
-            <SidebarMenuButton
-              asChild
-              tooltip={item.title}
-            >
-              <a
-                href={item.url}
-                title={item.title}
-              >
-                <item.icon className="size-4 shrink-0" />
-                <span>{item.title}</span>
-              </a>
-            </SidebarMenuButton>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <SidebarMenuAction showOnHover>
-                  <MoreHorizontal />
-                  <span className="sr-only">More</span>
-                </SidebarMenuAction>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent
-                className="w-56 rounded-lg"
-                side="right"
-                align="start"
-              >
-                <DropdownMenuItem>
-                  <StarOff className="text-muted-foreground" />
-                  <span>Remove from Favorites</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Link className="text-muted-foreground" />
-                  <span>Copy Link</span>
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <ArrowUpRight className="text-muted-foreground" />
-                  <span>Open in New Tab</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem>
-                  <Trash2 className="text-muted-foreground" />
-                  <span>Delete</span>
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </SidebarMenuItem>
-        ))}
-      </SidebarMenu>
-    </SidebarGroup>
+    <>
+      <SidebarGroup {...props}>
+        <SidebarMenu>
+          {children}
+
+          {items.map((item) => {
+            const isActive =
+              pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url + "/"));
+            const hasSubmenu = item.submenu && item.submenu.length > 0;
+            const isSubmenuActive =
+              hasSubmenu &&
+              item.submenu?.some(
+                (subItem) =>
+                  pathname === subItem.url ||
+                  (subItem.url !== "/" && pathname.startsWith(subItem.url + "/"))
+              );
+
+            if (hasSubmenu) {
+              return (
+                <Collapsible
+                  key={item.title}
+                  defaultOpen={isActive || isSubmenuActive}
+                  className="group/collapsible"
+                >
+                  <SidebarMenuItem>
+                    <div className="flex w-full items-center">
+                      <SidebarMenuButton
+                        isActive={isActive}
+                        size="lg"
+                        tooltip={item.title}
+                        asChild
+                        className="flex-1"
+                      >
+                        <Link href={item.url as Route}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </Link>
+                      </SidebarMenuButton>
+                      {state !== "collapsed" && (
+                        <CollapsibleTrigger
+                          asChild
+                          className="mr-3 shrink-0"
+                        >
+                          <Button
+                            type="button"
+                            variant="link"
+                            aria-label="Toggle submenu"
+                            className="flex items-center justify-center rounded-md p-0"
+                          >
+                            <ChevronDown className="size-6 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-180" />
+                          </Button>
+                        </CollapsibleTrigger>
+                      )}
+                    </div>
+                  </SidebarMenuItem>
+                </Collapsible>
+              );
+            }
+
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  isActive={isActive}
+                  asChild
+                  size="lg"
+                  tooltip={item.title}
+                >
+                  <Link
+                    href={item.url as Route}
+                    className={cn(isActive && "bg-accent/50")}
+                  >
+                    <item.icon />
+                    <span>{item.title}</span>
+                    {item.hasDropdown && <ChevronDown className="ml-auto" />}
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroup>
+
+      <SidebarGroup className="mt-auto">
+        <SidebarMenu>
+          {footerItems.map((item) => {
+            const isActive =
+              pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url + "/"));
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton
+                  isActive={isActive}
+                  size="lg"
+                  asChild
+                  tooltip={item.title}
+                >
+                  <Link href={item.url as Route}>
+                    <item.icon />
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            );
+          })}
+        </SidebarMenu>
+      </SidebarGroup>
+    </>
   );
 }

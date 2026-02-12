@@ -6,18 +6,20 @@ import { parseAsBoolean, parseAsString } from "nuqs/server";
 
 import { useSidebar } from "./right-sidebar";
 
-type Sidebars = "filterOpen" | "filterSaving" | "contactId";
+type Sidebars = "filterOpen" | "filterSaving" | "contactId" | "ticketStatusesId";
 
 export const sidebarParamsParser = {
   filterOpen: parseAsString,
   filterSaving: parseAsBoolean.withDefault(false),
   contactId: parseAsString,
+  ticketStatusesId: parseAsString,
 };
 
 const emptySidebarParams: Record<Sidebars, null> = {
   filterOpen: null,
   filterSaving: null,
   contactId: null,
+  ticketStatusesId: null,
 };
 
 export const sidebarParamsSerializer = createSerializer(sidebarParamsParser);
@@ -70,6 +72,16 @@ export const useSidebarParams = () => {
       };
     });
   };
+  const toggleTicketStatusesSidebarId = (id: string, open?: boolean) => {
+    void setSidebarParams((prev) => {
+      const ticketStatusesId = open ?? (prev.ticketStatusesId === id ? null : id);
+      setSidebarOpen(!!ticketStatusesId);
+      return {
+        ...emptySidebarParams,
+        ticketStatusesId: ticketStatusesId ? id : null,
+      };
+    });
+  };
 
   const setFilterOpenId = (newFilterOpen: string) => {
     void setSidebarParams((prev) => {
@@ -104,5 +116,6 @@ export const useSidebarParams = () => {
     setFilterOpenId,
     setSidebarParams,
     closeSidebar,
+    toggleTicketStatusesSidebarId,
   };
 };

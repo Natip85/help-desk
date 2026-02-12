@@ -70,7 +70,7 @@ export const ContactSidebarHeader = ({ contact, company }: ContactSidebarHeaderP
                 });
               }}
             >
-              <Mail className="size-3.5" />
+              <Mail className="mr-2 size-4" />
               Copy email
             </Button>
             <Tooltip>
@@ -85,8 +85,8 @@ export const ContactSidebarHeader = ({ contact, company }: ContactSidebarHeaderP
                   className="h-auto p-1"
                 >
                   {copied ?
-                    <Check className="size-5" />
-                  : <Copy className="size-5" />}
+                    <Check className="size-4" />
+                  : <Copy className="size-4" />}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>{copied ? "Copied" : "Copy to clipboard"}</TooltipContent>
