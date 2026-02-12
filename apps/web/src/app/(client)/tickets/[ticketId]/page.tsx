@@ -2,6 +2,7 @@ import { Plus } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
+import { ConversationThread } from "@/features/ticket/conversation-thread";
 import { EmailEditor } from "@/features/ticket/email-editor";
 import { TicketHeader } from "@/features/ticket/ticket-header";
 
@@ -19,9 +20,10 @@ export default async function TicketPage({ params }: PageProps) {
             New
           </Button>
         </PageTitle>
-        <TicketHeader />
+        <TicketHeader ticketId={ticketId} />
       </div>
       <div className="bg-secondary m-2 flex-1 rounded-xl p-3">
+        <ConversationThread ticketId={ticketId} />
         <EmailEditor ticketId={ticketId} />
       </div>
     </div>

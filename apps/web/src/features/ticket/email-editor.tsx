@@ -1,9 +1,10 @@
 "use client";
 
 import type { Editor, JSONContent } from "@tiptap/react";
-import { useCallback, useRef, useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useEffect, useRef } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Loader2, Reply, X } from "lucide-react";
+import { parseAsBoolean, useQueryState } from "nuqs";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -16,22 +17,39 @@ type EmailEditorProps = {
 };
 
 export function EmailEditor({ ticketId }: EmailEditorProps) {
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useQueryState("emailEditorOpen", parseAsBoolean.withDefault(false));
   const editorRef = useRef<Editor | null>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Small delay to let the collapsible content expand before scrolling
+      const timer = setTimeout(() => {
+        containerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+      }, 100);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen]);
   const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
   const { data: ticket } = useQuery(trpc.ticket.getById.queryOptions(ticketId));
 
   const { mutate: sendReply, isPending } = useMutation(trpc.ticket.sendReply.mutationOptions({}));
 
-  const handleSendSuccess = useCallback(() => {
+  const handleSendSuccess = () => {
     editorRef.current?.commands.clearContent();
-    setIsOpen(false);
-  }, []);
+    void setIsOpen(false);
+    void queryClient.invalidateQueries({
+      queryKey: trpc.contact.conversationThread.queryOptions({
+        conversationId: ticketId,
+      }).queryKey,
+    });
+  };
 
-  const handleEditorReady = useCallback((editor: Editor) => {
+  const handleEditorReady = (editor: Editor) => {
     editorRef.current = editor;
-  }, []);
+  };
 
   const handleSend = () => {
     const editor = editorRef.current;
@@ -54,7 +72,7 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
   const handleDiscard = () => {
     editorRef.current?.commands.clearContent();
-    setIsOpen(false);
+    void setIsOpen(false);
   };
 
   const fromEmail = ticket?.fromEmail ?? "";
@@ -64,10 +82,11 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
   return (
     <Collapsible
+      ref={containerRef}
       open={isOpen}
       onOpenChange={setIsOpen}
     >
-      <CollapsibleTrigger className="hover:bg-muted/50 flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors">
+      <CollapsibleTrigger className="hover:bg-accent/80 bg-accent/50 flex w-full items-center gap-3 rounded-lg p-3 text-left transition-colors">
         <Avatar size="sm">
           <AvatarFallback>{fromInitials}</AvatarFallback>
         </Avatar>
