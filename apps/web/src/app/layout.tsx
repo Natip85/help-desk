@@ -11,10 +11,10 @@ import { extractRouterConfig } from "uploadthing/server";
 
 import { Providers } from "@/components/providers";
 import { Header } from "@/features/nav/header";
-import { ourFileRouter } from "./api/uploadthing/core";
 
 async function UploadThingSSR() {
   await connection();
+  const { ourFileRouter } = await import("./api/uploadthing/core");
   return <NextSSRPlugin routerConfig={extractRouterConfig(ourFileRouter)} />;
 }
 
