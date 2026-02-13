@@ -13,7 +13,7 @@ import type {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { createContextHook } from "@/hooks/create-context-hook";
 import { cn } from "@/lib/utils";
 
@@ -114,9 +114,9 @@ export const TicketCardHeader = ({
   return (
     <CardHeader
       {...props}
-      className={cn("flex flex-1 flex-row items-center gap-4 p-0", className)}
+      className={cn("flex flex-1 flex-row items-start gap-3 p-0", className)}
     >
-      <Avatar className="size-12">
+      <Avatar className="mt-0.5 size-10 shrink-0">
         {contact.avatarUrl && (
           <AvatarImage
             src={contact.avatarUrl}
@@ -125,39 +125,26 @@ export const TicketCardHeader = ({
         )}
         <AvatarFallback>{initials}</AvatarFallback>
       </Avatar>
-      <div className="flex flex-col gap-1">
-        <div className="flex flex-col gap-1 text-sm leading-tight">
-          <span className="text-base">
-            <Link
-              href={`/tickets/${data?.id}`}
-              className="hover:text-sky-700 hover:underline"
-              onPointerDown={(e) => e.stopPropagation()}
-              onClick={(e) => e.stopPropagation()}
-            >
-              {data?.subject}
-            </Link>
-          </span>
+      <div className="flex flex-col gap-1.5">
+        <Link
+          href={`/tickets/${data?.id}`}
+          className="text-sm font-medium hover:underline"
+          onPointerDown={(e) => e.stopPropagation()}
+          onClick={(e) => e.stopPropagation()}
+        >
+          {data?.subject}
+        </Link>
+        <div className="text-muted-foreground flex items-center gap-1.5 text-xs">
+          <span>{displayName}</span>
+          <span>·</span>
+          <ChannelIcon className="size-3.5" />
+          <span className="capitalize">{channel}</span>
+          <span>·</span>
+          <span>{formatDate(data?.createdAt)}</span>
         </div>
         {children}
-        <div className="flex flex-row items-center gap-2">
-          <ChannelIcon className="text-muted-foreground size-4" />
-          <span className="font-medium">{displayName ?? "\u00A0"}</span> »{" "}
-          <span className="text-xs">Created: {formatDate(data?.createdAt)}</span>
-        </div>
       </div>
     </CardHeader>
-  );
-};
-
-export const TicketCardTitle = ({
-  className,
-  ...props
-}: React.ComponentProps<typeof CardTitle>) => {
-  return (
-    <CardTitle
-      className={cn("", className)}
-      {...props}
-    />
   );
 };
 
@@ -220,18 +207,38 @@ export const TicketCardContact = ({ className, ...props }: React.ComponentProps<
   );
 };
 
-export const TicketCardContent = ({
-  children,
-  className,
-  ...props
-}: React.ComponentProps<typeof CardContent>) => {
+export const TicketCardTags = ({ className, ...props }: React.ComponentProps<"div">) => {
   return (
-    <CardContent
+    <div
       {...props}
-      className={cn("flex-1", className)}
+      className={cn("flex items-center gap-1.5", className)}
     >
-      {children}
-    </CardContent>
+      <Badge
+        variant="outline"
+        className="px-2 py-0 text-xs font-normal"
+      >
+        Bug
+      </Badge>
+      <Badge
+        variant="outline"
+        className="px-2 py-0 text-xs font-normal"
+      >
+        Auth
+      </Badge>
+    </div>
+  );
+};
+
+export const TicketCardAssignee = ({ className, ...props }: React.ComponentProps<"div">) => {
+  return (
+    <div
+      {...props}
+      className={cn("", className)}
+    >
+      <Avatar className="size-7">
+        <AvatarFallback className="text-xs">AR</AvatarFallback>
+      </Avatar>
+    </div>
   );
 };
 
@@ -240,22 +247,11 @@ export const TicketCardFooter = ({
   className,
   ...props
 }: React.ComponentProps<typeof CardFooter>) => {
-  const { data } = useTicketCard();
-  const status = data?.status ? statusConfig[data.status] : null;
-
   return (
     <CardFooter
       {...props}
-      className={cn("flex-col", className)}
+      className={cn("flex flex-col items-end justify-between p-0", className)}
     >
-      {status && (
-        <Badge
-          variant="outline"
-          className={cn("", status.className)}
-        >
-          {status.label}
-        </Badge>
-      )}
       {children}
     </CardFooter>
   );

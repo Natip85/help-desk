@@ -25,6 +25,10 @@ export const messageDirection = ["inbound", "outbound"] as const;
 export type MessageDirection = (typeof messageDirection)[number];
 export const messageDirectionEnum = pgEnum("message_direction", messageDirection);
 
+export const messageType = ["reply", "forward"] as const;
+export type MessageType = (typeof messageType)[number];
+export const messageTypeEnum = pgEnum("message_type", messageType);
+
 // ─── Conversation ────────────────────────────────────────────────────────────
 
 export const conversation = Utils.createTable(
@@ -81,6 +85,7 @@ export const message = Utils.createTable(
     contactId: text("contact_id").references(() => contact.id),
     senderId: text("sender_id").references(() => user.id),
     direction: messageDirectionEnum("direction").$type<MessageDirection>().notNull(),
+    messageType: messageTypeEnum("message_type").$type<MessageType>().default("reply").notNull(),
     resendEmailId: text("resend_email_id"),
     fromEmail: text("from_email").notNull(),
     toEmail: text("to_email").array().notNull(),

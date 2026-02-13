@@ -1,6 +1,6 @@
 import type { RefObject } from "react";
 import { useRef } from "react";
-import { ChevronDown, LayoutGrid, MoreVertical, SortDesc, TableProperties } from "lucide-react";
+import { ChevronDown, Filter, LayoutGrid, MoreVertical, TableProperties } from "lucide-react";
 import { useResizeObserver } from "usehooks-ts";
 
 import type { TicketSortOption } from "@help-desk/db/validators/ticket-sort";
@@ -37,7 +37,7 @@ const FilterButton = ({
     >
       {filterCount > 0 ?
         <Badge>{filterCount}</Badge>
-      : <SortDesc />}
+      : <Filter className="size-4" />}
       Filter
       <ChevronDown
         name="chevron-down"

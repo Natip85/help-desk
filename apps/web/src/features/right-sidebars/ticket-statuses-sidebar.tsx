@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 import { conversationPriority, conversationStatus } from "@help-desk/db/schema/conversations";
@@ -44,6 +45,7 @@ export const TicketStatusesSidebar = () => {
         void queryClient.invalidateQueries({
           queryKey: trpc.ticket.all.queryKey(),
         });
+        toast.success("Priority updated successfully");
       },
     })
   );
@@ -57,6 +59,7 @@ export const TicketStatusesSidebar = () => {
         void queryClient.invalidateQueries({
           queryKey: trpc.ticket.all.queryKey(),
         });
+        toast.success("Status updated successfully");
       },
     })
   );
@@ -124,7 +127,7 @@ export const TicketStatusesSidebar = () => {
                       key={item.value}
                       value={item}
                     >
-                      <span className={item.className}>{item.label}</span>
+                      <span>{item.label}</span>
                     </ComboboxItem>
                   )}
                 </ComboboxList>

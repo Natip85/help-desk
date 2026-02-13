@@ -373,6 +373,133 @@ export const ticketRouter = createTRPCRouter({
       return { messageId: result.id };
     }),
 
+  forwardEmail: protectedProcedure
+    .input(
+      z.object({
+        conversationId: z.string(),
+        toEmail: z.string().email(),
+        htmlBody: z.string().min(1),
+        textBody: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      // 1. Fetch the conversation with mailbox
+      const conv = await ctx.db.query.conversation.findFirst({
+        where: and(
+          eq(conversation.id, input.conversationId),
+          eq(conversation.organizationId, organizationId)
+        ),
+        with: {
+          mailbox: true,
+        },
+      });
+
+      if (!conv) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Conversation not found",
+        });
+      }
+
+      // 2. Resolve the mailbox to send from
+      const resolvedMailbox =
+        conv.mailbox ??
+        (await ctx.db.query.mailbox.findFirst({
+          where: and(eq(mailbox.organizationId, organizationId), eq(mailbox.isDefault, true)),
+        }));
+
+      const fromEmail = resolvedMailbox?.email ?? env.SENDER_EMAIL;
+      const fromName = resolvedMailbox?.name ?? "Support";
+
+      // 3. Build subject with Fwd: prefix
+      const subject =
+        conv.subject ?
+          conv.subject.startsWith("Fwd:") ?
+            conv.subject
+          : `Fwd: ${conv.subject}`
+        : "Fwd: (no subject)";
+
+      // 4. Send the email via Resend (no threading headers for forwards)
+      const { data: emailData, error: emailError } = await resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        to: [input.toEmail],
+        subject,
+        html: input.htmlBody,
+        text: input.textBody,
+      });
+
+      if (emailError) {
+        // eslint-disable-next-line no-console
+        console.error("[tickets|forwardEmail|resend-error]", emailError);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to forward email",
+        });
+      }
+
+      // 5. Persist message + update conversation + log event in a transaction
+      const result = await ctx.db.transaction(async (tx) => {
+        const [newMessage] = await tx
+          .insert(message)
+          .values({
+            conversationId: conv.id,
+            senderId: ctx.session.user.id,
+            direction: "outbound",
+            messageType: "forward",
+            resendEmailId: emailData?.id ?? null,
+            fromEmail,
+            toEmail: [input.toEmail],
+            subject,
+            textBody: input.textBody,
+            htmlBody: input.htmlBody,
+            emailMessageId: null,
+            inReplyTo: null,
+            references: null,
+          })
+          .returning();
+
+        if (!newMessage) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: "Failed to create message record",
+          });
+        }
+
+        // Update conversation lastMessageAt
+        await tx
+          .update(conversation)
+          .set({ lastMessageAt: new Date() })
+          .where(eq(conversation.id, conv.id));
+
+        // Log email_sent event
+        await tx.insert(conversationEvent).values({
+          organizationId,
+          conversationId: conv.id,
+          actorId: ctx.session.user.id,
+          type: "email_sent",
+          payload: {
+            messageId: newMessage.id,
+            to: input.toEmail,
+            subject,
+            forwarded: true,
+          },
+        });
+
+        return newMessage;
+      });
+
+      return { messageId: result.id };
+    }),
+
   addNote: protectedProcedure
     .input(
       z.object({

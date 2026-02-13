@@ -1,38 +1,42 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Forward, GitBranchPlus, Reply, Trash2, X } from "lucide-react";
-import { parseAsBoolean, useQueryState } from "nuqs";
+import { Forward, GitBranchPlus, Reply, Trash2 } from "lucide-react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 import { Button } from "@/components/ui/button";
 import { useTRPC } from "@/trpc";
 import { AddNoteDialog } from "./add-note-dialog";
+import { CloseTicketButton } from "./close-ticket-button";
 import { ToggleContactSidebarButton } from "./toggle-contact-sidebar-button";
 import { ToggleTicketStatusesSidebarButton } from "./toggle-ticket-statuses-sidebar-button";
 
 export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
   const trpc = useTRPC();
   const { data: ticket } = useQuery(trpc.ticket.getById.queryOptions(ticketId));
-  const [, setIsOpen] = useQueryState("emailEditorOpen", parseAsBoolean.withDefault(false));
+  const [, setActiveEditor] = useQueryState(
+    "editor",
+    parseAsStringLiteral(["reply", "forward"] as const)
+  );
   return (
     <div className="flex items-center justify-between gap-3">
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
-          onClick={() => void setIsOpen(true)}
+          onClick={() => void setActiveEditor("reply")}
         >
           <Reply />
           Reply
         </Button>
         <AddNoteDialog ticketId={ticketId} />
-        <Button variant="outline">
+        <Button
+          variant="outline"
+          onClick={() => void setActiveEditor("forward")}
+        >
           <Forward />
           Forward
         </Button>
-        <Button variant="outline">
-          <X />
-          Close
-        </Button>
+        {ticket?.status !== "closed" && <CloseTicketButton ticketId={ticketId} />}
         <Button variant="outline">
           <GitBranchPlus />
           Merge

@@ -1,5 +1,7 @@
 "use client";
 
+import { ChevronDown } from "lucide-react";
+
 import type { TicketCardData } from "./ticket-card";
 import { Button } from "@/components/ui/button";
 import {
@@ -61,7 +63,7 @@ const SelectActionField = ({ action }: { action: SelectAction }) => {
 
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-muted-foreground text-xs">{action.label}</span>
+      {/* <span className="text-muted-foreground text-xs">{action.label}</span> */}
 
       <Combobox
         items={action.options}
@@ -75,12 +77,13 @@ const SelectActionField = ({ action }: { action: SelectAction }) => {
         <ComboboxTrigger
           render={
             <Button
-              variant="outline"
+              variant="ghost"
               className="w-fit justify-between border-0 bg-transparent font-normal"
               onPointerDown={(e) => e.stopPropagation()}
               onClick={(e) => e.stopPropagation()}
             >
               <ComboboxValue placeholder="Select..." />
+              <ChevronDown className="size-4" />
             </Button>
           }
         />

@@ -90,6 +90,18 @@ export const columns: ColumnDef<TicketCardData>[] = [
     cell: ({ row }) => <div>{row.original.subject}</div>,
   },
   {
+    id: "tags",
+    accessorKey: "tags",
+    header: () => <div>Tags</div>,
+    cell: ({ row }) => (
+      <div>
+        {row.original.tags.map((tag) => (
+          <Badge key={tag.id}>tag here</Badge>
+        ))}
+      </div>
+    ),
+  },
+  {
     id: "contact",
     accessorKey: "contact",
     header: () => <div>Contact</div>,

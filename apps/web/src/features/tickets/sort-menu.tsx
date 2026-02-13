@@ -1,7 +1,15 @@
 "use client";
 
 import { createContext, useContext } from "react";
-import { ArrowDown, ArrowUp, ChevronDown, GripVertical, Plus, Trash2 } from "lucide-react";
+import {
+  ArrowDown,
+  ArrowUp,
+  ChevronDown,
+  GripVertical,
+  Plus,
+  SortDesc,
+  Trash2,
+} from "lucide-react";
 import { Reorder, useDragControls } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
@@ -82,7 +90,7 @@ function SortButton(props: React.ComponentProps<typeof Button>) {
     >
       {hasSelectedSorts ?
         <Badge className="mx-0.5">{selectedSorts.length}</Badge>
-      : <ArrowUp />}
+      : <SortDesc />}
       Sort
       <ChevronDown />
     </Button>

@@ -35,7 +35,7 @@ export const ModeToggle = ({ className, ...props }: React.ComponentProps<typeof 
           <span className="sr-only">Toggle theme</span>
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent>
+      <DropdownMenuContent side="bottom">
         {themes.map(({ label, value }) => (
           <DropdownMenuItem
             key={value}

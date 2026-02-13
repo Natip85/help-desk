@@ -52,7 +52,6 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
                     <div className="flex w-full items-center">
                       <SidebarMenuButton
                         isActive={isActive}
-                        size="lg"
                         tooltip={item.title}
                         asChild
                         className="flex-1"
@@ -88,7 +87,6 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
                 <SidebarMenuButton
                   isActive={isActive}
                   asChild
-                  size="lg"
                   tooltip={item.title}
                 >
                   <Link
@@ -115,7 +113,6 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
               <SidebarMenuItem key={item.title}>
                 <SidebarMenuButton
                   isActive={isActive}
-                  size="lg"
                   asChild
                   tooltip={item.title}
                 >

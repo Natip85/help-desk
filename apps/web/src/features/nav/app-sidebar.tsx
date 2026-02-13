@@ -1,7 +1,15 @@
 "use client";
 
 import * as React from "react";
-import { ChevronsLeft, ChevronsRight, Menu, Shield, Ticket } from "lucide-react";
+import {
+  ChevronsLeft,
+  ChevronsRight,
+  LayoutTemplate,
+  Menu,
+  Settings,
+  Ticket,
+  Users2,
+} from "lucide-react";
 
 import {
   Sidebar,
@@ -49,14 +57,24 @@ function MobileSidebarTrigger() {
 const data = {
   navMain: [
     {
+      title: "Dashboard",
+      url: "/dashboard",
+      icon: LayoutTemplate,
+    },
+    {
       title: "Tickets",
       url: "/tickets",
       icon: Ticket,
     },
     {
-      title: "Admin",
-      url: "/admin",
-      icon: Shield,
+      title: "Contacts",
+      url: "/contacts",
+      icon: Users2,
+    },
+    {
+      title: "Settings",
+      url: "/settings",
+      icon: Settings,
     },
   ],
   footerItems: [],

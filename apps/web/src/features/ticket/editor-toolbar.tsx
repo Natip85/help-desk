@@ -203,7 +203,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
   ];
 
   return (
-    <div className="bg-muted/50 flex h-11 min-w-0 items-center gap-1.5 overflow-x-auto border-b px-3">
+    <div className="bg-muted/50 border-accent flex h-11 min-w-0 items-center gap-1.5 overflow-x-auto border-b px-3">
       {/* Undo/Redo */}
       <div className="flex items-center gap-1">
         <Button

@@ -11,6 +11,7 @@ import {
   ListRendererLoading,
   ListRendererNoResults,
 } from "@/components/list-renderer";
+import { PaginationRow } from "@/components/pagination-row";
 import { Button } from "@/components/ui/button";
 import {
   Empty,
@@ -36,7 +37,7 @@ export const TicketList = () => {
   const hasQuery = Boolean(searchParams.q && searchParams.q.length > 0);
 
   return (
-    <div className="bg-secondary m-2 flex-1 rounded-xl p-3">
+    <div className="m-2 flex-1 rounded-xl p-3">
       <div className="@container">
         <ListRenderer
           hasData={data.items.length > 0}
@@ -98,9 +99,8 @@ export const TicketList = () => {
           </ListRendererList>
         </ListRenderer>
       </div>
-      Pagination here
-      {/* <PaginationRow
-        type="recipes"
+      <PaginationRow
+        type="tickets"
         total={data.total}
         limit={searchParams.limit}
         currentPage={searchParams.page}
@@ -110,7 +110,7 @@ export const TicketList = () => {
         onPageSizeChange={(pageSize) => {
           void setSearchParams({ limit: pageSize, page: 1 });
         }}
-      /> */}
+      />
     </div>
   );
 };

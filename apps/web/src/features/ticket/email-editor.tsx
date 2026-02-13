@@ -3,8 +3,8 @@
 import type { Editor, JSONContent } from "@tiptap/react";
 import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ChevronDown, Loader2, Reply, X } from "lucide-react";
-import { parseAsBoolean, useQueryState } from "nuqs";
+import { ChevronDown, Forward, Loader2, Reply, X } from "lucide-react";
+import { parseAsStringLiteral, useQueryState } from "nuqs";
 
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -17,7 +17,12 @@ type EmailEditorProps = {
 };
 
 export function EmailEditor({ ticketId }: EmailEditorProps) {
-  const [isOpen, setIsOpen] = useQueryState("emailEditorOpen", parseAsBoolean.withDefault(false));
+  const [activeEditor, setActiveEditor] = useQueryState(
+    "editor",
+    parseAsStringLiteral(["reply", "forward"] as const)
+  );
+  const isOpen = activeEditor === "reply";
+  const setIsOpen = (open: boolean) => setActiveEditor(open ? "reply" : null);
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -100,9 +105,23 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
               To: <span className="text-foreground">{toEmail}</span>
             </p>
           </div>
-        : <div className="flex flex-1 items-center gap-2">
-            <Reply className="text-muted-foreground h-4 w-4" />
-            <span className="text-sm font-medium">Reply</span>
+        : <div className="flex flex-1 items-center gap-4">
+            <span className="flex items-center gap-2">
+              <Reply className="text-muted-foreground h-4 w-4" />
+              <span className="text-sm font-medium">Reply</span>
+            </span>
+            <span className="text-muted-foreground/40">|</span>
+            <span
+              role="button"
+              className="flex items-center gap-2 opacity-60 transition-opacity hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                void setActiveEditor("forward");
+              }}
+            >
+              <Forward className="text-muted-foreground h-4 w-4" />
+              <span className="text-sm font-medium">Forward</span>
+            </span>
           </div>
         }
 

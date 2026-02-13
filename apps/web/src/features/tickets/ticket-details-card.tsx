@@ -1,6 +1,7 @@
 "use client";
 
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 
@@ -12,10 +13,10 @@ import {
   priorityConfig,
   statusConfig,
   TicketCard,
-  TicketCardContent,
+  TicketCardAssignee,
   TicketCardFooter,
   TicketCardHeader,
-  TicketCardTitle,
+  TicketCardTags,
 } from "./ticket-card";
 import { TicketCardActions } from "./ticket-card-actions";
 
@@ -27,10 +28,12 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { toggleContactSidebarId, sidebarParams } = useSidebarParams();
+
   const { mutate: updatePriority } = useMutation(
     trpc.ticket.updatePriority.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        toast.success("Priority updated successfully");
       },
     })
   );
@@ -39,39 +42,38 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
     trpc.ticket.updateStatus.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        toast.success("Status updated successfully");
       },
     })
   );
 
-  const createTicketActions = (ticket: TicketCardData): TicketCardAction[] => [
-    {
-      type: "select",
-      label: "Priority",
-      value: ticket.priority,
-      options: Object.entries(priorityConfig).map(([value, config]) => ({
-        value,
-        label: config.label,
-        className: config.className,
-      })),
-      onValueChange: (value) =>
-        updatePriority({
-          id: ticket.id,
-          priority: value as ConversationPriority,
-        }),
-    },
-    {
-      type: "select",
-      label: "Status",
-      value: ticket.status,
-      options: Object.entries(statusConfig).map(([value, config]) => ({
-        value,
-        label: config.label,
-        className: config.className,
-      })),
-      onValueChange: (value) =>
-        updateStatus({ id: ticket.id, status: value as ConversationStatus }),
-    },
-  ];
+  const statusAction: TicketCardAction = {
+    type: "select",
+    label: "Status",
+    value: item.status,
+    options: Object.entries(statusConfig).map(([value, config]) => ({
+      value,
+      label: config.label,
+      className: config.className,
+    })),
+    onValueChange: (value) => updateStatus({ id: item.id, status: value as ConversationStatus }),
+  };
+
+  const priorityAction: TicketCardAction = {
+    type: "select",
+    label: "Priority",
+    value: item.priority,
+    options: Object.entries(priorityConfig).map(([value, config]) => ({
+      value,
+      label: config.label,
+      className: config.className,
+    })),
+    onValueChange: (value) =>
+      updatePriority({
+        id: item.id,
+        priority: value as ConversationPriority,
+      }),
+  };
 
   return (
     <TicketCard
@@ -84,12 +86,15 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
       isActive={sidebarParams.contactId === item.contact.id}
     >
       <TicketCardHeader>
-        <TicketCardTitle />
+        <TicketCardTags />
       </TicketCardHeader>
-      <TicketCardContent>
-        <TicketCardActions actions={createTicketActions(item)} />
-      </TicketCardContent>
-      <TicketCardFooter />
+      <TicketCardFooter>
+        <TicketCardAssignee />
+        <div className="flex items-center gap-2">
+          <TicketCardActions actions={[statusAction]} />
+          <TicketCardActions actions={[priorityAction]} />
+        </div>
+      </TicketCardFooter>
     </TicketCard>
   );
 };

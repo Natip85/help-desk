@@ -5,7 +5,15 @@ import { z } from "zod/v4";
 import { columns as columnDefs } from "./ticket-columns";
 import { useGenericTableParams } from "./use-table-params";
 
-const availableColumns = ["id", "createdAt", "status", "subject", "contact", "priority"] as const;
+const availableColumns = [
+  "id",
+  "createdAt",
+  "status",
+  "subject",
+  "contact",
+  "priority",
+  "tags",
+] as const;
 type ColumnName = (typeof availableColumns)[number];
 
 const columnLabelsMap: Record<ColumnName, string> = {
@@ -15,6 +23,7 @@ const columnLabelsMap: Record<ColumnName, string> = {
   subject: "Subject",
   contact: "Contact",
   priority: "Priority",
+  tags: "Tags",
 };
 
 const availableColumnsEnum = z.enum(availableColumns);
@@ -32,6 +41,7 @@ const defaultColumns: ColumnsList = [
   { subject: true },
   { contact: true },
   { priority: true },
+  { tags: true },
 ];
 
 export const tableParamsParser = {

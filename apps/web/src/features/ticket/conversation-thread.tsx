@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { Notebook, Paperclip } from "lucide-react";
+import { Forward, Notebook, Paperclip } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -72,6 +72,7 @@ function buildTimeline(messages: ThreadMessage[], notes: ThreadNote[]): Timeline
 
 function MessageBubble({ message }: { message: ThreadMessage }) {
   const isOutbound = message.direction === "outbound";
+  const isForward = message.messageType === "forward";
 
   const authorName =
     isOutbound ?
@@ -88,7 +89,10 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
     <div
       className={cn(
         "rounded-lg p-4",
-        isOutbound ? "bg-primary/30 dark:bg-primary/30" : "bg-transparent"
+        isForward ?
+          "border border-blue-300/50 bg-blue-50 dark:border-blue-500/30 dark:bg-blue-950/30"
+        : isOutbound ? "bg-primary/30 dark:bg-primary/30"
+        : "bg-transparent"
       )}
     >
       {/* Header */}
@@ -104,7 +108,14 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
         </Avatar>
         <div className="flex min-w-0 flex-1 items-baseline gap-2">
           <span className="truncate text-sm font-semibold">{authorName}</span>
-          {isOutbound && <span className="text-xs italic">replied</span>}
+          {isForward ?
+            <span className="inline-flex items-center gap-1 text-xs text-blue-700 dark:text-blue-400">
+              <Forward className="size-3" />
+              forwarded to {message.toEmail?.[0] ?? "unknown"}
+            </span>
+          : isOutbound ?
+            <span className="text-xs italic">replied</span>
+          : null}
         </div>
         <time className="shrink-0 text-xs">{formatMessageDateTime(message.createdAt)}</time>
       </div>
