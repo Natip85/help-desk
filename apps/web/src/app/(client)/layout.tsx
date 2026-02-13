@@ -24,9 +24,7 @@ export default async function ClientLayout({ children, searchParams }: ClientLay
     return redirect("/onboarding");
   }
 
-  if (session) {
-    prefetch(trpc.ticket.all.queryOptions(params));
-  }
+  prefetch(trpc.ticket.all.queryOptions(params));
 
   return (
     <HydrateClient>

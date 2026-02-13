@@ -3,7 +3,7 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown, MoreHorizontal, Trash2Icon } from "lucide-react";
+import { ChevronDown, MoreHorizontal } from "lucide-react";
 
 import type { NavigationItems } from "./nav-types";
 import { Button } from "@/components/ui/button";
@@ -12,7 +12,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuLabel,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import {
@@ -77,14 +76,13 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
                       side={isMobile ? "bottom" : "right"}
                       align={isMobile ? "end" : "start"}
                     >
-                      <DropdownMenuLabel>Deleted tickets</DropdownMenuLabel>
                       {item.submenu?.map((subItem) => (
                         <DropdownMenuItem
                           key={subItem.title}
                           asChild
                         >
                           <Link href={subItem.url as Route}>
-                            <Trash2Icon /> <span>{subItem.title}</span>
+                            <subItem.icon /> <span>{subItem.title}</span>
                           </Link>
                         </DropdownMenuItem>
                       ))}

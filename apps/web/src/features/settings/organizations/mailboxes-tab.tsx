@@ -79,10 +79,12 @@ export function MailboxesTab() {
         </p>
       : <Table>
           <TableHeader>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Default</TableHead>
-            <TableHead>Actions</TableHead>
+            <TableRow>
+              <TableHead>Name</TableHead>
+              <TableHead>Email</TableHead>
+              <TableHead>Default</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
           </TableHeader>
           <TableBody>
             {mailboxes.map((mb) => (

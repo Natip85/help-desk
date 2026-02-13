@@ -2,6 +2,7 @@ import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
+import type { Tag } from "@help-desk/db/schema/tags";
 import { conversationPriority, conversationStatus } from "@help-desk/db/schema/conversations";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -22,6 +23,7 @@ import {
   SidebarContent,
   SidebarFooter,
   SidebarGroup,
+  SidebarGroupLabel,
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useTRPC } from "@/trpc";
@@ -58,6 +60,8 @@ export const TicketFilterSidebar = () => {
   const priorityAnchor = useComboboxAnchor();
   const statusAnchor = useComboboxAnchor();
   const assigneeAnchor = useComboboxAnchor();
+  const tagAnchor = useComboboxAnchor();
+
   const {
     searchParams: { filter },
     setSearchParams,
@@ -69,6 +73,11 @@ export const TicketFilterSidebar = () => {
   } = useSidebarParams();
 
   const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
+  const { data: tagsData } = useQuery(trpc.tags.list.queryOptions());
+  const allTags = tagsData?.items ?? [];
+  const selectedTags = (filter.tagIds ?? [])
+    .map((id) => allTags.find((t) => t.id === id))
+    .filter((t): t is Tag => !!t);
 
   // Build items list with "Unassigned" at the top
   const assigneeItems = [unassignedItem, ...members];
@@ -87,8 +96,9 @@ export const TicketFilterSidebar = () => {
         <h2 className="text-lg font-medium">Filters</h2>
       </SidebarHeader>
 
-      <SidebarContent className="scrollbar-gutter-stable flex-1 overflow-y-auto p-3">
+      <SidebarContent className="scrollbar-gutter-stable flex flex-1 flex-col gap-1 overflow-y-auto p-3">
         <SidebarGroup>
+          <SidebarGroupLabel>Priority</SidebarGroupLabel>
           <Combobox
             key={(filter.priorities ?? []).join("|")}
             multiple
@@ -141,7 +151,10 @@ export const TicketFilterSidebar = () => {
             </ComboboxContent>
           </Combobox>
         </SidebarGroup>
+
         <SidebarGroup>
+          <SidebarGroupLabel>Status</SidebarGroupLabel>
+
           <Combobox
             key={(filter.statuses ?? []).join("|")}
             multiple
@@ -194,7 +207,10 @@ export const TicketFilterSidebar = () => {
             </ComboboxContent>
           </Combobox>
         </SidebarGroup>
+
         <SidebarGroup>
+          <SidebarGroupLabel>Assignee</SidebarGroupLabel>
+
           <Combobox
             key={[filter.isUnassigned ? "u" : "", ...(filter.assignedToIds ?? [])].join("|")}
             multiple
@@ -257,6 +273,72 @@ export const TicketFilterSidebar = () => {
                       </Avatar>
                       <span>{item.name}</span>
                     </div>
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>Tags</SidebarGroupLabel>
+
+          <Combobox
+            key={(filter.tagIds ?? []).join("|")}
+            multiple
+            autoHighlight
+            items={allTags}
+            value={selectedTags.length > 0 ? selectedTags : null}
+            onValueChange={(values: Tag[] | null) => {
+              const tagIds = (values ?? []).map((t) => t.id);
+              void setSearchParams((prev) => ({
+                page: 1,
+                filter: {
+                  ...prev.filter,
+                  tagIds: tagIds.length > 0 ? tagIds : undefined,
+                },
+              }));
+            }}
+            isItemEqualToValue={(a, b) => a?.id === b?.id}
+            itemToStringLabel={(item) => item.name}
+          >
+            <ComboboxChips
+              ref={tagAnchor}
+              className="w-full max-w-xs"
+            >
+              <ComboboxValue>
+                {(values: Tag[] | null) => {
+                  const selected = values ?? [];
+                  return (
+                    <Fragment>
+                      {selected.map((tag: Tag) => (
+                        <ComboboxChip key={tag.id}>
+                          <span
+                            className="size-2 shrink-0 rounded-full"
+                            style={{ backgroundColor: tag.color }}
+                          />
+                          {tag.name}
+                        </ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "tags"} />
+                    </Fragment>
+                  );
+                }}
+              </ComboboxValue>
+            </ComboboxChips>
+            <ComboboxContent anchor={tagAnchor}>
+              <ComboboxEmpty>No tags found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item: Tag) => (
+                  <ComboboxItem
+                    key={item.id}
+                    value={item}
+                  >
+                    <span
+                      className="size-2.5 shrink-0 rounded-full"
+                      style={{ backgroundColor: item.color }}
+                    />
+                    <span>{item.name}</span>
                   </ComboboxItem>
                 )}
               </ComboboxList>

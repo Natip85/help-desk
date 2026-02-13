@@ -1,6 +1,6 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, exists, gte, ilike, inArray, isNull, lte, or } from "drizzle-orm";
+import { asc, desc, eq, gte, ilike, inArray, isNull, lte, or } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
 import type { Database } from "@help-desk/db";
@@ -89,22 +89,16 @@ export const createTicketFilters = (
     conditions.push(inArray(conversation.mailboxId, filter.mailboxIds));
   }
 
-  // Tag filter via exists subquery on junction table
+  // Tag filter: use an uncorrelated IN-subquery instead of a correlated EXISTS.
+  // A correlated EXISTS (referencing conversation.id from the outer query) can
+  // break inside Drizzle's relational query API (db.query.*.findMany) because
+  // the outer table may be aliased differently than expected.
   if (filter.tagIds && filter.tagIds.length > 0) {
-    conditions.push(
-      exists(
-        db
-          .select()
-          .from(conversationTag)
-          .where(
-            and(
-              eq(conversationTag.conversationId, conversation.id),
-              inArray(conversationTag.tagId, filter.tagIds)
-            )
-          )
-          .limit(1)
-      )
-    );
+    const tagSubquery = db
+      .select({ conversationId: conversationTag.conversationId })
+      .from(conversationTag)
+      .where(inArray(conversationTag.tagId, filter.tagIds));
+    conditions.push(inArray(conversation.id, tagSubquery));
   }
 
   // Date range filters

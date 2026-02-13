@@ -94,9 +94,14 @@ export const columns: ColumnDef<TicketCardData>[] = [
     accessorKey: "tags",
     header: () => <div>Tags</div>,
     cell: ({ row }) => (
-      <div>
+      <div className="flex items-center gap-2">
         {row.original.tags.map((tag) => (
-          <Badge key={tag.id}>tag here</Badge>
+          <Badge
+            key={tag.id}
+            style={{ backgroundColor: tag.color }}
+          >
+            {tag.name}
+          </Badge>
         ))}
       </div>
     ),

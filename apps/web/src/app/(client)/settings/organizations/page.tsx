@@ -6,7 +6,7 @@ import { Building2, ChevronLeft } from "lucide-react";
 import { auth } from "@help-desk/auth";
 
 import { PageTitle } from "@/components/page-title";
-import { Table, TableBody, TableHead, TableHeader } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateOrganizationButton } from "@/features/settings/organizations/create-organization-button";
 import { OrganizationRow } from "@/features/settings/organizations/organization-row";
 
@@ -46,11 +46,13 @@ export default async function OrganizationsPage() {
         {organizations && organizations.length > 0 ?
           <Table>
             <TableHeader>
-              <TableHead>Organization</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Members</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead></TableHead>
+              <TableRow>
+                <TableHead>Organization</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Members</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
             </TableHeader>
             <TableBody>
               {organizations.map((org) => (

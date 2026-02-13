@@ -50,10 +50,12 @@ export function MembersTab({ members, organizationId, onUpdate }: MembersTabProp
   return (
     <Table>
       <TableHeader>
-        <TableHead>Name</TableHead>
-        <TableHead>Email</TableHead>
-        <TableHead>Role</TableHead>
-        <TableHead>Actions</TableHead>
+        <TableRow>
+          <TableHead>Name</TableHead>
+          <TableHead>Email</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Actions</TableHead>
+        </TableRow>
       </TableHeader>
       <TableBody>
         {members.map((member) => (

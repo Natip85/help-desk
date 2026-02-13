@@ -1,5 +1,6 @@
 import { contactRouter } from "./routers/contact";
 import { mailboxRouter } from "./routers/mailbox";
+import { tagRouter } from "./routers/tag";
 import { ticketRouter } from "./routers/ticket";
 import { userRouter } from "./routers/user";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
@@ -9,6 +10,7 @@ export const appRouter = createTRPCRouter({
   ticket: ticketRouter,
   contact: contactRouter,
   mailbox: mailboxRouter,
+  tags: tagRouter,
 });
 
 // export type definition of API

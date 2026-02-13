@@ -85,7 +85,6 @@ function SortButton(props: React.ComponentProps<typeof Button>) {
   return (
     <Button
       variant="outline"
-      size="sm"
       {...props}
     >
       {hasSelectedSorts ?

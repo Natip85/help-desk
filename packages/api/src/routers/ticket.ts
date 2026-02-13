@@ -145,6 +145,11 @@ export const ticketRouter = createTRPCRouter({
         mailbox: {
           columns: { id: true, email: true, name: true },
         },
+        conversationTags: {
+          with: {
+            tag: true,
+          },
+        },
       },
     });
 
@@ -162,7 +167,12 @@ export const ticketRouter = createTRPCRouter({
       fromEmail = defaultMailbox?.email ?? env.SENDER_EMAIL;
     }
 
-    return { ...conv, fromEmail };
+    const { conversationTags, ...rest } = conv;
+    return {
+      ...rest,
+      fromEmail,
+      tags: conversationTags.map((ct) => ct.tag),
+    };
   }),
 
   updatePriority: protectedProcedure

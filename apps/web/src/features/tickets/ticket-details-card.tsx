@@ -95,7 +95,7 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
       isActive={sidebarParams.contactId === item.contact.id}
     >
       <TicketCardHeader>
-        <TicketCardTags />
+        <TicketCardTags tags={item.tags} />
       </TicketCardHeader>
       <TicketCardFooter>
         <TicketCardAssignee

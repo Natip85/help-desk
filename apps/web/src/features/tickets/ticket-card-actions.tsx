@@ -67,7 +67,7 @@ const SelectActionField = ({ action }: { action: SelectAction }) => {
 
       <Combobox
         items={action.options}
-        defaultValue={defaultOption}
+        value={defaultOption ?? null}
         onValueChange={(option) => {
           if (option) void action.onValueChange(option.value);
         }}

@@ -10,6 +10,7 @@ import type {
   ConversationPriority,
   ConversationStatus,
 } from "@help-desk/db/schema/conversations";
+import type { Tag } from "@help-desk/db/schema/tags";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -208,24 +209,28 @@ export const TicketCardContact = ({ className, ...props }: React.ComponentProps<
   );
 };
 
-export const TicketCardTags = ({ className, ...props }: React.ComponentProps<"div">) => {
+export const TicketCardTags = ({
+  className,
+  tags,
+  ...props
+}: React.ComponentProps<"div"> & {
+  tags: Tag[];
+}) => {
   return (
     <div
       {...props}
-      className={cn("flex items-center gap-1.5", className)}
+      className={cn("flex items-center gap-3", className)}
     >
-      <Badge
-        variant="outline"
-        className="px-2 py-0 text-xs font-normal"
-      >
-        Bug
-      </Badge>
-      <Badge
-        variant="outline"
-        className="px-2 py-0 text-xs font-normal"
-      >
-        Auth
-      </Badge>
+      {tags.map((tag) => (
+        <Badge
+          key={tag.id}
+          variant="outline"
+          className="px-2 py-0 text-xs font-normal"
+          style={{ backgroundColor: tag.color }}
+        >
+          {tag.name}
+        </Badge>
+      ))}
     </div>
   );
 };

@@ -19,6 +19,7 @@ import { SidebarContent, SidebarGroup, SidebarHeader } from "@/components/ui/sid
 import { useTRPC } from "@/trpc";
 import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
+import { TicketTagCombobox } from "../tickets/ticket-tag-combobox";
 import { useSidebarParams } from "./query-params";
 
 type OptionItem = { value: string; label: string; className?: string };
@@ -107,9 +108,8 @@ export const TicketStatusesSidebar = () => {
           <div className="flex flex-col gap-1">
             <span className="text-muted-foreground text-xs">Priority</span>
             <Combobox
-              key={ticket?.priority}
               items={priorityOptions}
-              defaultValue={currentPriority}
+              value={currentPriority ?? null}
               onValueChange={(option: OptionItem | null) => {
                 if (option && ticketId) {
                   updatePriority({
@@ -150,13 +150,13 @@ export const TicketStatusesSidebar = () => {
             </Combobox>
           </div>
         </SidebarGroup>
+
         <SidebarGroup>
           <div className="flex flex-col gap-1">
             <span className="text-muted-foreground text-xs">Status</span>
             <Combobox
-              key={ticket?.status}
               items={statusOptions}
-              defaultValue={currentStatus}
+              value={currentStatus ?? null}
               onValueChange={(option: OptionItem | null) => {
                 if (option && ticketId) {
                   updateStatus({
@@ -197,6 +197,7 @@ export const TicketStatusesSidebar = () => {
             </Combobox>
           </div>
         </SidebarGroup>
+
         <SidebarGroup>
           <div className="flex flex-col gap-1">
             <span className="text-muted-foreground text-xs">Assignee</span>
@@ -209,6 +210,18 @@ export const TicketStatusesSidebar = () => {
               }}
               variant="button"
             />
+          </div>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <div className="flex flex-col gap-1">
+            <span className="text-muted-foreground text-xs">Tags</span>
+            {ticketId && (
+              <TicketTagCombobox
+                ticketId={ticketId}
+                currentTags={ticket?.tags ?? []}
+              />
+            )}
           </div>
         </SidebarGroup>
       </SidebarContent>

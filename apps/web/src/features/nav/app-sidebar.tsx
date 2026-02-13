@@ -8,6 +8,8 @@ import {
   Menu,
   Settings,
   Ticket,
+  Tickets,
+  Trash2,
   Users2,
 } from "lucide-react";
 
@@ -69,8 +71,14 @@ const data = {
       useDropdownMenu: true,
       submenu: [
         {
+          title: "All tickets",
+          url: "/tickets",
+          icon: Tickets,
+        },
+        {
           title: "Trash",
           url: "/tickets/trash",
+          icon: Trash2,
         },
       ],
     },

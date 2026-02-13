@@ -1,4 +1,4 @@
-import { Building2, TicketsIcon } from "lucide-react";
+import { Building2, TagsIcon, TicketsIcon } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
@@ -48,13 +48,13 @@ export default function SettingsPage() {
         </PageTitle>
         <Card className="bg-accent/50 hover:bg-accent/70 w-fit p-0 transition-all duration-300 hover:cursor-pointer">
           <CardContentLink
-            href="/settings/work-productivity"
+            href="/settings/tags"
             className="flex flex-row items-center gap-4 px-6 py-4"
           >
-            <TicketsIcon />
+            <TagsIcon />
             <div className="flex flex-col gap-1">
-              <h2 className="text-[16px]">Agents</h2>
-              <p className="text-xs">Define agents and set roles/permissions</p>
+              <h2 className="text-[16px]">Tags</h2>
+              <p className="text-xs">Manage your tags by labeling tickets and contacts</p>
             </div>
           </CardContentLink>
         </Card>

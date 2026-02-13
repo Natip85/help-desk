@@ -76,9 +76,8 @@ export const TicketAssigneeCombobox = ({
       onClick={(e) => e.stopPropagation()}
     >
       <Combobox
-        key={currentAssignee?.id ?? "unassigned"}
         items={options}
-        defaultValue={currentOption}
+        value={currentOption}
         onValueChange={(option: MemberOption | null) => {
           if (!option) return;
           if (option.id === UNASSIGN_OPTION.id) {
