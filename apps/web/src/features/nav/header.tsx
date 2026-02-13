@@ -1,9 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { BellDot, CheckCircleIcon, ChevronDown, Plus } from "lucide-react";
+import { BellDot, CheckCircleIcon, ChevronDown, MailIcon, Ticket } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { GlobalSearch } from "@/features/global-search/global-search";
 import { NavUserAvatar } from "./nav-user-avatar";
 
@@ -26,11 +32,29 @@ export function Header() {
         <div className="flex items-center gap-5">
           {/* Global search */}
           <GlobalSearch />
-          <Button>
-            <Plus />
-            New
-            <ChevronDown />
-          </Button>
+          {/* Create Ticket/email Button */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button>
+                Create
+                <ChevronDown />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem asChild>
+                <Link href="/tickets/new">
+                  <Ticket />
+                  Ticket
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="#">
+                  <MailIcon />
+                  Email
+                </Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <BellDot className="size-8" />
           <NavUserAvatar />
         </div>
