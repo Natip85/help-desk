@@ -9,6 +9,7 @@ import {
   conversationEvent,
   mailbox,
   message,
+  organization,
 } from "@help-desk/db/schema/index";
 
 import { resend } from "../resend";
@@ -139,22 +140,32 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
   // 2. Parse the sender
   const { email: senderEmail, name: senderName } = parseEmailAddress(from);
 
-  // 3. Get organization (hardcoded: first org. Swap for mailbox lookup later.)
-  const org = await db.query.organization.findFirst();
-  if (!org) {
-    throw new Error("No organization found. Create one before processing emails.");
-  }
-
-  // 3b. Match inbound `to` address against mailbox table
+  // 3. Resolve organization via mailbox match, then fall back to first org
   let matchedMailbox: typeof mailbox.$inferSelect | undefined;
   for (const toAddress of to) {
     const found = await db.query.mailbox.findFirst({
-      where: and(eq(mailbox.organizationId, org.id), eq(mailbox.email, toAddress.toLowerCase())),
+      where: eq(mailbox.email, toAddress.toLowerCase()),
     });
     if (found) {
       matchedMailbox = found;
       break;
     }
+  }
+
+  let org: typeof organization.$inferSelect | undefined;
+
+  if (matchedMailbox) {
+    // Use the organization that owns the matched mailbox
+    org = await db.query.organization.findFirst({
+      where: eq(organization.id, matchedMailbox.organizationId),
+    });
+  }
+
+  // Fallback: use the first organization in the database
+  org ??= await db.query.organization.findFirst();
+
+  if (!org) {
+    throw new Error("No organization found. Create one before processing emails.");
   }
 
   // 4-9. Run all DB operations in a transaction

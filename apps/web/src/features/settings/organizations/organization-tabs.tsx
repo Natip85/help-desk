@@ -3,9 +3,9 @@
 import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 
-import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { InvitesTab } from "./invites-tab";
+import { MailboxesTab } from "./mailboxes-tab";
 import { MembersTab } from "./members-tab";
 
 type Member = {
@@ -57,29 +57,30 @@ export function OrganizationTabs({ organization, organizationId }: OrganizationT
       defaultValue="members"
       className="w-full"
     >
-      <TabsList className="grid w-full grid-cols-2">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="members">Members ({organization.members?.length ?? 0})</TabsTrigger>
         <TabsTrigger value="invitations">Invitations ({pendingInvitations.length})</TabsTrigger>
+        <TabsTrigger value="mailboxes">Mailboxes</TabsTrigger>
       </TabsList>
-      <Card>
-        <CardContent>
-          <TabsContent value="members">
-            <MembersTab
-              members={organization.members ?? []}
-              organizationId={organizationId}
-              onUpdate={handleUpdate}
-            />
-          </TabsContent>
+      <TabsContent value="members">
+        <MembersTab
+          members={organization.members ?? []}
+          organizationId={organizationId}
+          onUpdate={handleUpdate}
+        />
+      </TabsContent>
 
-          <TabsContent value="invitations">
-            <InvitesTab
-              invitations={organization.invitations ?? []}
-              organizationId={organizationId}
-              onUpdate={handleUpdate}
-            />
-          </TabsContent>
-        </CardContent>
-      </Card>
+      <TabsContent value="invitations">
+        <InvitesTab
+          invitations={organization.invitations ?? []}
+          organizationId={organizationId}
+          onUpdate={handleUpdate}
+        />
+      </TabsContent>
+
+      <TabsContent value="mailboxes">
+        <MailboxesTab />
+      </TabsContent>
     </Tabs>
   );
 }

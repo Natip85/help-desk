@@ -6,7 +6,7 @@ import { Building2, ChevronLeft } from "lucide-react";
 import { auth } from "@help-desk/auth";
 
 import { PageTitle } from "@/components/page-title";
-import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Table, TableBody, TableHead, TableHeader } from "@/components/ui/table";
 import { CreateOrganizationButton } from "@/features/settings/organizations/create-organization-button";
 import { OrganizationRow } from "@/features/settings/organizations/organization-row";
 
@@ -44,29 +44,25 @@ export default async function OrganizationsPage() {
           </PageTitle>
         </div>
         {organizations && organizations.length > 0 ?
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {organizations.map((org) => (
-                  <OrganizationRow
-                    key={org.id}
-                    organization={org}
-                    activeOrgId={session.session.activeOrganizationId}
-                    memberCount={memberCountMap.get(org.id)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+          <Table>
+            <TableHeader>
+              <TableHead>Organization</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Members</TableHead>
+              <TableHead>Created</TableHead>
+              <TableHead></TableHead>
+            </TableHeader>
+            <TableBody>
+              {organizations.map((org) => (
+                <OrganizationRow
+                  key={org.id}
+                  organization={org}
+                  activeOrgId={session.session.activeOrganizationId}
+                  memberCount={memberCountMap.get(org.id)}
+                />
+              ))}
+            </TableBody>
+          </Table>
         : <div className="flex flex-col items-center justify-center py-12 text-center">
             <div className="bg-muted mb-4 flex size-12 items-center justify-center rounded-full">
               <Building2 className="text-muted-foreground size-6" />

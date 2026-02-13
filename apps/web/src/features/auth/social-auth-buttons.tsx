@@ -25,7 +25,7 @@ export function SocialAuthButtons({ redirectUrl }: SocialAuthButtonsProps) {
         onClick={() => {
           void authClient.signIn.social({
             provider,
-            callbackURL: redirectUrl ?? "/tickets",
+            callbackURL: redirectUrl ?? "/onboarding",
           });
         }}
         className="relative w-full"

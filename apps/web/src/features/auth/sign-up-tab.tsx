@@ -24,7 +24,7 @@ export function SignUpTab({ openEmailVerificationTab, redirectUrl }: SignUpTabPr
     },
     onSubmit: async ({ value }) => {
       const res = await authClient.signUp.email(
-        { ...value, callbackURL: redirectUrl ?? "/tickets" },
+        { ...value, callbackURL: redirectUrl ?? "/onboarding" },
         {
           onError: (error) => {
             toast.error(error.error.message || "Failed to sign up");

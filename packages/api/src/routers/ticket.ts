@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, getTableColumns, ilike, or } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, isNotNull, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -130,7 +130,11 @@ export const ticketRouter = createTRPCRouter({
     }
 
     const conv = await ctx.db.query.conversation.findFirst({
-      where: and(eq(conversation.id, input), eq(conversation.organizationId, organizationId)),
+      where: and(
+        eq(conversation.id, input),
+        eq(conversation.organizationId, organizationId),
+        isNull(conversation.deletedAt)
+      ),
       with: {
         contact: {
           columns: { id: true, email: true, firstName: true, lastName: true, displayName: true },
@@ -620,11 +624,188 @@ export const ticketRouter = createTRPCRouter({
 
     const count = await ctx.db.$count(
       conversation,
-      eq(conversation.organizationId, organizationId)
+      and(eq(conversation.organizationId, organizationId), isNull(conversation.deletedAt))
     );
 
     return { count };
   }),
+
+  softDelete: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const [updated] = await ctx.db
+      .update(conversation)
+      .set({ deletedAt: new Date() })
+      .where(
+        and(
+          eq(conversation.id, input),
+          eq(conversation.organizationId, organizationId),
+          isNull(conversation.deletedAt)
+        )
+      )
+      .returning({ id: conversation.id });
+
+    if (!updated) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Ticket not found",
+      });
+    }
+
+    return updated;
+  }),
+
+  bulkSoftDelete: protectedProcedure
+    .input(z.object({ ids: z.array(z.string()).min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      const { rowCount } = await ctx.db
+        .update(conversation)
+        .set({ deletedAt: new Date() })
+        .where(
+          and(
+            eq(conversation.organizationId, organizationId),
+            isNull(conversation.deletedAt),
+            or(...input.ids.map((id) => eq(conversation.id, id)))
+          )
+        );
+
+      return { count: rowCount };
+    }),
+
+  restore: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const [updated] = await ctx.db
+      .update(conversation)
+      .set({ deletedAt: null })
+      .where(
+        and(
+          eq(conversation.id, input),
+          eq(conversation.organizationId, organizationId),
+          isNotNull(conversation.deletedAt)
+        )
+      )
+      .returning({ id: conversation.id });
+
+    if (!updated) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Ticket not found or not deleted",
+      });
+    }
+
+    return updated;
+  }),
+
+  hardDelete: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const [deleted] = await ctx.db
+      .delete(conversation)
+      .where(
+        and(
+          eq(conversation.id, input),
+          eq(conversation.organizationId, organizationId),
+          isNotNull(conversation.deletedAt)
+        )
+      )
+      .returning({ id: conversation.id });
+
+    if (!deleted) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Ticket not found or not in trash",
+      });
+    }
+
+    return deleted;
+  }),
+
+  listDeleted: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        limit: z.number().int().min(1).max(100).default(20),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      const offset = (input.page - 1) * input.limit;
+
+      const whereCondition = and(
+        eq(conversation.organizationId, organizationId),
+        isNotNull(conversation.deletedAt)
+      );
+
+      const [items, total] = await Promise.all([
+        ctx.db.query.conversation.findMany({
+          where: whereCondition,
+          limit: input.limit,
+          offset,
+          orderBy: [desc(conversation.deletedAt)],
+          with: {
+            contact: {
+              columns: {
+                id: true,
+                email: true,
+                firstName: true,
+                lastName: true,
+                displayName: true,
+                avatarUrl: true,
+              },
+            },
+            assignedTo: {
+              columns: {
+                id: true,
+                name: true,
+                image: true,
+              },
+            },
+          },
+        }),
+        ctx.db.$count(conversation, whereCondition),
+      ]);
+
+      return { items, total };
+    }),
 
   getGlobalSearchAll: protectedProcedure
     .input(z.string().optional())
@@ -643,6 +824,7 @@ export const ticketRouter = createTRPCRouter({
         const tickets = await ctx.db.query.conversation.findMany({
           where: and(
             eq(conversation.organizationId, organizationId),
+            isNull(conversation.deletedAt),
             or(
               ilike(conversation.subject, `%${searchTerm}%`),
               ilike(conversation.id, `%${searchTerm}%`)

@@ -20,6 +20,7 @@ export const ticketFilterSchema = z.object({
   priorities: z.array(z.enum(conversationPriority)).optional(),
   channels: z.array(z.enum(conversationChannel)).optional(),
   assignedToIds: z.array(z.string()).optional(),
+  isUnassigned: z.boolean().optional(),
   contactIds: z.array(z.string()).optional(),
   companyIds: z.array(z.string()).optional(),
   mailboxIds: z.array(z.string()).optional(),

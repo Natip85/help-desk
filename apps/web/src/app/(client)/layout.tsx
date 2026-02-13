@@ -1,5 +1,6 @@
 import type { SearchParams } from "nuqs";
 import { headers } from "next/headers";
+import { redirect } from "next/navigation";
 
 import { auth } from "@help-desk/auth";
 
@@ -18,6 +19,10 @@ type ClientLayoutProps = {
 export default async function ClientLayout({ children, searchParams }: ClientLayoutProps) {
   const params = await loadTicketSearchParams(searchParams);
   const session = await auth.api.getSession({ headers: await headers() });
+
+  if (session && !session.session.activeOrganizationId) {
+    return redirect("/onboarding");
+  }
 
   if (session) {
     prefetch(trpc.ticket.all.queryOptions(params));

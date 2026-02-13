@@ -44,12 +44,10 @@ export function InvitesTab({ invitations, organizationId, onUpdate }: InvitesTab
 
       <Table>
         <TableHeader>
-          <TableRow>
-            <TableHead>Email</TableHead>
-            <TableHead>Role</TableHead>
-            <TableHead>Expires</TableHead>
-            <TableHead>Actions</TableHead>
-          </TableRow>
+          <TableHead>Email</TableHead>
+          <TableHead>Role</TableHead>
+          <TableHead>Expires</TableHead>
+          <TableHead>Actions</TableHead>
         </TableHeader>
         <TableBody>
           {pendingInvites.map((invitation) => (

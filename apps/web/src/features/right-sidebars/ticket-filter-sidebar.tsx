@@ -36,6 +36,15 @@ type MemberItem = {
   image: string | null;
 };
 
+const UNASSIGNED_ID = "__unassigned__" as const;
+
+const unassignedItem: MemberItem = {
+  id: UNASSIGNED_ID,
+  name: "Unassigned",
+  email: "",
+  image: null,
+};
+
 function getUserInitials(name: string) {
   const parts = name.trim().split(/\s+/);
   if (parts.length >= 2) {
@@ -61,10 +70,16 @@ export const TicketFilterSidebar = () => {
 
   const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
 
+  // Build items list with "Unassigned" at the top
+  const assigneeItems = [unassignedItem, ...members];
+
   // Map selected assignee IDs to member objects for the combobox value
-  const selectedAssignees = (filter.assignedToIds ?? [])
-    .map((id) => members.find((m) => m.id === id))
-    .filter((m): m is MemberItem => !!m);
+  const selectedAssignees: MemberItem[] = [
+    ...(filter.isUnassigned ? [unassignedItem] : []),
+    ...(filter.assignedToIds ?? [])
+      .map((id) => members.find((m) => m.id === id))
+      .filter((m): m is MemberItem => !!m),
+  ];
 
   return (
     <>
@@ -181,17 +196,20 @@ export const TicketFilterSidebar = () => {
         </SidebarGroup>
         <SidebarGroup>
           <Combobox
-            key={(filter.assignedToIds ?? []).join("|")}
+            key={[filter.isUnassigned ? "u" : "", ...(filter.assignedToIds ?? [])].join("|")}
             multiple
             autoHighlight
-            items={members}
+            items={assigneeItems}
             value={selectedAssignees.length > 0 ? selectedAssignees : null}
             onValueChange={(values: MemberItem[] | null) => {
-              const assignedToIds = (values ?? []).map((m) => m.id);
+              const selected = values ?? [];
+              const isUnassigned = selected.some((m) => m.id === UNASSIGNED_ID) || undefined;
+              const assignedToIds = selected.filter((m) => m.id !== UNASSIGNED_ID).map((m) => m.id);
               void setSearchParams((prev) => ({
                 page: 1,
                 filter: {
                   ...prev.filter,
+                  isUnassigned,
                   assignedToIds: assignedToIds.length > 0 ? assignedToIds : undefined,
                 },
               }));

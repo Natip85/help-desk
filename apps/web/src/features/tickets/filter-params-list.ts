@@ -26,7 +26,7 @@ export const mapFilters = (filter?: TicketFilter): Record<string, number> => {
     statuses: filter?.statuses?.length ?? 0,
     priorities: filter?.priorities?.length ?? 0,
     channels: filter?.channels?.length ?? 0,
-    assignedToIds: filter?.assignedToIds?.length ?? 0,
+    assignedToIds: (filter?.assignedToIds?.length ?? 0) + (filter?.isUnassigned ? 1 : 0),
     contactIds: filter?.contactIds?.length ?? 0,
     companyIds: filter?.companyIds?.length ?? 0,
     mailboxIds: filter?.mailboxIds?.length ?? 0,

@@ -9,6 +9,7 @@ export type NavMainItem = {
   icon: React.ComponentType;
   hasDropdown?: boolean;
   submenu?: NavSubMenuItem[];
+  useDropdownMenu?: boolean;
 };
 
 export type NavFooterItem = Omit<NavMainItem, "hasDropdown" | "submenu">;

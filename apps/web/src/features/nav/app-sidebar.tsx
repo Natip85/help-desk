@@ -22,6 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
 import { NavMain } from "./nav-main";
+import { OrgSwitcher } from "./org-switcher";
 
 function CustomSidebarTrigger() {
   const { state } = useSidebar();
@@ -65,6 +66,13 @@ const data = {
       title: "Tickets",
       url: "/tickets",
       icon: Ticket,
+      useDropdownMenu: true,
+      submenu: [
+        {
+          title: "Trash",
+          url: "/tickets/trash",
+        },
+      ],
     },
     {
       title: "Contacts",
@@ -90,7 +98,9 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         {...props}
       >
         <CustomSidebarTrigger />
-        <SidebarHeader>{/* <TeamSwitcher teams={data.teams} /> */}</SidebarHeader>
+        <SidebarHeader>
+          <OrgSwitcher />
+        </SidebarHeader>
         <SidebarContent>
           <NavMain
             items={data.navMain}

@@ -32,7 +32,7 @@ export function SignInTab({
     },
     onSubmit: async ({ value }) => {
       const res = await authClient.signIn.email(
-        { ...value, callbackURL: redirectUrl ?? "/tickets" },
+        { ...value, callbackURL: redirectUrl ?? "/onboarding" },
         {
           onError: (error) => {
             if (error.error.code === "EMAIL_NOT_VERIFIED") {

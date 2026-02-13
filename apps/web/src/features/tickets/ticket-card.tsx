@@ -34,19 +34,19 @@ export const priorityConfig: Record<ConversationPriority, { label: string; class
 export const statusConfig: Record<ConversationStatus, { label: string; className: string }> = {
   open: {
     label: "Open",
-    className: "bg-sky-700/50",
+    className: "bg-sky-700",
   },
   pending: {
     label: "Pending",
-    className: "bg-amber-700/50",
+    className: "bg-amber-700",
   },
   resolved: {
     label: "Resolved",
-    className: "bg-green-700/50",
+    className: "bg-green-700",
   },
   closed: {
     label: "Closed",
-    className: "bg-zinc-700/50",
+    className: "bg-zinc-700",
   },
 };
 
@@ -85,7 +85,7 @@ export const TicketCard = ({
         {...props}
         className={cn(
           "group border-primary hover:ring-primary hover:bg-accent/5 flex flex-row justify-between border-l-4 p-0 px-6 py-3 shadow-sm transition-all duration-300 group-active:z-10 hover:ring-2 has-data-[slot=card-footer]:pb-3",
-          isActive && "ring-primary bg-accent/5 ring-2",
+          isActive && "ring-primary bg-accent/5 ring-1",
           // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
           (href || onCardClick) && "",
           className

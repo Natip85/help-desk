@@ -3,16 +3,27 @@
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, MoreHorizontal, Trash2Icon } from "lucide-react";
 
 import type { NavigationItems } from "./nav-types";
 import { Button } from "@/components/ui/button";
-import { Collapsible, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarGroup,
   SidebarMenu,
+  SidebarMenuAction,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   useSidebar,
 } from "@/components/ui/sidebar";
 import { cn } from "@/lib/utils";
@@ -21,7 +32,7 @@ type NavMainProps = NavigationItems & React.ComponentProps<typeof SidebarGroup>;
 
 export function NavMain({ items, children, footerItems, ...props }: NavMainProps) {
   const pathname = usePathname();
-  const { state } = useSidebar();
+  const { state, isMobile } = useSidebar();
 
   return (
     <>
@@ -40,6 +51,48 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
                   pathname === subItem.url ||
                   (subItem.url !== "/" && pathname.startsWith(subItem.url + "/"))
               );
+
+            if (hasSubmenu && item.useDropdownMenu) {
+              return (
+                <SidebarMenuItem key={item.title}>
+                  <SidebarMenuButton
+                    isActive={isActive}
+                    tooltip={item.title}
+                    asChild
+                  >
+                    <Link href={item.url as Route}>
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <SidebarMenuAction showOnHover>
+                        <MoreHorizontal />
+                        <span className="sr-only">More</span>
+                      </SidebarMenuAction>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      className="w-48 rounded-lg"
+                      side={isMobile ? "bottom" : "right"}
+                      align={isMobile ? "end" : "start"}
+                    >
+                      <DropdownMenuLabel>Deleted tickets</DropdownMenuLabel>
+                      {item.submenu?.map((subItem) => (
+                        <DropdownMenuItem
+                          key={subItem.title}
+                          asChild
+                        >
+                          <Link href={subItem.url as Route}>
+                            <Trash2Icon /> <span>{subItem.title}</span>
+                          </Link>
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </SidebarMenuItem>
+              );
+            }
 
             if (hasSubmenu) {
               return (
@@ -77,6 +130,27 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
                         </CollapsibleTrigger>
                       )}
                     </div>
+                    <CollapsibleContent>
+                      <SidebarMenuSub>
+                        {item.submenu?.map((subItem) => {
+                          const isSubActive =
+                            pathname === subItem.url ||
+                            (subItem.url !== "/" && pathname.startsWith(subItem.url + "/"));
+                          return (
+                            <SidebarMenuSubItem key={subItem.title}>
+                              <SidebarMenuSubButton
+                                isActive={isSubActive}
+                                asChild
+                              >
+                                <Link href={subItem.url as Route}>
+                                  <span>{subItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          );
+                        })}
+                      </SidebarMenuSub>
+                    </CollapsibleContent>
                   </SidebarMenuItem>
                 </Collapsible>
               );

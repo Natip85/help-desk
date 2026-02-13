@@ -1,6 +1,6 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, exists, gte, ilike, inArray, lte } from "drizzle-orm";
+import { and, asc, desc, eq, exists, gte, ilike, inArray, isNull, lte, or } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
 import type { Database } from "@help-desk/db";
@@ -40,7 +40,10 @@ export const createTicketFilters = (
   organizationId: string,
   filter?: TicketFilter | null
 ): SQL[] => {
-  const conditions: SQL[] = [eq(conversation.organizationId, organizationId)];
+  const conditions: SQL[] = [
+    eq(conversation.organizationId, organizationId),
+    isNull(conversation.deletedAt),
+  ];
 
   if (!filter) return conditions;
 
@@ -57,9 +60,21 @@ export const createTicketFilters = (
     conditions.push(inArray(conversation.channel, filter.channels));
   }
 
-  // FK ID array filters
-  if (filter.assignedToIds && filter.assignedToIds.length > 0) {
-    conditions.push(inArray(conversation.assignedToId, filter.assignedToIds));
+  // Assignee filter: supports specific IDs, unassigned, or both (OR)
+  const assignedToIds = filter.assignedToIds ?? [];
+  const wantsUnassigned = filter.isUnassigned === true;
+
+  if (assignedToIds.length > 0 && wantsUnassigned) {
+    // "Unassigned OR assigned to these specific people"
+    const condition = or(
+      isNull(conversation.assignedToId),
+      inArray(conversation.assignedToId, assignedToIds)
+    );
+    if (condition) conditions.push(condition);
+  } else if (assignedToIds.length > 0) {
+    conditions.push(inArray(conversation.assignedToId, assignedToIds));
+  } else if (wantsUnassigned) {
+    conditions.push(isNull(conversation.assignedToId));
   }
 
   if (filter.contactIds && filter.contactIds.length > 0) {

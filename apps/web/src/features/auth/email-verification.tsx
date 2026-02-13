@@ -45,7 +45,7 @@ export function EmailVerification({ email }: EmailVerificationProps) {
     try {
       await authClient.sendVerificationEmail({
         email,
-        callbackURL: "/",
+        callbackURL: "/onboarding",
       });
       toast.success("Verification email sent!");
       startCountdown();

@@ -58,6 +58,7 @@ export const conversation = Utils.createTable(
     assignedToId: text("assigned_to_id").references(() => user.id),
     lastMessageAt: timestamp("last_message_at"),
     closedAt: timestamp("closed_at"),
+    deletedAt: timestamp("deleted_at"),
     ...Utils.createUpdateTimestamps,
   },
   (t) => [
@@ -65,6 +66,7 @@ export const conversation = Utils.createTable(
     index("conversation_assigned_idx").on(t.assignedToId),
     index("conversation_contact_idx").on(t.contactId),
     index("conversation_org_idx").on(t.organizationId),
+    index("conversation_deleted_at_idx").on(t.deletedAt),
   ]
 );
 

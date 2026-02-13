@@ -32,7 +32,7 @@ export function PageTitle({ title, children, subTitle, className, statusBadge, .
 export const PageSubtitle = ({ className, ...props }: React.ComponentProps<"p">) => {
   return (
     <p
-      className={cn("text-xs text-neutral-900 capitalize", className)}
+      className={cn("text-xs capitalize", className)}
       {...props}
     />
   );

@@ -3,6 +3,7 @@
 import type { Row, Table } from "@tanstack/react-table";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreVertical, Trash, UserPlus } from "lucide-react";
+import { toast } from "sonner";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -31,29 +32,33 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
   table,
   users,
 }: BoardTableBulkActionsProps<TData>) => {
-  // const trpc = useTRPC();
-  // const queryClient = useQueryClient();
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
 
-  // const invalidateTasks = () => {
-  //   void queryClient.invalidateQueries({ queryKey: [["task", "getByColumn"]] });
-  // };
+  const invalidateTickets = async () => {
+    // ticket.all and totalCount ARE mounted on this page, so invalidate to refetch
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() }),
+      queryClient.invalidateQueries({ queryKey: trpc.ticket.totalCount.queryKey() }),
+    ]);
+    // listDeleted is NOT mounted here, remove stale cache for trash page
+    queryClient.removeQueries({ queryKey: trpc.ticket.listDeleted.queryKey() });
+  };
 
-  // const { mutateAsync: deleteMany } = useMutation(
-  //   trpc.task.deleteMany.mutationOptions({
-  //     onSuccess: () => {
-  //       table.resetRowSelection();
-  //       invalidateTasks();
-  //     },
-  //   })
-  // );
+  const { mutateAsync: bulkSoftDelete } = useMutation(
+    trpc.ticket.bulkSoftDelete.mutationOptions({
+      onSuccess: async (data) => {
+        table.resetRowSelection();
+        await invalidateTickets();
+        toast.success(`${data.count} ticket(s) moved to trash`);
+      },
+      onError: () => {
+        toast.error("Failed to delete tickets");
+      },
+    })
+  );
 
-  // const { mutateAsync: bulkAssign } = useMutation(
-  //   trpc.task.bulkAssign.mutationOptions({
-  //     onSuccess: invalidateTasks,
-  //   })
-  // );
-
-  const taskIds = selectedRows.map((row) => row.original.id);
+  const ticketIds = selectedRows.map((row) => row.original.id);
 
   return (
     <DropdownMenu>
@@ -83,7 +88,7 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
-                  onClick={async () => {
+                  onClick={() => {
                     // await bulkAssign({ ids: taskIds, assigneeId: null });
                     table.resetRowSelection();
                   }}
@@ -97,7 +102,7 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
                 {users.map((user) => (
                   <DropdownMenuItem
                     key={user.id}
-                    onClick={async () => {
+                    onClick={() => {
                       // await bulkAssign({ ids: taskIds, assigneeId: user.id });
                       table.resetRowSelection();
                     }}
@@ -119,8 +124,7 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
         <DropdownMenuGroup>
           <DropdownMenuItem
             onClick={async () => {
-              // await deleteMany({ ids: taskIds });
-              table.resetRowSelection();
+              await bulkSoftDelete({ ids: ticketIds });
             }}
             className="text-red-600"
           >

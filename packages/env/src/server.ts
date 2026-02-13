@@ -17,6 +17,7 @@ export const env = createEnv({
     GITHUB_APP_URL: z.url(),
     RESEND_API_KEY: z.string().min(1),
     SENDER_EMAIL: z.string().email(),
+    CRON_SECRET: z.string().min(1).optional(),
     NODE_ENV: z.enum(["development", "production", "test"]).default("development"),
   },
   runtimeEnv: process.env,
