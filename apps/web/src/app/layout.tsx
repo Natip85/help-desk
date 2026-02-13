@@ -51,7 +51,9 @@ export default function RootLayout({
             <Suspense>
               <UploadThingSSR />
             </Suspense>
-            <Header />
+            <Suspense>
+              <Header />
+            </Suspense>
             {children}
           </Providers>
         </NuqsAdapter>
