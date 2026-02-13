@@ -1,4 +1,3 @@
-import type { SearchParams } from "nuqs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -8,23 +7,18 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ImpersonationIndicator } from "@/features/auth/impersination-indicator";
 import { AppSidebar } from "@/features/nav/app-sidebar";
 import { RightSidebarContainer } from "@/features/right-sidebars";
-import { loadTicketSearchParams } from "@/features/tickets/search-params";
-import { HydrateClient, prefetch, trpc } from "@/trpc/server";
+import { HydrateClient } from "@/trpc/server";
 
 type ClientLayoutProps = {
-  searchParams: Promise<SearchParams>;
   children: React.ReactNode;
 };
 
-export default async function ClientLayout({ children, searchParams }: ClientLayoutProps) {
-  const params = await loadTicketSearchParams(searchParams);
+export default async function ClientLayout({ children }: ClientLayoutProps) {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (session && !session.session.activeOrganizationId) {
     return redirect("/onboarding");
   }
-
-  prefetch(trpc.ticket.all.queryOptions(params));
 
   return (
     <HydrateClient>

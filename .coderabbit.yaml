@@ -1,0 +1,15 @@
+# Minimal configuration for getting started
+language: "en-US"
+
+reviews:
+  profile: "chill"
+  high_level_summary: true
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches: ["main", "dev"]
+  tools:
+    biome:
+      enabled: false
+    eslint:
+      enabled: true
