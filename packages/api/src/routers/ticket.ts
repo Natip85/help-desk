@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, desc, eq, getTableColumns } from "drizzle-orm";
+import { and, desc, eq, getTableColumns, ilike, or } from "drizzle-orm";
 import { z } from "zod";
 
 import {
@@ -135,6 +135,9 @@ export const ticketRouter = createTRPCRouter({
         contact: {
           columns: { id: true, email: true, firstName: true, lastName: true, displayName: true },
         },
+        assignedTo: {
+          columns: { id: true, name: true, image: true },
+        },
         mailbox: {
           columns: { id: true, email: true, name: true },
         },
@@ -219,6 +222,50 @@ export const ticketRouter = createTRPCRouter({
           message: "Ticket not found",
         });
       }
+
+      return updated;
+    }),
+
+  updateAssignee: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        assignedToId: z.string().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      const [updated] = await ctx.db
+        .update(conversation)
+        .set({ assignedToId: input.assignedToId })
+        .where(and(eq(conversation.id, input.id), eq(conversation.organizationId, organizationId)))
+        .returning({ id: conversation.id });
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Ticket not found",
+        });
+      }
+
+      // Log assigned / unassigned event
+      await ctx.db.insert(conversationEvent).values({
+        organizationId,
+        conversationId: input.id,
+        actorId: ctx.session.user.id,
+        type: input.assignedToId ? "assigned" : "unassigned",
+        payload: {
+          assignedToId: input.assignedToId,
+        },
+      });
 
       return updated;
     }),
@@ -563,5 +610,63 @@ export const ticketRouter = createTRPCRouter({
       });
 
       return { noteId: result.id };
+    }),
+  totalCount: protectedProcedure.query(async ({ ctx }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      return { count: 0 };
+    }
+
+    const count = await ctx.db.$count(
+      conversation,
+      eq(conversation.organizationId, organizationId)
+    );
+
+    return { count };
+  }),
+
+  getGlobalSearchAll: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ ctx, input }) => {
+      const searchTerm = input?.trim();
+
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!searchTerm || searchTerm.length < 2 || !organizationId) {
+        return {
+          tickets: [],
+        };
+      }
+
+      try {
+        const tickets = await ctx.db.query.conversation.findMany({
+          where: and(
+            eq(conversation.organizationId, organizationId),
+            or(
+              ilike(conversation.subject, `%${searchTerm}%`),
+              ilike(conversation.id, `%${searchTerm}%`)
+            )
+          ),
+          columns: {
+            id: true,
+            subject: true,
+            channel: true,
+          },
+          limit: 5,
+        });
+
+        return {
+          tickets,
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tickets|getGlobalSearchAll|error]", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to perform global search",
+        });
+      }
     }),
 });

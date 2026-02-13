@@ -1,7 +1,7 @@
 import type { SearchParams } from "nuqs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { Plus } from "lucide-react";
+import { UploadIcon } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
@@ -29,8 +29,8 @@ export default async function TicketsPage({ searchParams }: PageProps) {
       <div className="bg-background sticky top-0 z-10 flex flex-col gap-6 px-6 py-2">
         <PageTitle title="Tickets">
           <Button>
-            <Plus />
-            New{" "}
+            <UploadIcon />
+            Export
           </Button>
         </PageTitle>
         <TicketsHeader />

@@ -1,8 +1,10 @@
 import { Fragment } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 import { conversationPriority, conversationStatus } from "@help-desk/db/schema/conversations";
 
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import {
   Combobox,
@@ -22,13 +24,31 @@ import {
   SidebarGroup,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useTRPC } from "@/trpc";
 import { useTicketSearchParams } from "../tickets/search-params";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
 import { useSidebarParams } from "./query-params";
 
+type MemberItem = {
+  id: string;
+  name: string;
+  email: string;
+  image: string | null;
+};
+
+function getUserInitials(name: string) {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) {
+    return `${parts[0].charAt(0)}${parts[1].charAt(0)}`.toUpperCase();
+  }
+  return name.charAt(0).toUpperCase();
+}
+
 export const TicketFilterSidebar = () => {
+  const trpc = useTRPC();
   const priorityAnchor = useComboboxAnchor();
   const statusAnchor = useComboboxAnchor();
+  const assigneeAnchor = useComboboxAnchor();
   const {
     searchParams: { filter },
     setSearchParams,
@@ -38,6 +58,13 @@ export const TicketFilterSidebar = () => {
     sidebarParams: { filterOpen },
     setSidebarParams,
   } = useSidebarParams();
+
+  const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
+
+  // Map selected assignee IDs to member objects for the combobox value
+  const selectedAssignees = (filter.assignedToIds ?? [])
+    .map((id) => members.find((m) => m.id === id))
+    .filter((m): m is MemberItem => !!m);
 
   return (
     <>
@@ -146,6 +173,72 @@ export const TicketFilterSidebar = () => {
                     value={item}
                   >
                     <span>{statusConfig[item]?.label ?? item}</span>
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+        </SidebarGroup>
+        <SidebarGroup>
+          <Combobox
+            key={(filter.assignedToIds ?? []).join("|")}
+            multiple
+            autoHighlight
+            items={members}
+            value={selectedAssignees.length > 0 ? selectedAssignees : null}
+            onValueChange={(values: MemberItem[] | null) => {
+              const assignedToIds = (values ?? []).map((m) => m.id);
+              void setSearchParams((prev) => ({
+                page: 1,
+                filter: {
+                  ...prev.filter,
+                  assignedToIds: assignedToIds.length > 0 ? assignedToIds : undefined,
+                },
+              }));
+            }}
+            isItemEqualToValue={(a, b) => a?.id === b?.id}
+            itemToStringLabel={(item) => item.name}
+          >
+            <ComboboxChips
+              ref={assigneeAnchor}
+              className="w-full max-w-xs"
+            >
+              <ComboboxValue>
+                {(values: MemberItem[] | null) => {
+                  const selected = values ?? [];
+                  return (
+                    <Fragment>
+                      {selected.map((member: MemberItem) => (
+                        <ComboboxChip key={member.id}>{member.name}</ComboboxChip>
+                      ))}
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "assignee"} />
+                    </Fragment>
+                  );
+                }}
+              </ComboboxValue>
+            </ComboboxChips>
+            <ComboboxContent anchor={assigneeAnchor}>
+              <ComboboxEmpty>No members found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item: MemberItem) => (
+                  <ComboboxItem
+                    key={item.id}
+                    value={item}
+                  >
+                    <div className="flex items-center gap-2">
+                      <Avatar className="size-5">
+                        {item.image && (
+                          <AvatarImage
+                            src={item.image}
+                            alt={item.name}
+                          />
+                        )}
+                        <AvatarFallback className="text-[10px]">
+                          {getUserInitials(item.name)}
+                        </AvatarFallback>
+                      </Avatar>
+                      <span>{item.name}</span>
+                    </div>
                   </ComboboxItem>
                 )}
               </ComboboxList>

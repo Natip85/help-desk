@@ -16,6 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardFooter, CardHeader } from "@/components/ui/card";
 import { createContextHook } from "@/hooks/create-context-hook";
 import { cn } from "@/lib/utils";
+import { TicketAssigneeCombobox } from "./ticket-assignee-combobox";
 
 const channelIconMap: Record<ConversationChannel, React.FC<React.SVGProps<SVGSVGElement>>> = {
   email: MailIcon,
@@ -229,15 +230,25 @@ export const TicketCardTags = ({ className, ...props }: React.ComponentProps<"di
   );
 };
 
-export const TicketCardAssignee = ({ className, ...props }: React.ComponentProps<"div">) => {
+export const TicketCardAssignee = ({
+  className,
+  onAssigneeChange,
+  ...props
+}: React.ComponentProps<"div"> & {
+  onAssigneeChange?: (assigneeId: string | null) => void;
+}) => {
+  const { data } = useTicketCard();
+  const assignee = data?.assignedTo ?? null;
+
   return (
     <div
       {...props}
       className={cn("", className)}
     >
-      <Avatar className="size-7">
-        <AvatarFallback className="text-xs">AR</AvatarFallback>
-      </Avatar>
+      <TicketAssigneeCombobox
+        currentAssignee={assignee}
+        onValueChange={(id) => onAssigneeChange?.(id)}
+      />
     </div>
   );
 };

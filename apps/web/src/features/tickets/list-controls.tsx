@@ -156,7 +156,7 @@ export const ListControls = <
             "transition-all duration-300 ease-in-out",
             width > LG ? "w-[252px]" : "w-[180px]"
           )}
-          placeholder="Search..."
+          placeholder="Search tickets..."
           value={inputValue}
           onChange={(e) => handleInputChange(e.target.value)}
         />

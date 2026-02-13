@@ -47,6 +47,15 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
     })
   );
 
+  const { mutate: updateAssignee } = useMutation(
+    trpc.ticket.updateAssignee.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        toast.success("Assignee updated successfully");
+      },
+    })
+  );
+
   const statusAction: TicketCardAction = {
     type: "select",
     label: "Status",
@@ -89,7 +98,11 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
         <TicketCardTags />
       </TicketCardHeader>
       <TicketCardFooter>
-        <TicketCardAssignee />
+        <TicketCardAssignee
+          onAssigneeChange={(assigneeId) =>
+            updateAssignee({ id: item.id, assignedToId: assigneeId })
+          }
+        />
         <div className="flex items-center gap-2">
           <TicketCardActions actions={[statusAction]} />
           <TicketCardActions actions={[priorityAction]} />

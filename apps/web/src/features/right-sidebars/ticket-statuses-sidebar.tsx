@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/combobox";
 import { SidebarContent, SidebarGroup, SidebarHeader } from "@/components/ui/sidebar";
 import { useTRPC } from "@/trpc";
+import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
 import { useSidebarParams } from "./query-params";
 
@@ -60,6 +61,20 @@ export const TicketStatusesSidebar = () => {
           queryKey: trpc.ticket.all.queryKey(),
         });
         toast.success("Status updated successfully");
+      },
+    })
+  );
+
+  const { mutate: updateAssignee } = useMutation(
+    trpc.ticket.updateAssignee.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({
+          queryKey: trpc.ticket.getById.queryKey(ticketId),
+        });
+        void queryClient.invalidateQueries({
+          queryKey: trpc.ticket.all.queryKey(),
+        });
+        toast.success("Assignee updated successfully");
       },
     })
   );
@@ -180,6 +195,20 @@ export const TicketStatusesSidebar = () => {
                 </ComboboxList>
               </ComboboxContent>
             </Combobox>
+          </div>
+        </SidebarGroup>
+        <SidebarGroup>
+          <div className="flex flex-col gap-1">
+            <span className="text-muted-foreground text-xs">Assignee</span>
+            <TicketAssigneeCombobox
+              currentAssignee={ticket?.assignedTo ?? null}
+              onValueChange={(assigneeId) => {
+                if (ticketId) {
+                  updateAssignee({ id: ticketId, assignedToId: assigneeId });
+                }
+              }}
+              variant="button"
+            />
           </div>
         </SidebarGroup>
       </SidebarContent>

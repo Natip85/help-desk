@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, inArray } from "drizzle-orm";
+import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { contact } from "@help-desk/db/schema/contacts";
@@ -20,10 +20,6 @@ function requireActiveOrganizationId(activeOrganizationId: string | null | undef
 }
 
 export const contactRouter = createTRPCRouter({
-  /**
-   * Contact sidebar "profile" payload.
-   * Input is a string to match existing client usage: `queryOptions(contactId)`.
-   */
   getById: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
     const contactId = input;
@@ -265,5 +261,61 @@ export const contactRouter = createTRPCRouter({
         tags: conversationTags.map((ct) => ct.tag),
         notes,
       };
+    }),
+  totalCount: protectedProcedure.query(async ({ ctx }) => {
+    const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+    const count = await ctx.db.$count(contact, eq(contact.organizationId, organizationId));
+
+    return { count };
+  }),
+
+  getGlobalSearchAll: protectedProcedure
+    .input(z.string().optional())
+    .query(async ({ ctx, input }) => {
+      const searchTerm = input?.trim();
+
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!searchTerm || searchTerm.length < 2 || !organizationId) {
+        return {
+          contacts: [],
+        };
+      }
+
+      try {
+        const contacts = await ctx.db.query.contact.findMany({
+          where: and(
+            eq(contact.organizationId, organizationId),
+            or(
+              ilike(contact.firstName, `%${searchTerm}%`),
+              ilike(contact.lastName, `%${searchTerm}%`),
+              ilike(contact.displayName, `%${searchTerm}%`),
+              ilike(contact.email, `%${searchTerm}%`)
+            )
+          ),
+          columns: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            displayName: true,
+            avatarUrl: true,
+          },
+          limit: 5,
+        });
+
+        return {
+          contacts,
+        };
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[tickets|getGlobalSearchAll|error]", error);
+
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to perform global search",
+        });
+      }
     }),
 });
