@@ -7,6 +7,7 @@ import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { ImpersonationIndicator } from "@/features/auth/impersination-indicator";
 import { AppSidebar } from "@/features/nav/app-sidebar";
 import { RightSidebarContainer } from "@/features/right-sidebars";
+import { ActiveEditorProvider } from "@/features/ticket/active-editor-context";
 import { HydrateClient } from "@/trpc/server";
 
 type ClientLayoutProps = {
@@ -22,18 +23,20 @@ export default async function ClientLayout({ children }: ClientLayoutProps) {
 
   return (
     <HydrateClient>
-      <SidebarProvider
-        defaultRightOpen={false}
-        className="min-h-0 flex-1"
-      >
-        <AppSidebar belowHeader />
-        <SidebarInset className="h-auto">
-          <ImpersonationIndicator />
+      <ActiveEditorProvider>
+        <SidebarProvider
+          defaultRightOpen={false}
+          className="min-h-0 flex-1"
+        >
+          <AppSidebar belowHeader />
+          <SidebarInset className="h-auto">
+            <ImpersonationIndicator />
 
-          {children}
-        </SidebarInset>
-        <RightSidebarContainer />
-      </SidebarProvider>
+            {children}
+          </SidebarInset>
+          <RightSidebarContainer />
+        </SidebarProvider>
+      </ActiveEditorProvider>
     </HydrateClient>
   );
 }

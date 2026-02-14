@@ -15,6 +15,14 @@ const TicketFilterSidebar = dynamic(() =>
 const ContactInfoSidebar = dynamic(() =>
   import("./contact-info-sidebar").then((mod) => ({ default: mod.ContactInfoSidebar }))
 );
+const CannedResponsesSidebar = dynamic(() =>
+  import("./canned-responses-sidebar").then((mod) => ({ default: mod.CannedResponsesSidebar }))
+);
+const CreateSavedFilterSidebar = dynamic(() =>
+  import("./create-saved-filter-sidebar").then((mod) => ({
+    default: mod.CreateSavedFilterSidebar,
+  }))
+);
 
 export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }) => {
   const { sidebarParams, setSidebarParams } = useSidebarParams();
@@ -60,8 +68,9 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
   // Get the current active component key for animation
   const getActiveKey = () => {
     if (sidebarParams.contactId) return "contact-info";
-    // if (sidebarParams.filterSaving) return "create-smart-list";
+    if (sidebarParams.filterSaving) return "create-saved-filter";
     if (sidebarParams.ticketStatusesId) return "ticket-statuses";
+    if (sidebarParams.cannedResponsesId) return "canned-responses";
     if (sidebarParams.filterOpen && !sidebarParams.filterSaving) return "ticket-filter";
 
     return null;
@@ -86,8 +95,10 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
             className="flex h-full flex-col"
           >
             {sidebarParams.contactId && <ContactInfoSidebar />}
+            {sidebarParams.filterSaving && <CreateSavedFilterSidebar />}
             {sidebarParams.filterOpen && !sidebarParams.filterSaving && <TicketFilterSidebar />}
             {sidebarParams.ticketStatusesId && <TicketStatusesSidebar />}
+            {sidebarParams.cannedResponsesId && <CannedResponsesSidebar />}
           </motion.div>
         )}
       </AnimatePresence>

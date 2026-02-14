@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { Plus, Trash2 } from "lucide-react";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 import type { Tag } from "@help-desk/db/schema/tags";
@@ -68,10 +69,7 @@ export const TicketFilterSidebar = () => {
     setSearchParams,
     resetFilters,
   } = useTicketSearchParams();
-  const {
-    sidebarParams: { filterOpen },
-    setSidebarParams,
-  } = useSidebarParams();
+  const { setSidebarParams } = useSidebarParams();
 
   const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
   const { data: tagsData } = useQuery(trpc.tags.list.queryOptions());
@@ -363,25 +361,24 @@ export const TicketFilterSidebar = () => {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-accent/50 flex items-center gap-4 border-t p-3">
-        {filterOpen === "edit" && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              // Clear other sidebar params (e.g. contact) when switching modes.
-              void setSidebarParams({ contactId: null, filterOpen: "new", filterSaving: true });
-            }}
-          >
-            Save as new smart list
-          </Button>
-        )}
+      <SidebarFooter className="border-accent/50 flex flex-col items-center gap-2 border-t p-3">
         <Button
+          variant="outline"
+          className="bg-accent/50 w-full"
+          onClick={() => {
+            void setSidebarParams({ contactId: null, filterSaving: true });
+          }}
+        >
+          <Plus /> Save filter
+        </Button>
+        <Button
+          variant="destructive"
           className="w-full"
           onClick={() => {
             void resetFilters();
           }}
         >
-          {filterOpen === "edit" ? "Reset filters" : "Clear all"}
+          <Trash2 /> Reset filters
         </Button>
       </SidebarFooter>
     </>

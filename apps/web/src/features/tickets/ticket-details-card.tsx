@@ -20,11 +20,11 @@ import {
 } from "./ticket-card";
 import { TicketCardActions } from "./ticket-card-actions";
 
-type SmartListDetailsCardProps = Omit<React.ComponentProps<typeof TicketCard>, "data"> & {
+type TicketDetailsCardProps = Omit<React.ComponentProps<typeof TicketCard>, "data"> & {
   item: TicketCardData;
 };
 
-export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps) => {
+export const TicketDetailsCard = ({ item, ...props }: TicketDetailsCardProps) => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const { toggleContactSidebarId, sidebarParams } = useSidebarParams();

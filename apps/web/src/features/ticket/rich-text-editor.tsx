@@ -11,6 +11,7 @@ import Underline from "@tiptap/extension-underline";
 import { EditorContent, useEditor, useEditorState } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 
+import { useActiveEditor } from "./active-editor-context";
 import { EditorToolbar } from "./editor-toolbar";
 
 type RichTextEditorProps = {
@@ -20,6 +21,8 @@ type RichTextEditorProps = {
 };
 
 export const RichTextEditor = ({ content, children, onEditorReady }: RichTextEditorProps) => {
+  const { setEditor: setActiveEditor } = useActiveEditor();
+
   const editor = useEditor({
     extensions: [
       StarterKit,
@@ -62,6 +65,16 @@ export const RichTextEditor = ({ content, children, onEditorReady }: RichTextEdi
       hasNotifiedReady.current = true;
     }
   }, [editor, onEditorReady]);
+
+  // Register this editor as the active editor for the canned responses sidebar
+  useEffect(() => {
+    if (editor) {
+      setActiveEditor(editor);
+    }
+    return () => {
+      setActiveEditor(null);
+    };
+  }, [editor, setActiveEditor]);
 
   const editorState = useEditorState({
     editor,

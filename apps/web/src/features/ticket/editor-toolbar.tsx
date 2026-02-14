@@ -33,6 +33,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Toggle } from "@/components/ui/toggle";
 import { UploadButton } from "@/lib/uploadthing";
 import { cn } from "@/lib/utils";
+import { ToggleCannedResponsesSidebarButton } from "./toggle-canned-responses-sidebar-button";
 
 export type EditorState = {
   isBold?: boolean;
@@ -449,6 +450,11 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
           </div>
         </PopoverContent>
       </Popover>
+
+      <div className="bg-border mx-1.5 h-6 w-px" />
+
+      {/* Canned Responses */}
+      <ToggleCannedResponsesSidebarButton />
 
       {/* Spacer */}
       <div className="flex-1" />

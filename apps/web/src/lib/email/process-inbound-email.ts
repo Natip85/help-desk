@@ -1,4 +1,4 @@
-import { and, eq, like } from "drizzle-orm";
+import { and, eq, inArray, like } from "drizzle-orm";
 
 import { db } from "@help-desk/db";
 import {
@@ -249,6 +249,19 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
 
     let existingConversation: typeof conversation.$inferSelect | undefined;
 
+    // 5-pre. Check for plus-addressed Reply-To threading (e.g. support+conv_{id}@domain.com)
+    //        This is the most reliable threading mechanism for replies to forwards.
+    const allRecipients = [...to, ...cc, ...bcc];
+    for (const addr of allRecipients) {
+      const plusMatch = /\+conv_([a-f0-9-]+)@/i.exec(addr);
+      if (plusMatch?.[1]) {
+        existingConversation = await tx.query.conversation.findFirst({
+          where: eq(conversation.id, plusMatch[1]),
+        });
+        if (existingConversation) break;
+      }
+    }
+
     // 5a. Try matching via In-Reply-To header
     const inReplyToHeader = getHeader(headers, "in-reply-to");
 
@@ -261,6 +274,55 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
         existingConversation = await tx.query.conversation.findFirst({
           where: eq(conversation.id, referencedMessage.conversationId),
         });
+      }
+    }
+
+    // 5a2. Fallback: try matching via References header (handles longer threads)
+    if (!existingConversation) {
+      const referencesHeader = getHeader(headers, "references");
+      if (referencesHeader) {
+        const refIds = referencesHeader.split(/\s+/).filter(Boolean);
+        if (refIds.length > 0) {
+          const referencedMessage = await tx.query.message.findFirst({
+            where: inArray(message.emailMessageId, refIds),
+          });
+
+          if (referencedMessage) {
+            existingConversation = await tx.query.conversation.findFirst({
+              where: eq(conversation.id, referencedMessage.conversationId),
+            });
+          }
+        }
+      }
+    }
+
+    // 5a3. Fallback: match outbound messages by Resend email ID extracted from
+    //       In-Reply-To / References headers. Resend assigns its own Message-ID
+    //       to sent emails (format: <resend-email-id@resend.dev>) so we extract
+    //       the local part and match it against the stored resendEmailId.
+    if (!existingConversation) {
+      const allMessageIds: string[] = [];
+      if (inReplyToHeader) allMessageIds.push(inReplyToHeader);
+      const referencesHeader = getHeader(headers, "references");
+      if (referencesHeader) {
+        allMessageIds.push(...referencesHeader.split(/\s+/).filter(Boolean));
+      }
+
+      // Extract local parts from Message-ID values, e.g. "<abc-123@resend.dev>" → "abc-123"
+      const localParts = allMessageIds
+        .map((id) => /^<([^@>]+)@/.exec(id)?.[1])
+        .filter((id): id is string => Boolean(id));
+
+      if (localParts.length > 0) {
+        const referencedMessage = await tx.query.message.findFirst({
+          where: inArray(message.resendEmailId, localParts),
+        });
+
+        if (referencedMessage) {
+          existingConversation = await tx.query.conversation.findFirst({
+            where: eq(conversation.id, referencedMessage.conversationId),
+          });
+        }
       }
     }
 

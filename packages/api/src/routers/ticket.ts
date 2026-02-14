@@ -362,9 +362,15 @@ export const ticketRouter = createTRPCRouter({
           : lastInboundMessage.emailMessageId;
       }
 
-      // 6. Send the email via Resend
+      // 6. Build a plus-addressed Reply-To so replies thread back to this conversation
+      const [emailLocal, emailDomain] = fromEmail.split("@");
+      const replyToAddress =
+        emailLocal && emailDomain ? `${emailLocal}+conv_${conv.id}@${emailDomain}` : fromEmail;
+
+      // 7. Send the email via Resend
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: `${fromName} <${fromEmail}>`,
+        replyTo: [`${fromName} <${replyToAddress}>`],
         to: [toEmail],
         subject,
         html: input.htmlBody,
@@ -384,7 +390,7 @@ export const ticketRouter = createTRPCRouter({
         });
       }
 
-      // 7. Persist message + update conversation + log event in a transaction
+      // 8. Persist message + update conversation + log event in a transaction
       const result = await ctx.db.transaction(async (tx) => {
         // Insert outbound message
         const [newMessage] = await tx
@@ -492,9 +498,15 @@ export const ticketRouter = createTRPCRouter({
           : `Fwd: ${conv.subject}`
         : "Fwd: (no subject)";
 
-      // 4. Send the email via Resend (no threading headers for forwards)
+      // 4. Build a plus-addressed Reply-To so replies thread back to this conversation
+      const [emailLocal, emailDomain] = fromEmail.split("@");
+      const replyToAddress =
+        emailLocal && emailDomain ? `${emailLocal}+conv_${conv.id}@${emailDomain}` : fromEmail;
+
+      // 5. Send the email via Resend
       const { data: emailData, error: emailError } = await resend.emails.send({
         from: `${fromName} <${fromEmail}>`,
+        replyTo: [`${fromName} <${replyToAddress}>`],
         to: [input.toEmail],
         subject,
         html: input.htmlBody,
@@ -510,7 +522,7 @@ export const ticketRouter = createTRPCRouter({
         });
       }
 
-      // 5. Persist message + update conversation + log event in a transaction
+      // 6. Persist message + update conversation + log event in a transaction
       const result = await ctx.db.transaction(async (tx) => {
         const [newMessage] = await tx
           .insert(message)
