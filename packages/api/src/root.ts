@@ -1,3 +1,4 @@
+import { cannedResponseRouter } from "./routers/canned-response";
 import { contactRouter } from "./routers/contact";
 import { mailboxRouter } from "./routers/mailbox";
 import { tagRouter } from "./routers/tag";
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   contact: contactRouter,
   mailbox: mailboxRouter,
   tags: tagRouter,
+  cannedResponse: cannedResponseRouter,
 });
 
 // export type definition of API
