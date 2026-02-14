@@ -18,13 +18,13 @@ export function PageTitle({ title, children, subTitle, className, statusBadge, .
       {...props}
     >
       <div className={cn("flex flex-wrap items-center justify-between gap-4", className)}>
-        <div className="flex max-w-3/5 min-w-0 flex-1 items-center gap-4">
+        <div className="flex min-w-0 flex-1 items-center gap-4">
           <h2 className="line-clamp-2 text-2xl font-semibold tracking-tight">{title}</h2>
           {statusBadge && <Badge>{statusBadge}</Badge>}
         </div>
         {children && <div className="flex shrink-0 items-center gap-3">{children}</div>}
       </div>
-      {subTitle && <PageSubtitle className="line-clamp-3 max-w-3/5">{subTitle}</PageSubtitle>}
+      {subTitle && <PageSubtitle className="line-clamp-3">{subTitle}</PageSubtitle>}
     </div>
   );
 }

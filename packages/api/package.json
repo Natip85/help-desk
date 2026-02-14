@@ -32,6 +32,7 @@
     "@help-desk/env": "workspace:*",
     "@trpc/client": "catalog:",
     "@trpc/server": "catalog:",
+    "date-fns": "^4.1.0",
     "dotenv": "catalog:",
     "drizzle-orm": "^0.45.1",
     "lodash-es": "^4.17.23",

@@ -27,6 +27,7 @@ import {
   SidebarHeader,
 } from "@/components/ui/sidebar";
 import { useTRPC } from "@/trpc";
+import { CreatedDateFilter } from "../tickets/created-date-filter";
 import { useTicketSearchParams } from "../tickets/search-params";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
 import { useSidebarParams } from "./query-params";
@@ -96,7 +97,7 @@ export const TicketFilterSidebar = () => {
         <h2 className="text-lg font-medium">Filters</h2>
       </SidebarHeader>
 
-      <SidebarContent className="scrollbar-gutter-stable flex flex-1 flex-col gap-1 overflow-y-auto p-3">
+      <SidebarContent className="scrollbar-gutter-stable flex flex-1 flex-col overflow-y-auto p-3">
         <SidebarGroup>
           <SidebarGroupLabel>Priority</SidebarGroupLabel>
           <Combobox
@@ -130,7 +131,7 @@ export const TicketFilterSidebar = () => {
                           {priorityConfig[value]?.label ?? value}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "priority"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
                     </Fragment>
                   );
                 }}
@@ -186,7 +187,7 @@ export const TicketFilterSidebar = () => {
                           {statusConfig[value]?.label ?? value}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "status"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
                     </Fragment>
                   );
                 }}
@@ -245,7 +246,7 @@ export const TicketFilterSidebar = () => {
                       {selected.map((member: MemberItem) => (
                         <ComboboxChip key={member.id}>{member.name}</ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "assignee"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
                     </Fragment>
                   );
                 }}
@@ -320,7 +321,7 @@ export const TicketFilterSidebar = () => {
                           {tag.name}
                         </ComboboxChip>
                       ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : "tags"} />
+                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
                     </Fragment>
                   );
                 }}
@@ -344,6 +345,21 @@ export const TicketFilterSidebar = () => {
               </ComboboxList>
             </ComboboxContent>
           </Combobox>
+        </SidebarGroup>
+        <SidebarGroup>
+          <SidebarGroupLabel>Created</SidebarGroupLabel>
+          <CreatedDateFilter
+            value={filter.createdAt}
+            onChange={(createdAt) => {
+              void setSearchParams((prev) => ({
+                page: 1,
+                filter: {
+                  ...prev.filter,
+                  createdAt,
+                },
+              }));
+            }}
+          />
         </SidebarGroup>
       </SidebarContent>
 

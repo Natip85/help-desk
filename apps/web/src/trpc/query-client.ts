@@ -20,7 +20,7 @@ export const createQueryClient = () =>
         // above 0 to avoid refetching immediately on the client
         staleTime: 5 * 60 * 1000, // 5 minutes
         refetchOnWindowFocus: false,
-        refetchOnMount: false,
+        refetchOnMount: true,
         refetchOnReconnect: false,
         refetchInterval: false,
         refetchIntervalInBackground: false,

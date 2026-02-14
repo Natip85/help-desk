@@ -6,6 +6,7 @@ import { contact } from "@help-desk/db/schema/contacts";
 import { conversation, conversationStatus } from "@help-desk/db/schema/conversations";
 import { conversationEvent } from "@help-desk/db/schema/events";
 import { note } from "@help-desk/db/schema/notes";
+import { contactFormSchema } from "@help-desk/db/validators";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
@@ -318,4 +319,43 @@ export const contactRouter = createTRPCRouter({
         });
       }
     }),
+
+  create: protectedProcedure.input(contactFormSchema).mutation(async ({ ctx, input }) => {
+    const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+    // Check for duplicate email within the organization
+    const existing = await ctx.db.query.contact.findFirst({
+      where: and(eq(contact.organizationId, organizationId), eq(contact.email, input.email)),
+    });
+
+    if (existing) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "A contact with this email already exists",
+      });
+    }
+
+    const displayName = [input.firstName, input.lastName].filter(Boolean).join(" ") || null;
+
+    const [newContact] = await ctx.db
+      .insert(contact)
+      .values({
+        organizationId,
+        email: input.email,
+        firstName: input.firstName ?? null,
+        lastName: input.lastName ?? null,
+        displayName,
+        phone: input.phone ?? null,
+      })
+      .returning();
+
+    if (!newContact) {
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to create contact",
+      });
+    }
+
+    return newContact;
+  }),
 });

@@ -32,12 +32,16 @@ export default async function OrganizationsPage() {
   return (
     <>
       <div className="flex flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
-        <div className="flex items-center gap-2">
-          <Link href="/settings">
+        <div className="flex gap-2">
+          <Link
+            href="/settings"
+            className="pt-1"
+          >
             <ChevronLeft />
           </Link>
           <PageTitle
             title="Organizations"
+            subTitle="Manage your organizations and their members"
             className="w-full"
           >
             <CreateOrganizationButton />

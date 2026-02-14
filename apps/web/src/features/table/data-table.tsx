@@ -136,9 +136,9 @@ export const DataTable = <TData, TValue>({
                     className={cn(
                       hasSelection && header.id !== "select" && "opacity-0",
                       isSelectHeader &&
-                        'after:content-[" "] sticky left-0 z-30 bg-transparent px-3 text-center after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-transparent dark:after:bg-transparent',
+                        'after:content-[" "] bg-background/60 sticky left-0 z-30 px-3 text-center backdrop-blur-sm after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-transparent dark:after:bg-transparent',
                       isActionsHeader &&
-                        'after:content-[" "] sticky right-0 z-30 bg-transparent pr-3 pl-4 text-right after:absolute after:top-0 after:bottom-0 after:left-0 after:w-px after:bg-transparent dark:after:bg-transparent'
+                        'after:content-[" "] bg-background/60 sticky right-0 z-30 pr-3 pl-4 text-right backdrop-blur-sm after:absolute after:top-0 after:bottom-0 after:left-0 after:w-px after:bg-transparent dark:after:bg-transparent'
                     )}
                   >
                     {header.isPlaceholder ? null : (
@@ -174,9 +174,9 @@ export const DataTable = <TData, TValue>({
                       }}
                       className={cn(
                         isSelectCell &&
-                          'after:content-[" "] sticky left-0 z-20 bg-transparent px-3 text-center will-change-transform after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-transparent dark:after:bg-transparent',
+                          'after:content-[" "] bg-background/60 sticky left-0 z-20 px-3 text-center backdrop-blur-sm will-change-transform after:absolute after:top-0 after:right-0 after:bottom-0 after:w-px after:bg-transparent dark:after:bg-transparent',
                         isActionsCell &&
-                          'after:content-[" "] sticky right-0 z-20 bg-transparent pr-3 pl-4 text-right will-change-transform after:absolute after:top-0 after:bottom-0 after:left-0 after:w-px after:bg-transparent dark:after:bg-transparent',
+                          'after:content-[" "] bg-background/60 sticky right-0 z-20 pr-3 pl-4 text-right backdrop-blur-sm will-change-transform after:absolute after:top-0 after:bottom-0 after:left-0 after:w-px after:bg-transparent dark:after:bg-transparent',
                         isActionsCell && hasSelection && "pointer-events-none"
                       )}
                     >

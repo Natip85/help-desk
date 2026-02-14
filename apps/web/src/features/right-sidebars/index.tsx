@@ -10,14 +10,10 @@ import { RightSidebar, useSidebar } from "./right-sidebar";
 import { TicketStatusesSidebar } from "./ticket-statuses-sidebar";
 
 const TicketFilterSidebar = dynamic(() =>
-  import("./ticket-filter-sidebar").then((mod) => ({
-    default: mod.TicketFilterSidebar,
-  }))
+  import("./ticket-filter-sidebar").then((mod) => ({ default: mod.TicketFilterSidebar }))
 );
 const ContactInfoSidebar = dynamic(() =>
-  import("./contact-info-sidebar").then((mod) => ({
-    default: mod.ContactInfoSidebar,
-  }))
+  import("./contact-info-sidebar").then((mod) => ({ default: mod.ContactInfoSidebar }))
 );
 
 export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }) => {

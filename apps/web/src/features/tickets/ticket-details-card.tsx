@@ -29,10 +29,15 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
   const queryClient = useQueryClient();
   const { toggleContactSidebarId, sidebarParams } = useSidebarParams();
 
+  const invalidateTicket = () => {
+    void queryClient.invalidateQueries({ queryKey: trpc.ticket.getById.queryKey(item.id) });
+    void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+  };
+
   const { mutate: updatePriority } = useMutation(
     trpc.ticket.updatePriority.mutationOptions({
       onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        invalidateTicket();
         toast.success("Priority updated successfully");
       },
     })
@@ -41,7 +46,7 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
   const { mutate: updateStatus } = useMutation(
     trpc.ticket.updateStatus.mutationOptions({
       onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        invalidateTicket();
         toast.success("Status updated successfully");
       },
     })
@@ -50,7 +55,7 @@ export const TicketDetailsCard = ({ item, ...props }: SmartListDetailsCardProps)
   const { mutate: updateAssignee } = useMutation(
     trpc.ticket.updateAssignee.mutationOptions({
       onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        invalidateTicket();
         toast.success("Assignee updated successfully");
       },
     })

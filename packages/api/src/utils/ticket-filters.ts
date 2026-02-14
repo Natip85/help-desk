@@ -1,5 +1,6 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { endOfDay } from "date-fns";
 import { asc, desc, eq, gte, ilike, inArray, isNull, lte, or } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
@@ -101,13 +102,13 @@ export const createTicketFilters = (
     conditions.push(inArray(conversation.id, tagSubquery));
   }
 
-  // Date range filters
+  // Date range filters – "to" is end-of-day so the entire day is included
   if (filter.createdAt) {
     if (filter.createdAt.from) {
       conditions.push(gte(conversation.createdAt, filter.createdAt.from));
     }
     if (filter.createdAt.to) {
-      conditions.push(lte(conversation.createdAt, filter.createdAt.to));
+      conditions.push(lte(conversation.createdAt, endOfDay(filter.createdAt.to)));
     }
   }
 
@@ -116,7 +117,7 @@ export const createTicketFilters = (
       conditions.push(gte(conversation.lastMessageAt, filter.lastMessageAt.from));
     }
     if (filter.lastMessageAt.to) {
-      conditions.push(lte(conversation.lastMessageAt, filter.lastMessageAt.to));
+      conditions.push(lte(conversation.lastMessageAt, endOfDay(filter.lastMessageAt.to)));
     }
   }
 
@@ -125,7 +126,7 @@ export const createTicketFilters = (
       conditions.push(gte(conversation.closedAt, filter.closedAt.from));
     }
     if (filter.closedAt.to) {
-      conditions.push(lte(conversation.closedAt, filter.closedAt.to));
+      conditions.push(lte(conversation.closedAt, endOfDay(filter.closedAt.to)));
     }
   }
 

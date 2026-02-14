@@ -2,6 +2,7 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq, getTableColumns, ilike, isNotNull, isNull, or } from "drizzle-orm";
 import { z } from "zod";
 
+import { contact } from "@help-desk/db/schema/contacts";
 import {
   conversation,
   conversationPriority,
@@ -11,6 +12,8 @@ import {
 import { conversationEvent } from "@help-desk/db/schema/events";
 import { mailbox } from "@help-desk/db/schema/mailboxes";
 import { note } from "@help-desk/db/schema/notes";
+import { conversationTag } from "@help-desk/db/schema/tags";
+import { ticketFormSchema } from "@help-desk/db/validators";
 import { env } from "@help-desk/env/server";
 
 import { resend } from "../lib/resend";
@@ -861,4 +864,158 @@ export const ticketRouter = createTRPCRouter({
         });
       }
     }),
+  create: protectedProcedure.input(ticketFormSchema).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    // 1. Resolve the contact: use existing or create a new one
+    let ticketContact: { id: string; email: string; companyId: string | null };
+
+    if (input.contactId) {
+      const existing = await ctx.db.query.contact.findFirst({
+        where: and(eq(contact.id, input.contactId), eq(contact.organizationId, organizationId)),
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Contact not found",
+        });
+      }
+
+      ticketContact = existing;
+    } else if (input.newContact) {
+      // Check for duplicate email within the org
+      const duplicate = await ctx.db.query.contact.findFirst({
+        where: and(
+          eq(contact.organizationId, organizationId),
+          eq(contact.email, input.newContact.email)
+        ),
+      });
+
+      if (duplicate) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "A contact with this email already exists",
+        });
+      }
+
+      const displayName =
+        [input.newContact.firstName, input.newContact.lastName].filter(Boolean).join(" ") || null;
+
+      const [created] = await ctx.db
+        .insert(contact)
+        .values({
+          organizationId,
+          email: input.newContact.email,
+          firstName: input.newContact.firstName ?? null,
+          lastName: input.newContact.lastName ?? null,
+          displayName,
+          phone: input.newContact.phone ?? null,
+        })
+        .returning();
+
+      if (!created) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create contact",
+        });
+      }
+
+      ticketContact = created;
+    } else {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Either an existing contact or new contact details are required",
+      });
+    }
+
+    // 2. Resolve the mailbox for fromEmail (org default mailbox -> env fallback)
+    const defaultMailbox = await ctx.db.query.mailbox.findFirst({
+      where: and(eq(mailbox.organizationId, organizationId), eq(mailbox.isDefault, true)),
+    });
+
+    const fromEmail = defaultMailbox?.email ?? env.SENDER_EMAIL;
+
+    // 3. Run all inserts in a transaction
+    const result = await ctx.db.transaction(async (tx) => {
+      // Insert the conversation
+      const [newTicket] = await tx
+        .insert(conversation)
+        .values({
+          organizationId,
+          contactId: ticketContact.id,
+          companyId: ticketContact.companyId,
+          mailboxId: defaultMailbox?.id,
+          subject: input.subject,
+          channel: input.channel ?? "email",
+          status: input.status,
+          priority: input.priority,
+          assignedToId: input.assignedToId,
+          lastMessageAt: new Date(),
+        })
+        .returning();
+
+      if (!newTicket) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create ticket",
+        });
+      }
+
+      // Insert the first message (from the description field)
+      const [newMessage] = await tx
+        .insert(message)
+        .values({
+          conversationId: newTicket.id,
+          senderId: ctx.session.user.id,
+          direction: "outbound",
+          fromEmail,
+          toEmail: [ticketContact.email],
+          subject: input.subject,
+          htmlBody: input.description,
+        })
+        .returning();
+
+      if (!newMessage) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create message",
+        });
+      }
+
+      // Log the conversation_created event
+      await tx.insert(conversationEvent).values({
+        organizationId,
+        conversationId: newTicket.id,
+        actorId: ctx.session.user.id,
+        type: "conversation_created",
+        payload: {
+          messageId: newMessage.id,
+          subject: input.subject,
+          contactId: ticketContact.id,
+        },
+      });
+
+      // Insert tags into the join table
+      if (input.tagIds && input.tagIds.length > 0) {
+        await tx.insert(conversationTag).values(
+          input.tagIds.map((tagId) => ({
+            conversationId: newTicket.id,
+            tagId,
+          }))
+        );
+      }
+
+      return newTicket;
+    });
+
+    return result;
+  }),
 });
