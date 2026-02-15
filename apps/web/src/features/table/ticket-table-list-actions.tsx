@@ -1,7 +1,7 @@
 "use client";
 
 import type { Row } from "@tanstack/react-table";
-import { useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 
 import type { TicketCardData } from "../tickets/ticket-card";
@@ -22,6 +22,13 @@ export function TicketTableListActions({ row }: TicketTableListActionsProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
+  const { mutateAsync: softDelete } = useMutation(
+    trpc.ticket.softDelete.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+      },
+    })
+  );
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -38,7 +45,13 @@ export function TicketTableListActions({ row }: TicketTableListActionsProps) {
         align="end"
         className="w-[160px]"
       >
-        <DropdownMenuItem>Delete</DropdownMenuItem>
+        <DropdownMenuItem
+          onClick={async () => {
+            await softDelete(row.original.id);
+          }}
+        >
+          Delete
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

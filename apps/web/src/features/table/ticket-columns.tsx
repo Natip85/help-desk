@@ -1,18 +1,19 @@
 "use client";
 
 import type { ColumnDef } from "@tanstack/react-table";
+import Link from "next/link";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import type { TicketCardData } from "../tickets/ticket-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
-import { cn } from "@/lib/utils";
-import {
-  formatDate,
-  getContactDisplayName,
-  getContactInitials,
-  statusConfig,
-} from "../tickets/ticket-card";
+import { useTRPC } from "@/trpc";
+import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
+import { formatDate, getContactDisplayName, getContactInitials } from "../tickets/ticket-card";
+import { TicketPrioritySelect } from "../tickets/ticket-priority-select";
+import { TicketStatusSelect } from "../tickets/ticket-status-select";
 import { TicketTableListActions } from "./ticket-table-list-actions";
 
 export const columns: ColumnDef<TicketCardData>[] = [
@@ -59,50 +60,29 @@ export const columns: ColumnDef<TicketCardData>[] = [
     cell: ({ row }) => <div>{row.original.id}</div>,
   },
   {
-    id: "createdAt",
-    accessorKey: "createdAt",
-    header: () => <div>Created At</div>,
-    cell: ({ row }) => (
-      <div className="max-w-[300px] truncate">{formatDate(row.original.createdAt)}</div>
-    ),
-  },
-  {
     id: "status",
     accessorKey: "status",
     header: () => <div>Status</div>,
-    cell: ({ row }) => {
-      const status = row.original.status ? statusConfig[row.original.status] : null;
-      return status && <Badge className={cn("", status.className)}>{row.original.status}</Badge>;
-    },
-  },
-  {
-    id: "priority",
-    accessorKey: "priority",
-    header: () => <div>Priority</div>,
-    cell: ({ row }) => {
-      return <Badge>{row.original.priority}</Badge>;
-    },
+    cell: ({ row }) => (
+      <TicketStatusSelect
+        ticketId={row.original.id}
+        value={row.original.status}
+      />
+    ),
   },
   {
     id: "subject",
     accessorKey: "subject",
     header: () => <div>Subject</div>,
-    cell: ({ row }) => <div>{row.original.subject}</div>,
-  },
-  {
-    id: "tags",
-    accessorKey: "tags",
-    header: () => <div>Tags</div>,
     cell: ({ row }) => (
-      <div className="flex items-center gap-2">
-        {row.original.tags.map((tag) => (
-          <Badge
-            key={tag.id}
-            style={{ backgroundColor: tag.color }}
-          >
-            {tag.name}
-          </Badge>
-        ))}
+      <div>
+        <Link
+          href={`/tickets/${row.original.id}`}
+          onClick={(e) => e.stopPropagation()}
+          className="text-sm font-medium hover:underline"
+        >
+          {row.original.subject}
+        </Link>
       </div>
     ),
   },
@@ -136,7 +116,56 @@ export const columns: ColumnDef<TicketCardData>[] = [
       );
     },
   },
+  {
+    id: "createdAt",
+    accessorKey: "createdAt",
+    header: () => <div>Created At</div>,
+    cell: ({ row }) => (
+      <div className="max-w-[300px] truncate">{formatDate(row.original.createdAt)}</div>
+    ),
+  },
 
+  {
+    id: "priority",
+    accessorKey: "priority",
+    header: () => <div>Priority</div>,
+    cell: ({ row }) => (
+      <TicketPrioritySelect
+        ticketId={row.original.id}
+        value={row.original.priority}
+      />
+    ),
+  },
+
+  {
+    id: "tags",
+    accessorKey: "tags",
+    header: () => <div>Tags</div>,
+    cell: ({ row }) => (
+      <div className="flex items-center gap-2">
+        {row.original.tags.map((tag) => (
+          <Badge
+            key={tag.id}
+            style={{ backgroundColor: tag.color }}
+          >
+            {tag.name}
+          </Badge>
+        ))}
+      </div>
+    ),
+  },
+
+  {
+    id: "assignee",
+    accessorKey: "assignedTo",
+    header: () => <div>Assignee</div>,
+    cell: ({ row }) => (
+      <AssigneeCell
+        ticketId={row.original.id}
+        assignee={row.original.assignedTo}
+      />
+    ),
+  },
   {
     id: "actions",
     accessorKey: "actions",
@@ -146,3 +175,31 @@ export const columns: ColumnDef<TicketCardData>[] = [
     maxSize: 40,
   },
 ];
+
+function AssigneeCell({
+  ticketId,
+  assignee,
+}: {
+  ticketId: string;
+  assignee: TicketCardData["assignedTo"];
+}) {
+  const trpc = useTRPC();
+  const queryClient = useQueryClient();
+
+  const { mutate: updateAssignee } = useMutation(
+    trpc.ticket.updateAssignee.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.ticket.getById.queryKey(ticketId) });
+        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        toast.success("Assignee updated successfully");
+      },
+    })
+  );
+
+  return (
+    <TicketAssigneeCombobox
+      currentAssignee={assignee}
+      onValueChange={(assigneeId) => updateAssignee({ id: ticketId, assignedToId: assigneeId })}
+    />
+  );
+}

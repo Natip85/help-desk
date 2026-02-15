@@ -7,23 +7,25 @@ import { useGenericTableParams } from "./use-table-params";
 
 const availableColumns = [
   "id",
-  "createdAt",
   "status",
   "subject",
   "contact",
+  "createdAt",
   "priority",
   "tags",
+  "assignee",
 ] as const;
 type ColumnName = (typeof availableColumns)[number];
 
 const columnLabelsMap: Record<ColumnName, string> = {
   id: "ID",
-  createdAt: "Created At",
   status: "Status",
   subject: "Subject",
   contact: "Contact",
+  createdAt: "Created At",
   priority: "Priority",
   tags: "Tags",
+  assignee: "Assignee",
 };
 
 const availableColumnsEnum = z.enum(availableColumns);
@@ -36,12 +38,13 @@ type ColumnsList = z.infer<typeof columnsListSchema>;
 
 const defaultColumns: ColumnsList = [
   { id: false },
-  { createdAt: true },
   { status: true },
   { subject: true },
   { contact: true },
+  { createdAt: true },
   { priority: true },
   { tags: true },
+  { assignee: true },
 ];
 
 export const tableParamsParser = {

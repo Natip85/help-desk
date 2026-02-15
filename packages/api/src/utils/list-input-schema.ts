@@ -10,7 +10,7 @@ export const createBasicListInput = <T extends string[]>(
     limit: z.number().min(1).max(1000).default(50),
     page: z.number().min(1).default(1),
     q: z.string().optional().default(""),
-    viewMode: z.enum(["list", "card"]).optional().default("card"),
+    viewMode: z.enum(["card", "list"]).optional().default("card"),
     sort: z
       .array(
         z.object({

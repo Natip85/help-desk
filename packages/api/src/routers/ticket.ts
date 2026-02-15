@@ -773,6 +773,37 @@ export const ticketRouter = createTRPCRouter({
       return { count: rowCount };
     }),
 
+  bulkAssign: protectedProcedure
+    .input(
+      z.object({
+        ids: z.array(z.string()).min(1),
+        assigneeId: z.string().nullable(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      const { rowCount } = await ctx.db
+        .update(conversation)
+        .set({ assignedToId: input.assigneeId })
+        .where(
+          and(
+            eq(conversation.organizationId, organizationId),
+            isNull(conversation.deletedAt),
+            or(...input.ids.map((id) => eq(conversation.id, id)))
+          )
+        );
+
+      return { count: rowCount };
+    }),
+
   restore: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
     const organizationId = ctx.session.session.activeOrganizationId;
 

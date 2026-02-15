@@ -297,7 +297,7 @@ const sidebarContainerVariants = cva(
         state: "collapsed",
         collapsible: "icon",
         variant: ["floating", "inset"],
-        className: "w-[calc(var(--sidebar-width-icon)+(--spacing(4))+2px)]",
+        className: "w-[calc(var(--sidebar-width-icon)+var(--spacing)*4+2px)]",
       },
       {
         state: "collapsed",
@@ -357,7 +357,7 @@ const sidebarVariants = cva(
         state: "collapsed",
         collapsible: "icon",
         variant: ["floating", "inset"],
-        className: "w-[calc(var(--sidebar-width-icon)+(--spacing(4)))]",
+        className: "w-[calc(var(--sidebar-width-icon)+var(--spacing)*4)]",
       },
       {
         state: "collapsed",

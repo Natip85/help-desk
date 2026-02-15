@@ -8,7 +8,7 @@ import type { TicketFilter } from "@help-desk/db/validators/ticket-filter";
 import { ticketFilterSchema } from "@help-desk/db/validators/ticket-filter";
 import { ticketSortSchema } from "@help-desk/db/validators/ticket-sort";
 
-const viewModeSchema = z.enum(["list", "card"]);
+const viewModeSchema = z.enum(["card", "list"]);
 export type ViewMode = z.infer<typeof viewModeSchema>;
 
 export const ticketSearchParamsParser = {

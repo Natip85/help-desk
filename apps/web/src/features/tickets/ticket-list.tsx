@@ -22,7 +22,9 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useTRPC } from "@/trpc";
+import { useSidebarParams } from "../right-sidebars/query-params";
 import { DataTable } from "../table/data-table";
+import { TicketTableBulkActions } from "../table/ticket-table-bulk-actions";
 import { useTicketTableParams } from "../table/ticket-table-params";
 import { useTicketSearchParams } from "./search-params";
 import { TicketDetailsCard } from "./ticket-details-card";
@@ -31,9 +33,9 @@ export const TicketList = () => {
   const trpc = useTRPC();
   const { searchParams, setSearchParams } = useTicketSearchParams();
   const { columnVisibility, orderedColumns } = useTicketTableParams();
-
+  const { sidebarParams, toggleContactSidebarId } = useSidebarParams();
   const { data, isFetching } = useSuspenseQuery(trpc.ticket.all.queryOptions(searchParams));
-
+  const { data: users } = useSuspenseQuery(trpc.user.getOrganizationMembers.queryOptions());
   const hasQuery = Boolean(searchParams.q && searchParams.q.length > 0);
 
   return (
@@ -77,12 +79,17 @@ export const TicketList = () => {
                 columns={orderedColumns}
                 data={data.items}
                 columnVisibility={columnVisibility}
-                // renderBulkActions={({ selectedRows, table }) => (
-                //   <TicketTableBulkActions
-                //     selectedRows={selectedRows}
-                //     table={table}
-                //   />
-                // )}
+                onClick={(row) => {
+                  toggleContactSidebarId(row.contact.id);
+                }}
+                isActive={(row) => sidebarParams.contactId === row.contact.id}
+                renderBulkActions={({ selectedRows, table }) => (
+                  <TicketTableBulkActions
+                    selectedRows={selectedRows}
+                    table={table}
+                    users={users}
+                  />
+                )}
               />
             </ListRendererListItem>
 

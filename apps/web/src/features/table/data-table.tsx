@@ -157,7 +157,7 @@ export const DataTable = <TData, TValue>({
               <TableRow
                 className={cn(
                   "hover:bg-primary/50 data-[state=selected]:bg-primary/80 cursor-pointer border-b transition-colors",
-                  isActive && isActive(row.original) && "ring-primary rounded-md ring-2 ring-inset"
+                  isActive && isActive(row.original) && "bg-accent/50"
                 )}
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
@@ -165,11 +165,13 @@ export const DataTable = <TData, TValue>({
                 {row.getVisibleCells().map((cell) => {
                   const isSelectCell = cell.column.id === "select";
                   const isActionsCell = cell.column.id === "actions";
+                  const isStatusCell = cell.column.id === "status";
+                  const isPriorityCell = cell.column.id === "priority";
                   return (
                     <TableCell
                       key={cell.id}
                       onClick={() => {
-                        if (isActionsCell || isSelectCell) return;
+                        if (isActionsCell || isSelectCell || isStatusCell || isPriorityCell) return;
                         onClick?.(row.original);
                       }}
                       className={cn(

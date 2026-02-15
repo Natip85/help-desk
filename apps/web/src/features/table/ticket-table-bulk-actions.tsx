@@ -36,12 +36,10 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
   const queryClient = useQueryClient();
 
   const invalidateTickets = async () => {
-    // ticket.all and totalCount ARE mounted on this page, so invalidate to refetch
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() }),
       queryClient.invalidateQueries({ queryKey: trpc.ticket.totalCount.queryKey() }),
     ]);
-    // listDeleted is NOT mounted here, remove stale cache for trash page
     queryClient.removeQueries({ queryKey: trpc.ticket.listDeleted.queryKey() });
   };
 
@@ -54,6 +52,14 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
       },
       onError: () => {
         toast.error("Failed to delete tickets");
+      },
+    })
+  );
+
+  const { mutateAsync: bulkAssign } = useMutation(
+    trpc.ticket.bulkAssign.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
       },
     })
   );
@@ -88,8 +94,8 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
             <DropdownMenuPortal>
               <DropdownMenuSubContent>
                 <DropdownMenuItem
-                  onClick={() => {
-                    // await bulkAssign({ ids: taskIds, assigneeId: null });
+                  onClick={async () => {
+                    await bulkAssign({ ids: ticketIds, assigneeId: null });
                     table.resetRowSelection();
                   }}
                 >
@@ -102,8 +108,8 @@ export const TicketTableBulkActions = <TData extends { id: string }>({
                 {users.map((user) => (
                   <DropdownMenuItem
                     key={user.id}
-                    onClick={() => {
-                      // await bulkAssign({ ids: taskIds, assigneeId: user.id });
+                    onClick={async () => {
+                      await bulkAssign({ ids: ticketIds, assigneeId: user.id });
                       table.resetRowSelection();
                     }}
                   >
