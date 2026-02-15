@@ -35,10 +35,7 @@ export default async function TicketsPage({ searchParams }: PageProps) {
           pages={ticketsBreadcrumbs}
           className="px-2"
         />
-        <PageTitle
-          title="Tickets"
-          subTitle="View, filter and sort all tickets"
-        >
+        <PageTitle title="Tickets">
           <Button disabled>
             <UploadIcon />
             Export
