@@ -50,6 +50,12 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
         conversationId: ticketId,
       }).queryKey,
     });
+    void queryClient.invalidateQueries({
+      queryKey: trpc.ticket.getById.queryKey(ticketId),
+    });
+    void queryClient.invalidateQueries({
+      queryKey: trpc.ticket.all.queryKey(),
+    });
   };
 
   const handleEditorReady = (editor: Editor) => {

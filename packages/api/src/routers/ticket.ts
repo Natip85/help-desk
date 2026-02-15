@@ -478,11 +478,16 @@ export const ticketRouter = createTRPCRouter({
           });
         }
 
-        // Update conversation lastMessageAt
-        await tx
-          .update(conversation)
-          .set({ lastMessageAt: new Date() })
-          .where(eq(conversation.id, conv.id));
+        // Update conversation lastMessageAt + auto-assign if unassigned
+        const conversationUpdates: Partial<typeof conversation.$inferInsert> = {
+          lastMessageAt: new Date(),
+        };
+
+        if (!conv.assignedToId) {
+          conversationUpdates.assignedToId = ctx.session.user.id;
+        }
+
+        await tx.update(conversation).set(conversationUpdates).where(eq(conversation.id, conv.id));
 
         // Log email_sent event
         await tx.insert(conversationEvent).values({
@@ -496,6 +501,19 @@ export const ticketRouter = createTRPCRouter({
             subject,
           },
         });
+
+        // Log auto-assignment event if ticket was unassigned
+        if (!conv.assignedToId) {
+          await tx.insert(conversationEvent).values({
+            organizationId,
+            conversationId: conv.id,
+            actorId: ctx.session.user.id,
+            type: "assigned",
+            payload: {
+              assignedToId: ctx.session.user.id,
+            },
+          });
+        }
 
         return newMessage;
       });
