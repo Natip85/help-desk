@@ -13,7 +13,7 @@ import { conversationEvent } from "@help-desk/db/schema/events";
 import { mailbox } from "@help-desk/db/schema/mailboxes";
 import { note } from "@help-desk/db/schema/notes";
 import { conversationTag } from "@help-desk/db/schema/tags";
-import { ticketFormSchema } from "@help-desk/db/validators";
+import { emailFormSchema, ticketFormSchema } from "@help-desk/db/validators";
 import { env } from "@help-desk/env/server";
 
 import { resend } from "../lib/resend";
@@ -1117,6 +1117,208 @@ export const ticketRouter = createTRPCRouter({
       }
 
       return newTicket;
+    });
+
+    return result;
+  }),
+
+  createEmail: protectedProcedure.input(emailFormSchema).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    // 1. Resolve the contact: use existing or create a new one
+    let emailContact: { id: string; email: string; companyId: string | null };
+
+    if (input.contactId) {
+      const existing = await ctx.db.query.contact.findFirst({
+        where: and(eq(contact.id, input.contactId), eq(contact.organizationId, organizationId)),
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Contact not found",
+        });
+      }
+
+      emailContact = existing;
+    } else if (input.newContact) {
+      // Check for duplicate email within the org
+      const duplicate = await ctx.db.query.contact.findFirst({
+        where: and(
+          eq(contact.organizationId, organizationId),
+          eq(contact.email, input.newContact.email)
+        ),
+      });
+
+      if (duplicate) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "A contact with this email already exists",
+        });
+      }
+
+      const displayName =
+        [input.newContact.firstName, input.newContact.lastName].filter(Boolean).join(" ") || null;
+
+      const [created] = await ctx.db
+        .insert(contact)
+        .values({
+          organizationId,
+          email: input.newContact.email,
+          firstName: input.newContact.firstName ?? null,
+          lastName: input.newContact.lastName ?? null,
+          displayName,
+          phone: input.newContact.phone ?? null,
+        })
+        .returning();
+
+      if (!created) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create contact",
+        });
+      }
+
+      emailContact = created;
+    } else {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Either an existing contact or new contact details are required",
+      });
+    }
+
+    // 2. Resolve the selected mailbox
+    const selectedMailbox = await ctx.db.query.mailbox.findFirst({
+      where: and(eq(mailbox.id, input.mailboxId), eq(mailbox.organizationId, organizationId)),
+    });
+
+    if (!selectedMailbox) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Mailbox not found",
+      });
+    }
+
+    const fromEmail = selectedMailbox.email;
+    const fromName = selectedMailbox.name;
+
+    // 3. Create the conversation first (we need the ID for the Reply-To address)
+    const result = await ctx.db.transaction(async (tx) => {
+      // Insert the conversation
+      const [newConversation] = await tx
+        .insert(conversation)
+        .values({
+          organizationId,
+          contactId: emailContact.id,
+          companyId: emailContact.companyId,
+          mailboxId: selectedMailbox.id,
+          subject: input.subject,
+          channel: "email",
+          status: input.status,
+          priority: input.priority,
+          assignedToId: input.assignedToId,
+          customFields: input.customFields ?? {},
+          lastMessageAt: new Date(),
+        })
+        .returning();
+
+      if (!newConversation) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create conversation",
+        });
+      }
+
+      // 4. Build plus-addressed Reply-To so replies thread back
+      const [emailLocal, emailDomain] = fromEmail.split("@");
+      const replyToAddress =
+        emailLocal && emailDomain ?
+          `${emailLocal}+conv_${newConversation.id}@${emailDomain}`
+        : fromEmail;
+
+      // 5. Send the email via Resend
+      const { data: emailData, error: emailError } = await resend.emails.send({
+        from: `${fromName} <${fromEmail}>`,
+        replyTo: [`${fromName} <${replyToAddress}>`],
+        to: [emailContact.email],
+        subject: input.subject,
+        html: input.description,
+      });
+
+      if (emailError) {
+        // eslint-disable-next-line no-console
+        console.error("[tickets|createEmail|resend-error]", emailError);
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to send email",
+        });
+      }
+
+      // 6. Insert the outbound message
+      const [newMessage] = await tx
+        .insert(message)
+        .values({
+          conversationId: newConversation.id,
+          senderId: ctx.session.user.id,
+          direction: "outbound",
+          resendEmailId: emailData?.id ?? null,
+          fromEmail,
+          toEmail: [emailContact.email],
+          subject: input.subject,
+          htmlBody: input.description,
+        })
+        .returning();
+
+      if (!newMessage) {
+        throw new TRPCError({
+          code: "INTERNAL_SERVER_ERROR",
+          message: "Failed to create message record",
+        });
+      }
+
+      // 7. Log conversation_created and email_sent events
+      await tx.insert(conversationEvent).values({
+        organizationId,
+        conversationId: newConversation.id,
+        actorId: ctx.session.user.id,
+        type: "conversation_created",
+        payload: {
+          messageId: newMessage.id,
+          subject: input.subject,
+          contactId: emailContact.id,
+        },
+      });
+
+      await tx.insert(conversationEvent).values({
+        organizationId,
+        conversationId: newConversation.id,
+        actorId: ctx.session.user.id,
+        type: "email_sent",
+        payload: {
+          messageId: newMessage.id,
+          to: emailContact.email,
+          subject: input.subject,
+        },
+      });
+
+      // 8. Insert tags into the join table
+      if (input.tagIds && input.tagIds.length > 0) {
+        await tx.insert(conversationTag).values(
+          input.tagIds.map((tagId) => ({
+            conversationId: newConversation.id,
+            tagId,
+          }))
+        );
+      }
+
+      return newConversation;
     });
 
     return result;
