@@ -8,6 +8,7 @@ import { auth } from "@help-desk/auth";
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
+import { NewTicketsBanner } from "@/features/tickets/new-tickets-banner";
 import { loadTicketSearchParams } from "@/features/tickets/search-params";
 import { TicketList } from "@/features/tickets/ticket-list";
 import { TicketsHeader } from "@/features/tickets/tickets-header";
@@ -27,7 +28,8 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   prefetch(trpc.ticket.all.queryOptions(params));
 
   return (
-    <div>
+    <div className="relative">
+      <NewTicketsBanner />
       <div className="bg-background sticky top-0 z-10 flex flex-col gap-6 px-6 py-2">
         <Breadcrumbs
           pages={ticketsBreadcrumbs}
@@ -36,6 +38,7 @@ export default async function TicketsPage({ searchParams }: PageProps) {
         <PageTitle
           title="Tickets"
           subTitle="View, filter and sort all tickets"
+          className="pr-10"
         >
           <Button disabled>
             <UploadIcon />

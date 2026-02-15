@@ -700,6 +700,33 @@ export const ticketRouter = createTRPCRouter({
 
       return { noteId: result.id };
     }),
+  getUpdatesCheck: protectedProcedure.query(async ({ ctx }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      return { latestMessageAt: null, totalCount: 0 };
+    }
+
+    const whereCondition = and(
+      eq(conversation.organizationId, organizationId),
+      isNull(conversation.deletedAt)
+    );
+
+    const [latestConversation, totalCount] = await Promise.all([
+      ctx.db.query.conversation.findFirst({
+        where: whereCondition,
+        orderBy: [desc(conversation.lastMessageAt)],
+        columns: { lastMessageAt: true },
+      }),
+      ctx.db.$count(conversation, whereCondition),
+    ]);
+
+    return {
+      latestMessageAt: latestConversation?.lastMessageAt ?? null,
+      totalCount,
+    };
+  }),
+
   totalCount: protectedProcedure.query(async ({ ctx }) => {
     const organizationId = ctx.session.session.activeOrganizationId;
 
