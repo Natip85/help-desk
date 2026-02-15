@@ -58,23 +58,7 @@ export const columns: ColumnDef<TicketCardData>[] = [
       />
     ),
   },
-  {
-    id: "id",
-    accessorKey: "id",
-    header: () => <div>ID</div>,
-    cell: ({ row }) => <div>{row.original.id}</div>,
-  },
-  {
-    id: "status",
-    accessorKey: "status",
-    header: () => <div>Status</div>,
-    cell: ({ row }) => (
-      <TicketStatusSelect
-        ticketId={row.original.id}
-        value={row.original.status}
-      />
-    ),
-  },
+  // Interactive: link to ticket page
   {
     id: "subject",
     accessorKey: "subject",
@@ -91,6 +75,7 @@ export const columns: ColumnDef<TicketCardData>[] = [
       </div>
     ),
   },
+  // Passive: opens contact sidebar
   {
     id: "contact",
     accessorKey: "contact",
@@ -121,6 +106,19 @@ export const columns: ColumnDef<TicketCardData>[] = [
       );
     },
   },
+  // Interactive: status dropdown
+  {
+    id: "status",
+    accessorKey: "status",
+    header: () => <div>Status</div>,
+    cell: ({ row }) => (
+      <TicketStatusSelect
+        ticketId={row.original.id}
+        value={row.original.status}
+      />
+    ),
+  },
+  // Passive: opens contact sidebar
   {
     id: "channel",
     accessorKey: "channel",
@@ -136,6 +134,19 @@ export const columns: ColumnDef<TicketCardData>[] = [
       );
     },
   },
+  // Interactive: assignee dropdown
+  {
+    id: "assignee",
+    accessorKey: "assignedTo",
+    header: () => <div>Assignee</div>,
+    cell: ({ row }) => (
+      <AssigneeCell
+        ticketId={row.original.id}
+        assignee={row.original.assignedTo}
+      />
+    ),
+  },
+  // Passive: opens contact sidebar
   {
     id: "createdAt",
     accessorKey: "createdAt",
@@ -144,7 +155,7 @@ export const columns: ColumnDef<TicketCardData>[] = [
       <div className="max-w-[300px] truncate">{formatDate(row.original.createdAt)}</div>
     ),
   },
-
+  // Interactive: priority dropdown
   {
     id: "priority",
     accessorKey: "priority",
@@ -156,7 +167,7 @@ export const columns: ColumnDef<TicketCardData>[] = [
       />
     ),
   },
-
+  // Passive: opens contact sidebar
   {
     id: "tags",
     accessorKey: "tags",
@@ -174,17 +185,11 @@ export const columns: ColumnDef<TicketCardData>[] = [
       </div>
     ),
   },
-
   {
-    id: "assignee",
-    accessorKey: "assignedTo",
-    header: () => <div>Assignee</div>,
-    cell: ({ row }) => (
-      <AssigneeCell
-        ticketId={row.original.id}
-        assignee={row.original.assignedTo}
-      />
-    ),
+    id: "id",
+    accessorKey: "id",
+    header: () => <div>ID</div>,
+    cell: ({ row }) => <div>{row.original.id}</div>,
   },
   {
     id: "actions",

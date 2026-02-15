@@ -6,28 +6,28 @@ import { columns as columnDefs } from "./ticket-columns";
 import { useGenericTableParams } from "./use-table-params";
 
 const availableColumns = [
-  "id",
-  "status",
   "subject",
   "contact",
+  "status",
   "channel",
+  "assignee",
   "createdAt",
   "priority",
   "tags",
-  "assignee",
+  "id",
 ] as const;
 type ColumnName = (typeof availableColumns)[number];
 
 const columnLabelsMap: Record<ColumnName, string> = {
-  id: "ID",
-  status: "Status",
   subject: "Subject",
   contact: "Contact",
+  status: "Status",
   channel: "Channel",
+  assignee: "Assignee",
   createdAt: "Created At",
   priority: "Priority",
   tags: "Tags",
-  assignee: "Assignee",
+  id: "ID",
 };
 
 const availableColumnsEnum = z.enum(availableColumns);
@@ -39,15 +39,15 @@ const columnsListSchema = z.array(columnSchema);
 type ColumnsList = z.infer<typeof columnsListSchema>;
 
 const defaultColumns: ColumnsList = [
-  { id: false },
-  { status: true },
   { subject: true },
   { contact: true },
+  { status: true },
   { channel: true },
+  { assignee: true },
   { createdAt: true },
   { priority: true },
   { tags: true },
-  { assignee: true },
+  { id: false },
 ];
 
 export const tableParamsParser = {
