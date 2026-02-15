@@ -1,5 +1,6 @@
 import { Fragment } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { X } from "lucide-react";
 import { toast } from "sonner";
 
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
@@ -143,7 +144,7 @@ export const TicketStatusesSidebar = () => {
                 variant="outline"
                 className="w-full justify-between font-normal"
               >
-                <ComboboxValue placeholder={`Select ${label.toLowerCase()}...`} />
+                <ComboboxValue />
               </Button>
             }
           />
@@ -426,42 +427,55 @@ function CustomFieldValueSetter({
     <SidebarGroup>
       <div className="flex flex-col gap-1">
         <span className="text-muted-foreground text-xs">{displayName}</span>
-        <Combobox
-          items={options}
-          value={currentOption}
-          onValueChange={(option: OptionItem | null) => {
-            onSingleChange(option?.value ?? null);
-          }}
-          isItemEqualToValue={(a, b) => a?.value === b?.value}
-        >
-          <ComboboxTrigger
-            render={
-              <Button
-                variant="outline"
-                className="w-full justify-between font-normal"
-              >
-                <ComboboxValue placeholder={`Select ${displayName.toLowerCase()}...`} />
-              </Button>
-            }
-          />
-          <ComboboxContent className="w-42">
-            <ComboboxInput
-              showTrigger={false}
-              placeholder="Search"
-            />
-            <ComboboxEmpty>No items found.</ComboboxEmpty>
-            <ComboboxList>
-              {(item: OptionItem) => (
-                <ComboboxItem
-                  key={item.value}
-                  value={item}
+        <div className="relative">
+          <Combobox
+            items={options}
+            value={currentOption}
+            onValueChange={(option: OptionItem | null) => {
+              onSingleChange(option?.value ?? null);
+            }}
+            isItemEqualToValue={(a, b) => a?.value === b?.value}
+          >
+            <ComboboxTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="w-full justify-between font-normal"
                 >
-                  <span>{item.label}</span>
-                </ComboboxItem>
-              )}
-            </ComboboxList>
-          </ComboboxContent>
-        </Combobox>
+                  <ComboboxValue />
+                </Button>
+              }
+            />
+            <ComboboxContent className="w-42">
+              <ComboboxInput
+                showTrigger={false}
+                placeholder="Search"
+              />
+              <ComboboxEmpty>No items found.</ComboboxEmpty>
+              <ComboboxList>
+                {(item: OptionItem) => (
+                  <ComboboxItem
+                    key={item.value}
+                    value={item}
+                  >
+                    <span>{item.label}</span>
+                  </ComboboxItem>
+                )}
+              </ComboboxList>
+            </ComboboxContent>
+          </Combobox>
+          {currentOption && (
+            <Button
+              variant="ghost"
+              type="button"
+              className="absolute top-1/2 right-2 -translate-y-1/2 transition-colors"
+              onClick={() => onSingleChange(null)}
+              aria-label={`Clear ${displayName}`}
+            >
+              <X className="size-3.5" />
+            </Button>
+          )}
+        </div>
       </div>
     </SidebarGroup>
   );
