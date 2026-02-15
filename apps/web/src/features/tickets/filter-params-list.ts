@@ -22,6 +22,13 @@ export const useFilterParamsList = () => {
 };
 
 export const mapFilters = (filter?: TicketFilter): Record<string, number> => {
+  const customFieldEntries = Object.fromEntries(
+    Object.entries(filter?.customFields ?? {}).map(([key, values]) => [
+      `custom:${key}`,
+      values.length,
+    ])
+  );
+
   return {
     statuses: filter?.statuses?.length ?? 0,
     priorities: filter?.priorities?.length ?? 0,
@@ -31,5 +38,9 @@ export const mapFilters = (filter?: TicketFilter): Record<string, number> => {
     companyIds: filter?.companyIds?.length ?? 0,
     mailboxIds: filter?.mailboxIds?.length ?? 0,
     tagIds: filter?.tagIds?.length ?? 0,
+    createdAt: filter?.createdAt?.from || filter?.createdAt?.to ? 1 : 0,
+    lastMessageAt: filter?.lastMessageAt?.from || filter?.lastMessageAt?.to ? 1 : 0,
+    closedAt: filter?.closedAt?.from || filter?.closedAt?.to ? 1 : 0,
+    ...customFieldEntries,
   };
 };

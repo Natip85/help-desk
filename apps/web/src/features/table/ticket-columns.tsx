@@ -11,7 +11,12 @@ import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTRPC } from "@/trpc";
 import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
-import { formatDate, getContactDisplayName, getContactInitials } from "../tickets/ticket-card";
+import {
+  channelIconMap,
+  formatDate,
+  getContactDisplayName,
+  getContactInitials,
+} from "../tickets/ticket-card";
 import { TicketPrioritySelect } from "../tickets/ticket-priority-select";
 import { TicketStatusSelect } from "../tickets/ticket-status-select";
 import { TicketTableListActions } from "./ticket-table-list-actions";
@@ -112,6 +117,21 @@ export const columns: ColumnDef<TicketCardData>[] = [
             <span className="font-medium">{displayName ?? "\u00A0"}</span>
             <span className="mb-2 text-xs">{contact.email}</span>
           </div>
+        </div>
+      );
+    },
+  },
+  {
+    id: "channel",
+    accessorKey: "channel",
+    header: () => <div>Channel</div>,
+    cell: ({ row }) => {
+      const channel = row.original.channel;
+      const ChannelIcon = channelIconMap[channel];
+      return (
+        <div className="flex items-center gap-2">
+          <ChannelIcon className="size-3.5" />
+          <span className="capitalize">{channel}</span>
         </div>
       );
     },

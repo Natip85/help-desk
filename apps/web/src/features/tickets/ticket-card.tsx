@@ -19,7 +19,10 @@ import { createContextHook } from "@/hooks/create-context-hook";
 import { cn } from "@/lib/utils";
 import { TicketAssigneeCombobox } from "./ticket-assignee-combobox";
 
-const channelIconMap: Record<ConversationChannel, React.FC<React.SVGProps<SVGSVGElement>>> = {
+export const channelIconMap: Record<
+  ConversationChannel,
+  React.FC<React.SVGProps<SVGSVGElement>>
+> = {
   email: MailIcon,
   web: GlobeIcon,
   api: WebhookIcon,
