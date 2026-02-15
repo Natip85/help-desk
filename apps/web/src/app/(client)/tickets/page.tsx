@@ -27,7 +27,10 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   return (
     <div>
       <div className="bg-background sticky top-0 z-10 flex flex-col gap-6 px-6 py-2">
-        <PageTitle title="Tickets">
+        <PageTitle
+          title="Tickets"
+          subTitle="View, filter and sort all tickets"
+        >
           <Button disabled>
             <UploadIcon />
             Export

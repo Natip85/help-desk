@@ -23,6 +23,11 @@ const CreateSavedFilterSidebar = dynamic(() =>
     default: mod.CreateSavedFilterSidebar,
   }))
 );
+const EditSavedFilterSidebar = dynamic(() =>
+  import("./edit-saved-filter-sidebar").then((mod) => ({
+    default: mod.EditSavedFilterSidebar,
+  }))
+);
 
 export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }) => {
   const { sidebarParams, setSidebarParams } = useSidebarParams();
@@ -71,6 +76,7 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
     if (sidebarParams.filterSaving) return "create-saved-filter";
     if (sidebarParams.ticketStatusesId) return "ticket-statuses";
     if (sidebarParams.cannedResponsesId) return "canned-responses";
+    if (sidebarParams.editSavedFilterId) return "edit-saved-filter";
     if (sidebarParams.filterOpen && !sidebarParams.filterSaving) return "ticket-filter";
 
     return null;
@@ -96,6 +102,7 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
           >
             {sidebarParams.contactId && <ContactInfoSidebar />}
             {sidebarParams.filterSaving && <CreateSavedFilterSidebar />}
+            {sidebarParams.editSavedFilterId && <EditSavedFilterSidebar />}
             {sidebarParams.filterOpen && !sidebarParams.filterSaving && <TicketFilterSidebar />}
             {sidebarParams.ticketStatusesId && <TicketStatusesSidebar />}
             {sidebarParams.cannedResponsesId && <CannedResponsesSidebar />}

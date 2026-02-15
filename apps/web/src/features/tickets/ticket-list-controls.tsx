@@ -4,6 +4,7 @@ import { useSidebarParams } from "../right-sidebars/query-params";
 import { useTicketTableParams } from "../table/ticket-table-params";
 import { ListControls } from "./list-controls";
 import { TicketsListTotalBadge } from "./list-total-badge";
+import { SavedFilterDropdown } from "./saved-filter-dropdown";
 import { useTicketListControls } from "./use-ticket-list-controls";
 
 export const ticketSortFields: SortField[] = [
@@ -39,24 +40,18 @@ export const TicketListControls = (props: ListControlsBaseProps) => {
   const tableParams = useTicketTableParams();
   const { sidebarParams, toggleFilterOpen } = useSidebarParams();
   return (
-    <ListControls
-      {...props}
-      listControls={listControls}
-      tableParams={tableParams}
-      sortFieldsMap={ticketSortFieldsMap}
-      viewModes={["card", "list"]}
-      totalBadge={<TicketsListTotalBadge />}
-      onFilterClick={() => toggleFilterOpen()}
-      filterOpen={!!sidebarParams.filterOpen}
-
-      // gridViewContent={
-      //   <AssetPosterZoomSlider
-      //     cardWidth={searchParams.cardWidth}
-      //     onCardWidthChange={(width) => {
-      //       void setSearchParams({ cardWidth: width });
-      //     }}
-      //   />
-      // }
-    />
+    <div className="flex items-center justify-between">
+      <SavedFilterDropdown />
+      <ListControls
+        {...props}
+        listControls={listControls}
+        tableParams={tableParams}
+        sortFieldsMap={ticketSortFieldsMap}
+        viewModes={["card", "list"]}
+        totalBadge={<TicketsListTotalBadge />}
+        onFilterClick={() => toggleFilterOpen()}
+        filterOpen={!!sidebarParams.filterOpen}
+      />
+    </div>
   );
 };

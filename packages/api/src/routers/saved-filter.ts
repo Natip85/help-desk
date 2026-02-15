@@ -73,6 +73,39 @@ export const savedFilterRouter = createTRPCRouter({
       return created;
     }),
 
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        title: z.string().trim().min(1).max(255).optional(),
+        description: z.string().trim().optional(),
+        filter: ticketFilterSchema.optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+      const existing = await ctx.db.query.savedFilter.findFirst({
+        where: and(eq(savedFilter.id, input.id), eq(savedFilter.organizationId, organizationId)),
+      });
+
+      if (!existing) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Saved filter not found" });
+      }
+
+      const [updated] = await ctx.db
+        .update(savedFilter)
+        .set({
+          ...(input.title !== undefined && { title: input.title }),
+          ...(input.description !== undefined && { description: input.description }),
+          ...(input.filter !== undefined && { filter: input.filter }),
+        })
+        .where(and(eq(savedFilter.id, input.id), eq(savedFilter.organizationId, organizationId)))
+        .returning();
+
+      return updated;
+    }),
+
   delete: protectedProcedure
     .input(z.object({ id: z.string() }))
     .mutation(async ({ ctx, input }) => {

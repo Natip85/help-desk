@@ -1,7 +1,13 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Building2, ListChevronsDownUpIcon, MessageCircleCode, TagsIcon } from "lucide-react";
+import {
+  BookmarkIcon,
+  Building2,
+  ListChevronsDownUpIcon,
+  MessageCircleCode,
+  TagsIcon,
+} from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
@@ -52,6 +58,12 @@ const settingsSections: SettingsSection[] = [
         icon: ListChevronsDownUpIcon,
         href: "/settings/ticket-filters",
       },
+      {
+        title: "Saved filters",
+        description: "Manage your saved ticket filter presets",
+        icon: BookmarkIcon,
+        href: "/settings/saved-filters",
+      },
     ],
   },
 ];
@@ -67,7 +79,7 @@ export function SettingsMenu() {
           <PageTitle title={section.title}>
             <Button>Click here</Button>
           </PageTitle>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-3">
+          <div className="grid grid-cols-2 gap-5 p-2 md:grid-cols-3">
             {section.items.map((item) => (
               <Card
                 key={item.href}

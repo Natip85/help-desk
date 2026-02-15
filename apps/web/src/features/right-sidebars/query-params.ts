@@ -11,7 +11,8 @@ type Sidebars =
   | "filterSaving"
   | "contactId"
   | "ticketStatusesId"
-  | "cannedResponsesId";
+  | "cannedResponsesId"
+  | "editSavedFilterId";
 
 export const sidebarParamsParser = {
   filterOpen: parseAsString,
@@ -19,6 +20,7 @@ export const sidebarParamsParser = {
   contactId: parseAsString,
   ticketStatusesId: parseAsString,
   cannedResponsesId: parseAsString,
+  editSavedFilterId: parseAsString,
 };
 
 const emptySidebarParams: Record<Sidebars, null> = {
@@ -27,6 +29,7 @@ const emptySidebarParams: Record<Sidebars, null> = {
   contactId: null,
   ticketStatusesId: null,
   cannedResponsesId: null,
+  editSavedFilterId: null,
 };
 
 export const sidebarParamsSerializer = createSerializer(sidebarParamsParser);
@@ -34,9 +37,6 @@ export const sidebarParamsSerializer = createSerializer(sidebarParamsParser);
 export const useSidebarParams = () => {
   const [sidebarParams, setSidebarParams] = useQueryStates(sidebarParamsParser);
   const { setOpen, setOpenMobile, isMobile } = useSidebar("right");
-  // const params = useParams();
-  // const paramsSmartListId = params.smartListId as string;
-  // const aiSmartListId = params.aiSmartListId as string;
 
   // Helper to set the correct sidebar state based on device
   const setSidebarOpen = (open: boolean) => {
@@ -111,22 +111,24 @@ export const useSidebarParams = () => {
     });
   };
 
+  const toggleEditSavedFilter = (id: string) => {
+    void setSidebarParams((prev) => {
+      const editSavedFilterId = prev.editSavedFilterId === id ? null : id;
+      setSidebarOpen(!!editSavedFilterId);
+      return {
+        ...emptySidebarParams,
+        editSavedFilterId,
+      };
+    });
+  };
+
   const closeSidebar = () => {
     setSidebarOpen(false);
     void setSidebarParams(null);
   };
 
-  // const getSmartListId = () => {
-  //   if (!sidebarParams.filterOpen) return;
-  //   if (sidebarParams.filterOpen === "new") return;
-  //   // if (sidebarParams.filterOpen === "edit") return paramsSmartListId;
-  //   return sidebarParams.filterOpen;
-  // };
-
   return {
     sidebarParams,
-    // smartListId: getSmartListId(),
-    // aiSmartListId,
     toggleFilterSaving,
     toggleFilterOpen,
     toggleContactSidebarId,
@@ -135,5 +137,6 @@ export const useSidebarParams = () => {
     closeSidebar,
     toggleTicketStatusesSidebarId,
     toggleCannedResponsesSidebarId,
+    toggleEditSavedFilter,
   };
 };
