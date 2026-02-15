@@ -7,6 +7,7 @@ import { Key, LinkIcon, Loader2Icon, Shield, Trash2, User } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -17,6 +18,7 @@ import { ProfileUpdateForm } from "@/features/auth/profile-update-form";
 import { SessionManagement } from "@/features/auth/session-managment";
 import { SetPasswordButton } from "@/features/auth/set-password-button";
 import { TwoFactorAuth } from "@/features/auth/two-factor-auth";
+import { profileBreadcrumbs } from "@/lib/breadcrumbs";
 
 export default async function ProfilePage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -24,6 +26,10 @@ export default async function ProfilePage() {
 
   return (
     <div className="flex flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
+      <Breadcrumbs
+        pages={profileBreadcrumbs}
+        className="px-2"
+      />
       <div className="mb-8">
         <div className="flex items-center space-x-4">
           <div className="bg-muted flex size-16 items-center justify-center overflow-hidden rounded-full">

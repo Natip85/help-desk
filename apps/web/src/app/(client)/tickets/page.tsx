@@ -5,11 +5,13 @@ import { UploadIcon } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
 import { loadTicketSearchParams } from "@/features/tickets/search-params";
 import { TicketList } from "@/features/tickets/ticket-list";
 import { TicketsHeader } from "@/features/tickets/tickets-header";
+import { ticketsBreadcrumbs } from "@/lib/breadcrumbs";
 import { prefetch, trpc } from "@/trpc/server";
 
 type PageProps = {
@@ -27,6 +29,10 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   return (
     <div>
       <div className="bg-background sticky top-0 z-10 flex flex-col gap-6 px-6 py-2">
+        <Breadcrumbs
+          pages={ticketsBreadcrumbs}
+          className="px-2"
+        />
         <PageTitle
           title="Tickets"
           subTitle="View, filter and sort all tickets"

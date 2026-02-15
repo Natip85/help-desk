@@ -1,13 +1,13 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
 import { DeleteOrganizationButton } from "@/features/settings/organizations/delete-organization-button";
 import { OrganizationTabs } from "@/features/settings/organizations/organization-tabs";
+import { createOrganizationDetailBreadcrumbs } from "@/lib/breadcrumbs";
 
 type OrganizationIdPageProps = {
   params: Promise<{ orgId: string }>;
@@ -28,22 +28,17 @@ export default async function OrganizationIdPage({ params }: OrganizationIdPageP
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
-      <div className="flex gap-2">
-        <Link
-          href="/settings/organizations"
-          className="pt-1"
-        >
-          <ChevronLeft />
-          <span className="sr-only">Back to organizations</span>
-        </Link>
-        <PageTitle
-          title={organization.name}
-          subTitle="Manage your organization  members and mailboxes"
-          className="w-full"
-        >
-          <DeleteOrganizationButton organization={organization} />
-        </PageTitle>
-      </div>
+      <Breadcrumbs
+        pages={createOrganizationDetailBreadcrumbs(orgId, organization.name)}
+        className="px-2"
+      />
+      <PageTitle
+        title={organization.name}
+        subTitle="Manage your organization  members and mailboxes"
+        className="w-full"
+      >
+        <DeleteOrganizationButton organization={organization} />
+      </PageTitle>
       <OrganizationTabs
         organization={organization}
         organizationId={orgId}

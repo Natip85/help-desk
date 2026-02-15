@@ -1,14 +1,15 @@
 import { headers } from "next/headers";
-import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Building2, ChevronLeft } from "lucide-react";
+import { Building2 } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
+import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateOrganizationButton } from "@/features/settings/organizations/create-organization-button";
 import { OrganizationRow } from "@/features/settings/organizations/organization-row";
+import { settingsOrganizationsBreadcrumbs } from "@/lib/breadcrumbs";
 
 export default async function OrganizationsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
@@ -31,21 +32,17 @@ export default async function OrganizationsPage() {
 
   return (
     <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
-      <div className="flex gap-2">
-        <Link
-          href="/settings"
-          className="pt-1"
-        >
-          <ChevronLeft />
-        </Link>
-        <PageTitle
-          title="Organizations"
-          subTitle="Manage your organizations and their members"
-          className="w-full"
-        >
-          <CreateOrganizationButton />
-        </PageTitle>
-      </div>
+      <Breadcrumbs
+        pages={settingsOrganizationsBreadcrumbs}
+        className="px-2"
+      />
+      <PageTitle
+        title="Organizations"
+        subTitle="Manage your organizations and their members"
+        className="w-full"
+      >
+        <CreateOrganizationButton />
+      </PageTitle>
       {organizations && organizations.length > 0 ?
         <div className="mx-auto w-full max-w-6xl">
           <Table>
