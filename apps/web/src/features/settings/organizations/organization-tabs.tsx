@@ -55,7 +55,7 @@ export function OrganizationTabs({ organization, organizationId }: OrganizationT
   return (
     <Tabs
       defaultValue="members"
-      className="w-full"
+      className="mx-auto w-full max-w-6xl"
     >
       <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="members">Members ({organization.members?.length ?? 0})</TabsTrigger>

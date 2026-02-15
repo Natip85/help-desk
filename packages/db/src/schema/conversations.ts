@@ -56,6 +56,7 @@ export const conversation = Utils.createTable(
     companyId: text("company_id").references(() => company.id),
     mailboxId: text("mailbox_id").references(() => mailbox.id),
     assignedToId: text("assigned_to_id").references(() => user.id),
+    customFields: jsonb("custom_fields").$type<Record<string, string | string[]>>().default({}),
     lastMessageAt: timestamp("last_message_at"),
     closedAt: timestamp("closed_at"),
     deletedAt: timestamp("deleted_at"),

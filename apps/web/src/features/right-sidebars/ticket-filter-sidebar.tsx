@@ -2,9 +2,8 @@ import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Trash2 } from "lucide-react";
 
-import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 import type { Tag } from "@help-desk/db/schema/tags";
-import { conversationPriority, conversationStatus } from "@help-desk/db/schema/conversations";
+import type { TicketFilter } from "@help-desk/db/validators/ticket-filter";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -27,10 +26,11 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useDefaultFilters } from "@/features/settings/ticket-filters/use-default-filters";
 import { useTRPC } from "@/trpc";
 import { CreatedDateFilter } from "../tickets/created-date-filter";
 import { useTicketSearchParams } from "../tickets/search-params";
-import { priorityConfig, statusConfig } from "../tickets/ticket-card";
+import { FilterRenderer } from "./filter-components";
 import { useSidebarParams } from "./query-params";
 
 type MemberItem = {
@@ -57,10 +57,86 @@ function getUserInitials(name: string) {
   return name.charAt(0).toUpperCase();
 }
 
+// ─── Reusable system filter combobox (Priority / Status / Channel) ──────────
+
+type SystemFilterSectionProps = {
+  displayName: string;
+  filterKey: string;
+  values: string[];
+  selectedValues: string[] | undefined;
+  getLabel: (key: string, value: string) => string;
+  onValueChange: (values: string[]) => void;
+};
+
+function SystemFilterSection({
+  displayName,
+  filterKey,
+  values,
+  selectedValues,
+  getLabel,
+  onValueChange,
+}: SystemFilterSectionProps) {
+  const anchor = useComboboxAnchor();
+
+  return (
+    <SidebarGroup>
+      <SidebarGroupLabel>{displayName}</SidebarGroupLabel>
+      <Combobox
+        key={(selectedValues ?? []).join("|")}
+        multiple
+        autoHighlight
+        items={values}
+        value={selectedValues?.length ? selectedValues : null}
+        onValueChange={(vals: string[] | null) => onValueChange(vals ?? [])}
+      >
+        <ComboboxChips
+          ref={anchor}
+          className="w-full max-w-xs"
+        >
+          <ComboboxValue>
+            {(vals: string[] | null) => {
+              const selected = vals ?? [];
+              return (
+                <Fragment>
+                  {selected.map((value: string) => (
+                    <ComboboxChip key={value}>{getLabel(filterKey, value)}</ComboboxChip>
+                  ))}
+                  <ComboboxChipsInput placeholder="" />
+                </Fragment>
+              );
+            }}
+          </ComboboxValue>
+        </ComboboxChips>
+        <ComboboxContent anchor={anchor}>
+          <ComboboxEmpty>No items found.</ComboboxEmpty>
+          <ComboboxList>
+            {(item: string) => (
+              <ComboboxItem
+                key={item}
+                value={item}
+              >
+                <span>{getLabel(filterKey, item)}</span>
+              </ComboboxItem>
+            )}
+          </ComboboxList>
+        </ComboboxContent>
+      </Combobox>
+    </SidebarGroup>
+  );
+}
+
+// ─── Map from system filter name → TicketFilter key ─────────────────────────
+
+const SYSTEM_FILTER_PARAM_KEY: Record<string, keyof TicketFilter> = {
+  priority: "priorities",
+  status: "statuses",
+  channel: "channels",
+};
+
+// ─── Main sidebar ───────────────────────────────────────────────────────────
+
 export const TicketFilterSidebar = () => {
   const trpc = useTRPC();
-  const priorityAnchor = useComboboxAnchor();
-  const statusAnchor = useComboboxAnchor();
   const assigneeAnchor = useComboboxAnchor();
   const tagAnchor = useComboboxAnchor();
 
@@ -70,6 +146,9 @@ export const TicketFilterSidebar = () => {
     resetFilters,
   } = useTicketSearchParams();
   const { setSidebarParams } = useSidebarParams();
+
+  // All filters from the API, sorted by position (system + custom)
+  const { filters, getValues, getLabel } = useDefaultFilters();
 
   const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
   const { data: tagsData } = useQuery(trpc.tags.list.queryOptions());
@@ -96,116 +175,65 @@ export const TicketFilterSidebar = () => {
       </SidebarHeader>
 
       <SidebarContent className="scrollbar-gutter-stable flex flex-1 flex-col overflow-y-auto p-3">
-        <SidebarGroup>
-          <SidebarGroupLabel>Priority</SidebarGroupLabel>
-          <Combobox
-            key={(filter.priorities ?? []).join("|")}
-            multiple
-            autoHighlight
-            items={conversationPriority}
-            value={filter.priorities?.length ? filter.priorities : null}
-            onValueChange={(values: ConversationPriority[] | null) => {
-              const priorities = values ?? [];
-              void setSearchParams((prev) => ({
-                page: 1,
-                filter: {
-                  ...prev.filter,
-                  priorities: priorities.length > 0 ? priorities : undefined,
-                },
-              }));
-            }}
-          >
-            <ComboboxChips
-              ref={priorityAnchor}
-              className="w-full max-w-xs"
-            >
-              <ComboboxValue>
-                {(values: ConversationPriority[] | null) => {
-                  const selected = values ?? [];
-                  return (
-                    <Fragment>
-                      {selected.map((value: ConversationPriority) => (
-                        <ComboboxChip key={value}>
-                          {priorityConfig[value]?.label ?? value}
-                        </ComboboxChip>
-                      ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
-                    </Fragment>
-                  );
-                }}
-              </ComboboxValue>
-            </ComboboxChips>
-            <ComboboxContent anchor={priorityAnchor}>
-              <ComboboxEmpty>No items found.</ComboboxEmpty>
-              <ComboboxList>
-                {(item: ConversationPriority) => (
-                  <ComboboxItem
-                    key={item}
-                    value={item}
-                  >
-                    <span>{priorityConfig[item]?.label ?? item}</span>
-                  </ComboboxItem>
-                )}
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </SidebarGroup>
+        {/* All filters rendered dynamically by position (system + custom) */}
+        {filters.map((f) => {
+          const paramKey = SYSTEM_FILTER_PARAM_KEY[f.name];
 
-        <SidebarGroup>
-          <SidebarGroupLabel>Status</SidebarGroupLabel>
-
-          <Combobox
-            key={(filter.statuses ?? []).join("|")}
-            multiple
-            autoHighlight
-            items={conversationStatus}
-            value={filter.statuses?.length ? filter.statuses : null}
-            onValueChange={(values: ConversationStatus[] | null) => {
-              const statuses = values ?? [];
-              void setSearchParams((prev) => ({
-                page: 1,
-                filter: {
-                  ...prev.filter,
-                  statuses: statuses.length > 0 ? statuses : undefined,
-                },
-              }));
-            }}
-          >
-            <ComboboxChips
-              ref={statusAnchor}
-              className="w-full max-w-xs"
-            >
-              <ComboboxValue>
-                {(values: ConversationStatus[] | null) => {
-                  const selected = values ?? [];
-                  return (
-                    <Fragment>
-                      {selected.map((value: ConversationStatus) => (
-                        <ComboboxChip key={value}>
-                          {statusConfig[value]?.label ?? value}
-                        </ComboboxChip>
-                      ))}
-                      <ComboboxChipsInput placeholder={selected.length > 0 ? "" : ""} />
-                    </Fragment>
-                  );
+          // System filters (priority, status, channel) → combobox bound to search params
+          if (f.isSystem && paramKey) {
+            return (
+              <SystemFilterSection
+                key={f.name}
+                displayName={f.displayName}
+                filterKey={f.name}
+                values={getValues(f.name)}
+                selectedValues={filter[paramKey] as string[] | undefined}
+                getLabel={getLabel}
+                onValueChange={(values) => {
+                  void setSearchParams((prev) => ({
+                    page: 1,
+                    filter: {
+                      ...prev.filter,
+                      [paramKey]: values.length > 0 ? values : undefined,
+                    },
+                  }));
                 }}
-              </ComboboxValue>
-            </ComboboxChips>
-            <ComboboxContent anchor={statusAnchor}>
-              <ComboboxEmpty>No items found.</ComboboxEmpty>
-              <ComboboxList>
-                {(item: ConversationStatus) => (
-                  <ComboboxItem
-                    key={item}
-                    value={item}
-                  >
-                    <span>{statusConfig[item]?.label ?? item}</span>
-                  </ComboboxItem>
-                )}
-              </ComboboxList>
-            </ComboboxContent>
-          </Combobox>
-        </SidebarGroup>
+              />
+            );
+          }
+
+          // Custom filters → FilterRenderer (select, multi-select, radio, checkbox)
+          return (
+            <FilterRenderer
+              key={f.name}
+              type={f.type ?? "multi-select"}
+              filterName={f.name}
+              displayName={f.displayName}
+              options={f.options}
+              selectedValues={filter.customFields?.[f.name] ?? []}
+              onValueChange={(name, values) => {
+                void setSearchParams((prev) => {
+                  const prevCustom = prev.filter.customFields ?? {};
+                  const nextCustom = { ...prevCustom };
+                  if (values.length > 0) {
+                    nextCustom[name] = values;
+                  } else {
+                    delete nextCustom[name];
+                  }
+                  return {
+                    page: 1,
+                    filter: {
+                      ...prev.filter,
+                      customFields: Object.keys(nextCustom).length > 0 ? nextCustom : undefined,
+                    },
+                  };
+                });
+              }}
+            />
+          );
+        })}
+
+        {/* ── Pinned filters (no DB entry, always at the bottom) ── */}
 
         <SidebarGroup>
           <SidebarGroupLabel>Assignee</SidebarGroupLabel>
@@ -344,6 +372,7 @@ export const TicketFilterSidebar = () => {
             </ComboboxContent>
           </Combobox>
         </SidebarGroup>
+
         <SidebarGroup>
           <SidebarGroupLabel>Created</SidebarGroupLabel>
           <CreatedDateFilter

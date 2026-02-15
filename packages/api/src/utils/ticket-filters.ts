@@ -1,7 +1,7 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { endOfDay } from "date-fns";
-import { asc, desc, eq, gte, ilike, inArray, isNull, lte, or } from "drizzle-orm";
+import { asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
 import type { Database } from "@help-desk/db";
@@ -127,6 +127,25 @@ export const createTicketFilters = (
     }
     if (filter.closedAt.to) {
       conditions.push(lte(conversation.closedAt, endOfDay(filter.closedAt.to)));
+    }
+  }
+
+  // Custom fields filters (stored in JSONB custom_fields column)
+  // Handles both string values (select/radio) and array values (multi-select/checkbox)
+  if (filter.customFields) {
+    for (const [key, values] of Object.entries(filter.customFields)) {
+      if (values.length > 0) {
+        // Match either:
+        // 1. Plain string value: custom_fields->>'key' IN ('val1', 'val2')
+        // 2. Array value: custom_fields->'key' ?| array['val1', 'val2']
+        const textMatch = inArray(sql`${conversation.customFields}->>'${sql.raw(key)}'`, values);
+        const arrayMatch = sql`${conversation.customFields}->'${sql.raw(key)}' ?| array[${sql.join(
+          values.map((v) => sql`${v}`),
+          sql`, `
+        )}]`;
+        const combined = or(textMatch, arrayMatch);
+        if (combined) conditions.push(combined);
+      }
     }
   }
 

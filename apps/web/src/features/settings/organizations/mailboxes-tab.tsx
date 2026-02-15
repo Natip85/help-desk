@@ -79,7 +79,7 @@ export function MailboxesTab() {
         </p>
       : <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="hover:bg-transparent">
               <TableHead>Name</TableHead>
               <TableHead>Email</TableHead>
               <TableHead>Default</TableHead>
@@ -88,7 +88,10 @@ export function MailboxesTab() {
           </TableHeader>
           <TableBody>
             {mailboxes.map((mb) => (
-              <TableRow key={mb.id}>
+              <TableRow
+                key={mb.id}
+                className="hover:bg-transparent"
+              >
                 <TableCell className="font-medium">{mb.name}</TableCell>
                 <TableCell>{mb.email}</TableCell>
                 <TableCell>

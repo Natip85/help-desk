@@ -20,17 +20,24 @@ export const POST = async (request: NextRequest) => {
 
   console.log("Webhook event received:", JSON.stringify(event, null, 2));
 
-  if (isEmailReceivedEvent(event)) {
-    try {
-      await processInboundEmail(event);
-      console.log("Inbound email processed successfully");
-    } catch (error) {
-      console.error("Failed to process inbound email:", error);
-      // Still return 200 to acknowledge receipt and avoid Resend retries
-    }
-
+  if (!isEmailReceivedEvent(event)) {
+    // Acknowledge non-inbound events (email.sent, email.delivered, etc.)
+    // to prevent Resend from retrying them.
+    const eventType =
+      typeof event === "object" && event !== null && "type" in event ?
+        (event as { type: string }).type
+      : "unknown";
+    console.log(`Ignoring webhook event type: ${eventType}`);
     return NextResponse.json({ received: true });
   }
 
-  return NextResponse.json({ error: "Unknown event type" }, { status: 400 });
+  try {
+    await processInboundEmail(event);
+    console.log("Inbound email processed successfully");
+  } catch (error) {
+    console.error("Failed to process inbound email:", error);
+    // Still return 200 to acknowledge receipt and avoid Resend retries
+  }
+
+  return NextResponse.json({ received: true });
 };

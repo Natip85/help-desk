@@ -1,0 +1,1 @@
+ALTER TABLE "default_filter" ADD COLUMN "type" text DEFAULT 'multi-select' NOT NULL;

@@ -50,7 +50,7 @@ export function MembersTab({ members, organizationId, onUpdate }: MembersTabProp
   return (
     <Table>
       <TableHeader>
-        <TableRow>
+        <TableRow className="hover:bg-transparent">
           <TableHead>Name</TableHead>
           <TableHead>Email</TableHead>
           <TableHead>Role</TableHead>
@@ -59,7 +59,10 @@ export function MembersTab({ members, organizationId, onUpdate }: MembersTabProp
       </TableHeader>
       <TableBody>
         {members.map((member) => (
-          <TableRow key={member.id}>
+          <TableRow
+            key={member.id}
+            className="hover:bg-transparent"
+          >
             <TableCell>{member.user.name}</TableCell>
             <TableCell>{member.user.email}</TableCell>
             <TableCell>

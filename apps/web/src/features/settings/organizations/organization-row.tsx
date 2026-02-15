@@ -42,7 +42,7 @@ export function OrganizationRow({ organization, activeOrgId, memberCount }: Orga
   }
 
   return (
-    <TableRow className="group">
+    <TableRow className="group hover:bg-transparent">
       <TableCell>
         <div className="flex items-center gap-3">
           <Avatar size="default">

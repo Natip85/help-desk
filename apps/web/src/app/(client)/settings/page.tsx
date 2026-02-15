@@ -1,5 +1,6 @@
 import { PageTitle } from "@/components/page-title";
-import { SettingsMenu } from "@/features/settings/settimgs-menu";
+import { Button } from "@/components/ui/button";
+import { SettingsMenu } from "@/features/settings/settings-menu";
 
 export default function SettingsPage() {
   return (
@@ -7,8 +8,9 @@ export default function SettingsPage() {
       <PageTitle
         title="Settings"
         subTitle="Manage your settings and preferences"
-      />
-
+      >
+        <Button>Click here</Button>
+      </PageTitle>
       <SettingsMenu />
     </div>
   );

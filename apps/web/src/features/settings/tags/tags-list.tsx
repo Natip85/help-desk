@@ -53,7 +53,7 @@ export function TagsList() {
   const tags = data?.items ?? [];
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto w-full max-w-6xl space-y-4">
       {tags.length === 0 ?
         <p className="text-muted-foreground py-8 text-center text-sm">
           No tags created yet. Add one to start categorizing tickets and contacts.
@@ -63,7 +63,7 @@ export function TagsList() {
             <TableRow>
               <TableHead>Color</TableHead>
               <TableHead>Name</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead className="text-right">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -80,7 +80,7 @@ export function TagsList() {
                 </TableCell>
                 <TableCell className="font-medium">{t.name}</TableCell>
                 <TableCell>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center justify-end gap-2">
                     <Button
                       variant="outline"
                       size="sm"

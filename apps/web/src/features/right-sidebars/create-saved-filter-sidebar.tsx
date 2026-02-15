@@ -19,6 +19,7 @@ import {
   SidebarGroupLabel,
   SidebarHeader,
 } from "@/components/ui/sidebar";
+import { useDefaultFilters } from "@/features/settings/ticket-filters/use-default-filters";
 import { useTRPC } from "@/trpc";
 import { useTicketSearchParams } from "../tickets/search-params";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
@@ -32,6 +33,13 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
   const { data: members = [] } = useQuery(trpc.user.getOrganizationMembers.queryOptions());
   const { data: tagsData } = useQuery(trpc.tags.list.queryOptions());
   const allTags = tagsData?.items ?? [];
+
+  // Custom filters from the API (for display names & option labels)
+  const { filterMap, getLabel } = useDefaultFilters();
+
+  const customFieldEntries = Object.entries(filter.customFields ?? {}).filter(
+    ([, values]) => values.length > 0
+  );
 
   const hasAnyFilter = [
     (filter.statuses?.length ?? 0) > 0,
@@ -49,6 +57,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
     filter.lastMessageAt?.to,
     filter.closedAt?.from,
     filter.closedAt?.to,
+    customFieldEntries.length > 0,
   ].some(Boolean);
 
   if (!hasAnyFilter) {
@@ -98,7 +107,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
                 key={c}
                 variant="secondary"
               >
-                {c}
+                {getLabel("channel", c)}
               </Badge>
             ))}
           </div>
@@ -171,6 +180,31 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
           </Badge>
         </div>
       )}
+
+      {/* Custom filter fields */}
+      {customFieldEntries.map(([fieldName, values]) => {
+        const filterDef = filterMap.get(fieldName);
+        const displayName = filterDef?.displayName ?? fieldName;
+
+        return (
+          <div
+            key={fieldName}
+            className="space-y-1"
+          >
+            <p className="text-muted-foreground text-xs font-medium">{displayName}</p>
+            <div className="flex flex-wrap gap-1">
+              {values.map((v) => (
+                <Badge
+                  key={v}
+                  variant="secondary"
+                >
+                  {getLabel(fieldName, v)}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

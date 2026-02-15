@@ -4,3 +4,4 @@ export * from "./saved-filter-form";
 export * from "./ticket-filter";
 export * from "./ticket-form";
 export * from "./ticket-sort";
+export * from "./default-filter";

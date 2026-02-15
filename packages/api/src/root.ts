@@ -1,5 +1,6 @@
 import { cannedResponseRouter } from "./routers/canned-response";
 import { contactRouter } from "./routers/contact";
+import { defaultFilterRouter } from "./routers/default-filter";
 import { mailboxRouter } from "./routers/mailbox";
 import { savedFilterRouter } from "./routers/saved-filter";
 import { tagRouter } from "./routers/tag";
@@ -15,6 +16,7 @@ export const appRouter = createTRPCRouter({
   tags: tagRouter,
   cannedResponse: cannedResponseRouter,
   savedFilter: savedFilterRouter,
+  defaultFilter: defaultFilterRouter,
 });
 
 // export type definition of API

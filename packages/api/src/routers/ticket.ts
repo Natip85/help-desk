@@ -287,6 +287,66 @@ export const ticketRouter = createTRPCRouter({
       return updated;
     }),
 
+  updateCustomFields: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        customFields: z.record(z.string(), z.union([z.string(), z.array(z.string())])),
+        removeFields: z.array(z.string()).optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      // Fetch the current ticket to merge custom fields
+      const existing = await ctx.db.query.conversation.findFirst({
+        where: and(
+          eq(conversation.id, input.id),
+          eq(conversation.organizationId, organizationId),
+          isNull(conversation.deletedAt)
+        ),
+        columns: { id: true, customFields: true },
+      });
+
+      if (!existing) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Ticket not found",
+        });
+      }
+
+      // Merge: set new values, then remove any fields marked for removal
+      const current = existing.customFields ?? {};
+      const merged = { ...current, ...input.customFields };
+      if (input.removeFields) {
+        for (const key of input.removeFields) {
+          delete merged[key];
+        }
+      }
+
+      const [updated] = await ctx.db
+        .update(conversation)
+        .set({ customFields: merged })
+        .where(and(eq(conversation.id, input.id), eq(conversation.organizationId, organizationId)))
+        .returning({ id: conversation.id });
+
+      if (!updated) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Ticket not found",
+        });
+      }
+
+      return updated;
+    }),
+
   sendReply: protectedProcedure
     .input(
       z.object({

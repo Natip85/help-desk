@@ -44,7 +44,7 @@ export function InvitesTab({ invitations, organizationId, onUpdate }: InvitesTab
 
       <Table>
         <TableHeader>
-          <TableRow>
+          <TableRow className="hover:bg-transparent">
             <TableHead>Email</TableHead>
             <TableHead>Role</TableHead>
             <TableHead>Expires</TableHead>
@@ -53,7 +53,10 @@ export function InvitesTab({ invitations, organizationId, onUpdate }: InvitesTab
         </TableHeader>
         <TableBody>
           {pendingInvites.map((invitation) => (
-            <TableRow key={invitation.id}>
+            <TableRow
+              key={invitation.id}
+              className="hover:bg-transparent"
+            >
               <TableCell>{invitation.email}</TableCell>
               <TableCell>
                 <Badge variant="outline">{invitation.role}</Badge>

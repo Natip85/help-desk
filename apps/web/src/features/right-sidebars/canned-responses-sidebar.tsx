@@ -84,7 +84,6 @@ function FolderTree({ search }: { search: string }) {
   }
 
   const folders = foldersData?.items ?? [];
-  const hasContent = folders.length > 0;
 
   return (
     <div className="space-y-0.5">
@@ -103,20 +102,6 @@ function FolderTree({ search }: { search: string }) {
         name="Unfiled"
         search={search}
       />
-
-      {!hasContent && (
-        <div className="text-muted-foreground space-y-3 rounded-lg border border-dashed p-4 text-center text-sm">
-          <Inbox className="mx-auto h-8 w-8 opacity-40" />
-          <p>No canned responses yet.</p>
-          <Button
-            variant="outline"
-            size="sm"
-            asChild
-          >
-            <Link href="/settings/canned-responses/new">Create your first</Link>
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

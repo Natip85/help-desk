@@ -28,6 +28,7 @@ export const ticketFilterSchema = z.object({
   createdAt: dateRangeSchema,
   lastMessageAt: dateRangeSchema,
   closedAt: dateRangeSchema,
+  customFields: z.record(z.string(), z.array(z.string())).optional(),
 });
 
 export type TicketFilter = z.infer<typeof ticketFilterSchema>;

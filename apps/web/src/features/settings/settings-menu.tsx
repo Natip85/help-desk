@@ -1,7 +1,7 @@
 "use client";
 
 import type { LucideIcon } from "lucide-react";
-import { Building2, MessageCircleCode, TagsIcon } from "lucide-react";
+import { Building2, ListChevronsDownUpIcon, MessageCircleCode, TagsIcon } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
 import { Button } from "@/components/ui/button";
@@ -45,6 +45,12 @@ const settingsSections: SettingsSection[] = [
         description: "Manage your canned responses to quickly reply to tickets and contacts",
         icon: MessageCircleCode,
         href: "/settings/canned-responses",
+      },
+      {
+        title: "Ticket filters",
+        description: "Customize your ticket filters to quickly reply to tickets and contacts",
+        icon: ListChevronsDownUpIcon,
+        href: "/settings/ticket-filters",
       },
     ],
   },

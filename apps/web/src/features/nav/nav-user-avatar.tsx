@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Loader2, LogOut, User } from "lucide-react";
+import { LogOut, User } from "lucide-react";
 
 import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -24,11 +24,7 @@ export function NavUserAvatar() {
 
   const { data: session, isPending } = authClient.useSession();
 
-  if (isPending) {
-    return <Skeleton className="size-9 rounded-full" />;
-  }
-
-  if (!session) {
+  if (!isPending && !session) {
     return (
       <Button asChild>
         <Link href="/auth/sign-in">Login</Link>
@@ -45,18 +41,18 @@ export function NavUserAvatar() {
           variant="ghost"
           size="icon"
           className="relative size-9 rounded-full"
+          disabled={isPending}
         >
-          <Avatar className="size-9">
-            <AvatarImage
-              src={session?.user?.image ?? ""}
-              alt={session?.user?.name ?? ""}
-            />
-            <AvatarFallback className="bg-muted text-muted-foreground">
-              {isPending ?
-                <Loader2 className="size-4 animate-spin" />
-              : initials}
-            </AvatarFallback>
-          </Avatar>
+          {isPending ?
+            <Skeleton className="size-9 rounded-full" />
+          : <Avatar className="size-9">
+              <AvatarImage
+                src={session?.user?.image ?? ""}
+                alt={session?.user?.name ?? ""}
+              />
+              <AvatarFallback className="bg-muted text-muted-foreground">{initials}</AvatarFallback>
+            </Avatar>
+          }
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent

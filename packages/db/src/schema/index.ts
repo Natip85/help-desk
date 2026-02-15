@@ -7,3 +7,4 @@ export * from "./notes";
 export * from "./events";
 export * from "./canned-responses";
 export * from "./saved-filters";
+export * from "./default-filters";
