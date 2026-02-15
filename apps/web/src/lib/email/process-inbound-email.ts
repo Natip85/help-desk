@@ -265,7 +265,7 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
     // 5a. Try matching via In-Reply-To header
     const inReplyToHeader = getHeader(headers, "in-reply-to");
 
-    if (inReplyToHeader) {
+    if (!existingConversation && inReplyToHeader) {
       const referencedMessage = await tx.query.message.findFirst({
         where: eq(message.emailMessageId, inReplyToHeader),
       });
