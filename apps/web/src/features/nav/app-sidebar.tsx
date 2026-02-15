@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { usePathname } from "next/navigation";
 import {
   ChevronsLeft,
   ChevronsRight,
@@ -97,6 +98,10 @@ const data = {
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const pathname = usePathname();
+
+  if (pathname === "/") return null;
+
   return (
     <>
       <MobileSidebarTrigger />
