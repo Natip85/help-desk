@@ -30,59 +30,57 @@ export default async function OrganizationsPage() {
   const memberCountMap = new Map(memberCountsArray.map((m) => [m.orgId, m.count]));
 
   return (
-    <>
-      <div className="flex flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
-        <div className="flex gap-2">
-          <Link
-            href="/settings"
-            className="pt-1"
-          >
-            <ChevronLeft />
-          </Link>
-          <PageTitle
-            title="Organizations"
-            subTitle="Manage your organizations and their members"
-            className="w-full"
-          >
-            <CreateOrganizationButton />
-          </PageTitle>
-        </div>
-        {organizations && organizations.length > 0 ?
-          <div className="mx-auto w-full max-w-6xl">
-            <Table>
-              <TableHeader>
-                <TableRow className="hover:bg-transparent">
-                  <TableHead>Organization</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Members</TableHead>
-                  <TableHead>Created</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {organizations.map((org) => (
-                  <OrganizationRow
-                    key={org.id}
-                    organization={org}
-                    activeOrgId={session.session.activeOrganizationId}
-                    memberCount={memberCountMap.get(org.id)}
-                  />
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        : <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center py-12 text-center">
-            <div className="bg-muted mb-4 flex size-12 items-center justify-center rounded-full">
-              <Building2 className="text-muted-foreground size-6" />
-            </div>
-            <h3 className="mb-1 text-lg font-medium">No organizations yet</h3>
-            <p className="text-muted-foreground mb-4 max-w-sm text-sm">
-              Create your first organization to start collaborating with your team.
-            </p>
-            <CreateOrganizationButton />
-          </div>
-        }
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
+      <div className="flex gap-2">
+        <Link
+          href="/settings"
+          className="pt-1"
+        >
+          <ChevronLeft />
+        </Link>
+        <PageTitle
+          title="Organizations"
+          subTitle="Manage your organizations and their members"
+          className="w-full"
+        >
+          <CreateOrganizationButton />
+        </PageTitle>
       </div>
-    </>
+      {organizations && organizations.length > 0 ?
+        <div className="mx-auto w-full max-w-6xl">
+          <Table>
+            <TableHeader>
+              <TableRow className="hover:bg-transparent">
+                <TableHead>Organization</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Members</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {organizations.map((org) => (
+                <OrganizationRow
+                  key={org.id}
+                  organization={org}
+                  activeOrgId={session.session.activeOrganizationId}
+                  memberCount={memberCountMap.get(org.id)}
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      : <div className="mx-auto flex w-full max-w-6xl flex-col items-center justify-center py-12 text-center">
+          <div className="bg-muted mb-4 flex size-12 items-center justify-center rounded-full">
+            <Building2 className="text-muted-foreground size-6" />
+          </div>
+          <h3 className="mb-1 text-lg font-medium">No organizations yet</h3>
+          <p className="text-muted-foreground mb-4 max-w-sm text-sm">
+            Create your first organization to start collaborating with your team.
+          </p>
+          <CreateOrganizationButton />
+        </div>
+      }
+    </div>
   );
 }

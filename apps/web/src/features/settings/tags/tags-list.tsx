@@ -53,7 +53,7 @@ export function TagsList() {
   const tags = data?.items ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4">
+    <div className="w-full space-y-4">
       {tags.length === 0 ?
         <p className="text-muted-foreground py-8 text-center text-sm">
           No tags created yet. Add one to start categorizing tickets and contacts.

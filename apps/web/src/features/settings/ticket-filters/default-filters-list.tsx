@@ -143,7 +143,7 @@ export function DefaultFiltersList() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-3">
+    <div className="w-full space-y-3">
       {filters.length === 0 ?
         <p className="text-muted-foreground py-8 text-center text-sm">
           No filters configured yet. They will be automatically created when you reload.

@@ -70,7 +70,7 @@ const settingsSections: SettingsSection[] = [
 
 export function SettingsMenu() {
   return (
-    <div className="mx-auto flex w-full max-w-6xl flex-col gap-10">
+    <div className="flex w-full flex-col gap-10">
       {settingsSections.map((section) => (
         <div
           key={section.title}

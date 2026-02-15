@@ -27,7 +27,7 @@ export default async function OrganizationIdPage({ params }: OrganizationIdPageP
   if (!organization) return notFound();
 
   return (
-    <div className="flex flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
       <div className="flex gap-2">
         <Link
           href="/settings/organizations"

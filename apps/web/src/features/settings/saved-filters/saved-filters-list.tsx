@@ -58,7 +58,7 @@ export function SavedFiltersList() {
   }
 
   return (
-    <div className="mx-auto w-full max-w-6xl space-y-4">
+    <div className="w-full space-y-4">
       {savedFilters.length === 0 ?
         <div className="flex flex-col items-center justify-center gap-2 py-12">
           <BookmarkIcon className="text-muted-foreground size-10" />

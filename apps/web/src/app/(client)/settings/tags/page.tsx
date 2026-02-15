@@ -7,7 +7,7 @@ import { TagsList } from "@/features/settings/tags/tags-list";
 
 export default function TagsPage() {
   return (
-    <div className="flex flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
+    <div className="mx-auto flex w-full max-w-5xl flex-1 flex-col gap-6 py-6 pr-4.5 pl-6">
       <div className="flex gap-2">
         <Link
           href="/settings"
@@ -17,7 +17,7 @@ export default function TagsPage() {
         </Link>
         <PageTitle
           title="Manage tags"
-          subTitle="Create, edit, and delete tags to categorize your tickets and contacts"
+          subTitle="Manage tags by labeling tickets and contacts"
           className="w-full"
         >
           <CreateTagButton />
