@@ -38,7 +38,6 @@ export default async function TicketsPage({ searchParams }: PageProps) {
         <PageTitle
           title="Tickets"
           subTitle="View, filter and sort all tickets"
-          className="pr-10"
         >
           <Button disabled>
             <UploadIcon />

@@ -404,12 +404,8 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
 
     const updates: Partial<typeof conversation.$inferInsert> = {
       lastMessageAt: new Date(),
+      status: "open",
     };
-
-    // Reopen if resolved or closed
-    if (existingConversation.status === "resolved" || existingConversation.status === "closed") {
-      updates.status = "open";
-    }
 
     await tx.update(conversation).set(updates).where(eq(conversation.id, existingConversation.id));
 
