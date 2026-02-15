@@ -1,11 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowRight, CheckCircle2, Columns3, GitBranch, Users, Zap } from "lucide-react";
 import { motion } from "motion/react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { authClient } from "@/lib/auth-client";
 
 const container = {
   hidden: {},
@@ -18,6 +20,12 @@ const item = {
 };
 
 export default function Home() {
+  const { data: session } = authClient.useSession();
+
+  if (session) {
+    return redirect("/tickets");
+  }
+
   return (
     <div className="flex flex-col overflow-hidden">
       {/* ── Hero: asymmetric split ── */}
