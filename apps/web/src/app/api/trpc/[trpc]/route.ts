@@ -13,7 +13,7 @@ function handler(req: NextRequest) {
       const session = await auth.api.getSession({
         headers: req.headers,
       });
-      return createTRPCContext({ session });
+      return createTRPCContext({ session, headers: req.headers });
     },
   });
 }

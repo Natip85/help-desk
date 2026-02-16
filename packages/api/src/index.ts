@@ -9,6 +9,7 @@ import {
   createTRPCRouter,
   protectedProcedure,
   publicProcedure,
+  requirePermission,
 } from "./trpc";
 
 /**
@@ -34,6 +35,7 @@ export {
   createCallerFactory,
   publicProcedure,
   protectedProcedure,
+  requirePermission,
   appRouter,
   createCaller,
 };

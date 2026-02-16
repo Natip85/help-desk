@@ -26,9 +26,18 @@ import {
 } from "@/components/ui/select";
 import { authClient } from "@/lib/auth-client";
 
+const INVITE_ROLES = ["admin", "member", "viewer"] as const;
+type InviteRole = (typeof INVITE_ROLES)[number];
+
+const ROLE_DESCRIPTIONS: Record<InviteRole, string> = {
+  admin: "Full access to tickets, reports, and org settings",
+  member: "Can create, update, and close tickets",
+  viewer: "Read-only access to tickets and reports",
+};
+
 const createInviteSchema = z.object({
   email: z.string().email("Invalid email address"),
-  role: z.enum(["member", "admin"]),
+  role: z.enum(INVITE_ROLES),
 });
 
 type CreateInviteButtonProps = {
@@ -42,7 +51,7 @@ export function CreateInviteButton({ organizationId, onInvited }: CreateInviteBu
   const form = useForm({
     defaultValues: {
       email: "",
-      role: "member" as "member" | "admin",
+      role: "member" as InviteRole,
     },
     onSubmit: async ({ value }) => {
       const res = await authClient.organization.inviteMember({
@@ -115,14 +124,25 @@ export function CreateInviteButton({ organizationId, onInvited }: CreateInviteBu
                 <Label htmlFor="invite-role">Role</Label>
                 <Select
                   value={field.state.value}
-                  onValueChange={(value) => field.handleChange(value as "member" | "admin")}
+                  onValueChange={(value) => field.handleChange(value as InviteRole)}
                 >
                   <SelectTrigger className="w-full">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="member">Member</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    {INVITE_ROLES.map((role) => (
+                      <SelectItem
+                        key={role}
+                        value={role}
+                      >
+                        <div className="flex flex-col">
+                          <span className="capitalize">{role}</span>
+                          <span className="text-muted-foreground text-xs">
+                            {ROLE_DESCRIPTIONS[role]}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {field.state.meta.errors.map((error) => (

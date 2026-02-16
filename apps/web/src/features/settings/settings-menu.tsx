@@ -7,6 +7,7 @@ import {
   ListChevronsDownUpIcon,
   MessageCircleCode,
   TagsIcon,
+  Users2,
 } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
@@ -62,6 +63,17 @@ const settingsSections: SettingsSection[] = [
         description: "Manage your saved ticket filter presets",
         icon: BookmarkIcon,
         href: "/settings/saved-filters",
+      },
+    ],
+  },
+  {
+    title: "Admin",
+    items: [
+      {
+        title: "Users",
+        description: "Manage your users",
+        icon: Users2,
+        href: "/settings/users",
       },
     ],
   },

@@ -10,6 +10,7 @@ type AuthSession = Awaited<ReturnType<typeof auth.api.getSession>>;
 
 type CreateContextOptions = {
   session: AuthSession;
+  headers: Headers;
 };
 
 /**
@@ -35,6 +36,11 @@ export const createTRPCContext = (
   };
 };
 
+export type OrgPermissions = Partial<
+  Record<"ticket", ("create" | "read" | "update" | "close" | "delete" | "assign" | "export")[]> &
+    Record<"report", "view"[]>
+>;
+
 /**
  * Create outer context for server-side tRPC calls (RSC)
  * This handles session retrieval for server components
@@ -44,7 +50,7 @@ export const createOuterContext = async () => {
   const session = await auth.api.getSession({
     headers: headersList,
   });
-  return createTRPCContext({ session });
+  return createTRPCContext({ session, headers: headersList });
 };
 
 export type Context = ReturnType<typeof createTRPCContext>;
@@ -134,3 +140,43 @@ export const protectedProcedure = t.procedure.use(timingMiddleware).use(({ ctx, 
     },
   });
 });
+
+/**
+ * Middleware factory for permission-gated procedures.
+ * Uses better-auth's organization access control to check permissions.
+ *
+ * @example
+ * deleteTicket: protectedProcedure
+ *   .use(requirePermission({ ticket: ["delete"] }))
+ *   .input(...)
+ *   .mutation(...)
+ */
+export const requirePermission = (permissions: OrgPermissions) =>
+  t.middleware(async ({ ctx, next }) => {
+    const session = ctx.session;
+    if (!session) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "Authentication required",
+      });
+    }
+
+    const result = await auth.api.hasPermission({
+      headers: ctx.headers,
+      body: { permissions },
+    });
+
+    if (!result.success) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Insufficient permissions",
+      });
+    }
+
+    return next({
+      ctx: {
+        ...ctx,
+        session,
+      },
+    });
+  });

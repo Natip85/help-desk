@@ -1,4 +1,5 @@
 import { headers } from "next/headers";
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Building2 } from "lucide-react";
 
@@ -6,6 +7,7 @@ import { auth } from "@help-desk/auth";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
+import { buttonVariants } from "@/components/ui/button";
 import { Table, TableBody, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CreateOrganizationButton } from "@/features/settings/organizations/create-organization-button";
 import { OrganizationRow } from "@/features/settings/organizations/organization-row";
@@ -15,6 +17,25 @@ export default async function OrganizationsPage() {
   const session = await auth.api.getSession({ headers: await headers() });
 
   if (session == null) return redirect("/auth/sign-in");
+
+  const { success: isOrgAdmin } = await auth.api.hasPermission({
+    headers: await headers(),
+    body: { permissions: { organization: ["update"] } },
+  });
+
+  if (!isOrgAdmin) {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-4">
+        <p className="text-muted-foreground">You don't have permission to view this page.</p>
+        <Link
+          href="/settings"
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Go back
+        </Link>
+      </div>
+    );
+  }
 
   const organizations = await auth.api.listOrganizations({
     headers: await headers(),

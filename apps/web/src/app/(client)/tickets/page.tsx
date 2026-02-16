@@ -22,6 +22,11 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   const session = await auth.api.getSession({ headers: await headers() });
   if (!session) return redirect("/auth/sign-in");
 
+  // const { success: canExport } = await auth.api.hasPermission({
+  //   headers: await headers(),
+  //   body: { permissions: { ticket: ["export"] } },
+  // });
+
   const params = await loadTicketSearchParams(searchParams);
 
   prefetch(trpc.ticket.all.queryOptions(params));
@@ -35,7 +40,9 @@ export default async function TicketsPage({ searchParams }: PageProps) {
           className="px-2"
         />
         <PageTitle title="Tickets">
+          {/* {canExport && */}
           <ExportTicketsSheet />
+          {/* } */}
         </PageTitle>
         <TicketsHeader />
       </div>

@@ -28,7 +28,7 @@ import { emailFormSchema, exportFormSchema, ticketFormSchema } from "@help-desk/
 import { env } from "@help-desk/env/server";
 
 import { resend } from "../lib/resend";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { createListInput } from "../utils/list-input-schema";
 import { buildTicketOrderBy, buildTicketWhereConditions } from "../utils/ticket-filters";
 
@@ -1396,101 +1396,106 @@ export const ticketRouter = createTRPCRouter({
     return result;
   }),
 
-  export: protectedProcedure.input(exportFormSchema).mutation(async ({ ctx, input }) => {
-    const organizationId = ctx.session.session.activeOrganizationId;
+  export: protectedProcedure
+    .use(requirePermission({ ticket: ["export"] }))
+    .input(exportFormSchema)
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
 
-    if (!organizationId) {
-      throw new TRPCError({
-        code: "UNAUTHORIZED",
-        message: "No active organization selected",
-      });
-    }
-
-    const MAX_EXPORT_ROWS = 10_000;
-
-    const { whereConditions } = buildTicketWhereConditions({
-      db: ctx.db,
-      organizationId,
-      filter: input.filter,
-      searchQuery: input.q,
-    });
-
-    // Apply export-specific date range on top of existing filters
-    if (input.dateRange?.from) {
-      whereConditions.push(gte(conversation.createdAt, input.dateRange.from));
-    }
-    if (input.dateRange?.to) {
-      const { endOfDay } = await import("date-fns");
-      whereConditions.push(lte(conversation.createdAt, endOfDay(input.dateRange.to)));
-    }
-
-    const items = await ctx.db.query.conversation.findMany({
-      where: and(...whereConditions),
-      limit: MAX_EXPORT_ROWS,
-      orderBy: [desc(conversation.createdAt)],
-      with: {
-        contact: {
-          columns: {
-            id: true,
-            email: true,
-            firstName: true,
-            lastName: true,
-            displayName: true,
-            phone: true,
-          },
-        },
-        assignedTo: {
-          columns: {
-            id: true,
-            name: true,
-          },
-        },
-        company: {
-          columns: {
-            id: true,
-            name: true,
-          },
-        },
-        conversationTags: {
-          with: {
-            tag: true,
-          },
-        },
-      },
-    });
-
-    const ticketFieldSet = new Set(input.ticketFields);
-    const contactFieldSet = new Set(input.contactFields);
-
-    const rows = items.map((item) => {
-      const row: Record<string, string> = {};
-
-      if (ticketFieldSet.has("id")) row["Ticket ID"] = item.id;
-      if (ticketFieldSet.has("subject")) row.Subject = item.subject ?? "";
-      if (ticketFieldSet.has("status")) row.Status = item.status;
-      if (ticketFieldSet.has("priority")) row.Priority = item.priority;
-      if (ticketFieldSet.has("channel")) row.Channel = item.channel;
-      if (ticketFieldSet.has("assignedTo")) row["Assigned Agent"] = item.assignedTo?.name ?? "";
-      if (ticketFieldSet.has("company")) row.Company = item.company?.name ?? "";
-      if (ticketFieldSet.has("tags"))
-        row.Tags = item.conversationTags.map((ct) => ct.tag.name).join(", ");
-      if (ticketFieldSet.has("createdAt")) row["Created At"] = item.createdAt?.toISOString() ?? "";
-      if (ticketFieldSet.has("updatedAt")) row["Updated At"] = item.updatedAt?.toISOString() ?? "";
-      if (ticketFieldSet.has("lastMessageAt"))
-        row["Last Message At"] = item.lastMessageAt?.toISOString() ?? "";
-      if (ticketFieldSet.has("closedAt")) row["Closed At"] = item.closedAt?.toISOString() ?? "";
-
-      if (contactFieldSet.has("contactName")) {
-        const c = item.contact;
-        row["Contact Name"] =
-          c?.displayName ?? [c?.firstName, c?.lastName].filter(Boolean).join(" ") ?? "";
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
       }
-      if (contactFieldSet.has("contactEmail")) row["Contact Email"] = item.contact?.email ?? "";
-      if (contactFieldSet.has("contactPhone")) row["Contact Phone"] = item.contact?.phone ?? "";
 
-      return row;
-    });
+      const MAX_EXPORT_ROWS = 10_000;
 
-    return { rows, total: items.length };
-  }),
+      const { whereConditions } = buildTicketWhereConditions({
+        db: ctx.db,
+        organizationId,
+        filter: input.filter,
+        searchQuery: input.q,
+      });
+
+      // Apply export-specific date range on top of existing filters
+      if (input.dateRange?.from) {
+        whereConditions.push(gte(conversation.createdAt, input.dateRange.from));
+      }
+      if (input.dateRange?.to) {
+        const { endOfDay } = await import("date-fns");
+        whereConditions.push(lte(conversation.createdAt, endOfDay(input.dateRange.to)));
+      }
+
+      const items = await ctx.db.query.conversation.findMany({
+        where: and(...whereConditions),
+        limit: MAX_EXPORT_ROWS,
+        orderBy: [desc(conversation.createdAt)],
+        with: {
+          contact: {
+            columns: {
+              id: true,
+              email: true,
+              firstName: true,
+              lastName: true,
+              displayName: true,
+              phone: true,
+            },
+          },
+          assignedTo: {
+            columns: {
+              id: true,
+              name: true,
+            },
+          },
+          company: {
+            columns: {
+              id: true,
+              name: true,
+            },
+          },
+          conversationTags: {
+            with: {
+              tag: true,
+            },
+          },
+        },
+      });
+
+      const ticketFieldSet = new Set(input.ticketFields);
+      const contactFieldSet = new Set(input.contactFields);
+
+      const rows = items.map((item) => {
+        const row: Record<string, string> = {};
+
+        if (ticketFieldSet.has("id")) row["Ticket ID"] = item.id;
+        if (ticketFieldSet.has("subject")) row.Subject = item.subject ?? "";
+        if (ticketFieldSet.has("status")) row.Status = item.status;
+        if (ticketFieldSet.has("priority")) row.Priority = item.priority;
+        if (ticketFieldSet.has("channel")) row.Channel = item.channel;
+        if (ticketFieldSet.has("assignedTo")) row["Assigned Agent"] = item.assignedTo?.name ?? "";
+        if (ticketFieldSet.has("company")) row.Company = item.company?.name ?? "";
+        if (ticketFieldSet.has("tags"))
+          row.Tags = item.conversationTags.map((ct) => ct.tag.name).join(", ");
+        if (ticketFieldSet.has("createdAt"))
+          row["Created At"] = item.createdAt?.toISOString() ?? "";
+        if (ticketFieldSet.has("updatedAt"))
+          row["Updated At"] = item.updatedAt?.toISOString() ?? "";
+        if (ticketFieldSet.has("lastMessageAt"))
+          row["Last Message At"] = item.lastMessageAt?.toISOString() ?? "";
+        if (ticketFieldSet.has("closedAt")) row["Closed At"] = item.closedAt?.toISOString() ?? "";
+
+        if (contactFieldSet.has("contactName")) {
+          const c = item.contact;
+          row["Contact Name"] =
+            c?.displayName ?? [c?.firstName, c?.lastName].filter(Boolean).join(" ") ?? "";
+        }
+        if (contactFieldSet.has("contactEmail")) row["Contact Email"] = item.contact?.email ?? "";
+        if (contactFieldSet.has("contactPhone")) row["Contact Phone"] = item.contact?.phone ?? "";
+
+        return row;
+      });
+
+      return { rows, total: items.length };
+    }),
 });

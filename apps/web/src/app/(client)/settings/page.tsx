@@ -1,5 +1,4 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
-import { PageTitle } from "@/components/page-title";
 import { SettingsMenu } from "@/features/settings/settings-menu";
 import { settingsBreadcrumbs } from "@/lib/breadcrumbs";
 
@@ -9,10 +8,6 @@ export default function SettingsPage() {
       <Breadcrumbs
         pages={settingsBreadcrumbs}
         className="px-2"
-      />
-      <PageTitle
-        title="Settings"
-        subTitle="Manage your settings and preferences"
       />
       <SettingsMenu />
     </div>

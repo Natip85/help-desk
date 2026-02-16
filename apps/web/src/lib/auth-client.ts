@@ -8,7 +8,16 @@ import {
 import { createAuthClient } from "better-auth/react";
 
 import type { auth } from "@help-desk/auth";
-import { ac, admin, user } from "@help-desk/auth/permissions";
+import {
+  ac,
+  admin,
+  adminRole,
+  memberRole,
+  orgAc,
+  ownerRole,
+  user,
+  viewerRole,
+} from "@help-desk/auth/permissions";
 
 export const authClient = createAuthClient({
   plugins: [
@@ -25,7 +34,15 @@ export const authClient = createAuthClient({
         user,
       },
     }),
-    organizationClient(),
+    organizationClient({
+      ac: orgAc,
+      roles: {
+        owner: ownerRole,
+        admin: adminRole,
+        member: memberRole,
+        viewer: viewerRole,
+      },
+    }),
     lastLoginMethodClient(),
   ],
 });

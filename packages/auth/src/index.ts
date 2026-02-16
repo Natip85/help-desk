@@ -18,7 +18,16 @@ import { sendDeleteAccountVerificationEmail } from "./emails/delete-account-veri
 import { sendEmailVerificationEmail } from "./emails/email-verification";
 import { sendOrganizationInviteEmail } from "./emails/organization-invite-email";
 import { sendPasswordResetEmail } from "./emails/password-reset-email";
-import { ac, admin, user } from "./permissions";
+import {
+  ac,
+  admin,
+  adminRole,
+  memberRole,
+  orgAc,
+  ownerRole,
+  user,
+  viewerRole,
+} from "./permissions";
 
 export const auth = betterAuth({
   appName: "Help Desk",
@@ -80,6 +89,13 @@ export const auth = betterAuth({
       },
     }),
     organization({
+      ac: orgAc,
+      roles: {
+        owner: ownerRole,
+        admin: adminRole,
+        member: memberRole,
+        viewer: viewerRole,
+      },
       sendInvitationEmail: async ({ email, organization, inviter, invitation }) => {
         await sendOrganizationInviteEmail({
           invitation,
