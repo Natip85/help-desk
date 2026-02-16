@@ -33,7 +33,7 @@ export const tagRouter = createTRPCRouter({
     .input(
       z.object({
         name: z.string().min(1, "Name is required"),
-        color: z.string().min(1, "Color is required").default("#6B7280"),
+        color: z.string().min(1, "Color is required").default("#7C8187"),
       })
     )
     .mutation(async ({ ctx, input }) => {

@@ -20,14 +20,14 @@ import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc";
 
 export const TAG_COLORS = [
-  { label: "Gray", value: "#6B7280" },
-  { label: "Red", value: "#EF4444" },
-  { label: "Orange", value: "#F97316" },
-  { label: "Yellow", value: "#EAB308" },
-  { label: "Green", value: "#22C55E" },
-  { label: "Blue", value: "#3B82F6" },
-  { label: "Purple", value: "#8B5CF6" },
-  { label: "Pink", value: "#EC4899" },
+  { label: "Gray", value: "#7C8187" },
+  { label: "Red", value: "#C25D5D" },
+  { label: "Orange", value: "#C0885A" },
+  { label: "Yellow", value: "#B5A053" },
+  { label: "Green", value: "#5D9E7E" },
+  { label: "Blue", value: "#6B8DAD" },
+  { label: "Purple", value: "#8A7BAD" },
+  { label: "Pink", value: "#B5708E" },
 ] as const;
 
 const tagSchema = z.object({
@@ -77,7 +77,7 @@ export function CreateTagDialog({
   const form = useForm({
     defaultValues: {
       name: editTag?.name ?? defaultName ?? "",
-      color: editTag?.color ?? "#6B7280",
+      color: editTag?.color ?? "#7C8187",
     },
     onSubmit: async ({ value }) => {
       try {

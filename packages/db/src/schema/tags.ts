@@ -18,7 +18,7 @@ export const tag = Utils.createTable(
       .notNull()
       .references(() => organization.id, { onDelete: "cascade" }),
     name: text("name").notNull(),
-    color: text("color").default("#6B7280").notNull(),
+    color: text("color").default("#7C8187").notNull(),
     createdAt: Utils.createTimestampColumn("created_at"),
   },
   (t) => [

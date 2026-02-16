@@ -77,14 +77,14 @@ type BlockOption = {
 
 const TEXT_COLORS = [
   { name: "Default", color: undefined },
-  { name: "Gray", color: "#6b7280" },
-  { name: "Red", color: "#ef4444" },
-  { name: "Orange", color: "#f97316" },
-  { name: "Yellow", color: "#eab308" },
-  { name: "Green", color: "#22c55e" },
-  { name: "Blue", color: "#3b82f6" },
-  { name: "Purple", color: "#a855f7" },
-  { name: "Pink", color: "#ec4899" },
+  { name: "Gray", color: "#7C8187" },
+  { name: "Red", color: "#C25D5D" },
+  { name: "Orange", color: "#C0885A" },
+  { name: "Yellow", color: "#B5A053" },
+  { name: "Green", color: "#5D9E7E" },
+  { name: "Blue", color: "#6B8DAD" },
+  { name: "Purple", color: "#8A7BAD" },
+  { name: "Pink", color: "#B5708E" },
 ];
 
 export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
