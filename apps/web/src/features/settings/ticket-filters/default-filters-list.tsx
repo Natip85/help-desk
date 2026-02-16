@@ -209,7 +209,7 @@ function SortableFilterItem({
     <div
       ref={setNodeRef}
       style={style}
-      className={`flex items-center gap-3 rounded-lg border px-3 py-4 ${
+      className={`bg-accent/50 flex items-center gap-3 rounded-md px-3 py-4 ${
         isDragging ? "z-50 opacity-80 shadow-lg" : ""
       }`}
     >

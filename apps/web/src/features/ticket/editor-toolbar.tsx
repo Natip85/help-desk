@@ -208,6 +208,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
       {/* Undo/Redo */}
       <div className="flex items-center gap-1">
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor?.commands.undo()}
@@ -217,6 +218,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
           <Undo className="h-4 w-4" />
         </Button>
         <Button
+          type="button"
           variant="ghost"
           size="sm"
           onClick={() => editor?.commands.redo()}
@@ -233,6 +235,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
       <Popover>
         <PopoverTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="text-muted-foreground hover:text-foreground hover:bg-accent size-8 p-0"
@@ -299,6 +302,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
 
             {/* Color Picker Toggle */}
             <Button
+              type="button"
               variant="ghost"
               size="sm"
               className="size-8 p-0"
@@ -463,6 +467,7 @@ export function EditorToolbar({ editor, editorState }: EditorToolbarProps) {
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <Button
+            type="button"
             variant="ghost"
             size="sm"
             className="text-muted-foreground hover:text-foreground hover:bg-accent size-8 p-0"

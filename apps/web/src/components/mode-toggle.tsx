@@ -16,14 +16,15 @@ export const ModeToggle = ({ className, ...props }: React.ComponentProps<"div">)
       className={cn("flex items-center gap-1.5", className)}
       {...props}
     >
-      <SunIcon className="text-muted-foreground size-3.5" />
       <Switch
         size="sm"
         checked={isDark}
         onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
         aria-label="Toggle theme"
       />
-      <MoonIcon className="text-muted-foreground size-3.5" />
+      {isDark ?
+        <MoonIcon className="text-muted-foreground size-3.5" />
+      : <SunIcon className="text-muted-foreground size-3.5" />}
     </div>
   );
 };
