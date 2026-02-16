@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { Forward, Notebook, Paperclip } from "lucide-react";
+import { ChevronDown, Forward, Notebook, Paperclip } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -62,6 +62,7 @@ function buildTimeline(messages: ThreadMessage[], notes: ThreadNote[]): Timeline
 // ---------------------------------------------------------------------------
 
 function MessageBubble({ message }: { message: ThreadMessage }) {
+  const [showDetails, setShowDetails] = useState(false);
   const isOutbound = message.direction === "outbound";
   const isForward = message.messageType === "forward";
 
@@ -75,6 +76,10 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
 
   const htmlBody = message.htmlBody?.trim();
   const textBody = message.textBody?.trim();
+
+  const hasCc = (message.cc?.length ?? 0) > 0;
+  const hasBcc = isOutbound && (message.bcc?.length ?? 0) > 0;
+  const hasEmailDetails = hasCc || hasBcc;
 
   return (
     <div
@@ -107,9 +112,43 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
           : isOutbound ?
             <span className="text-xs italic">replied</span>
           : null}
+          {hasEmailDetails && (
+            <button
+              type="button"
+              onClick={() => setShowDetails(!showDetails)}
+              className="text-muted-foreground hover:text-foreground inline-flex items-center gap-0.5 text-xs transition-colors"
+            >
+              <ChevronDown
+                className={cn(
+                  "size-3 transition-transform duration-150",
+                  showDetails && "rotate-180"
+                )}
+              />
+              {showDetails ? "hide" : "details"}
+            </button>
+          )}
         </div>
         <time className="shrink-0 text-xs">{formatMessageDateTime(message.createdAt)}</time>
       </div>
+
+      {/* Email details (To, CC, BCC) */}
+      {showDetails && hasEmailDetails && (
+        <div className="text-muted-foreground mt-1.5 space-y-0.5 pl-9 text-xs">
+          <p>
+            <span className="font-medium">To:</span> {message.toEmail?.join(", ") ?? "—"}
+          </p>
+          {hasCc && (
+            <p>
+              <span className="font-medium">Cc:</span> {message.cc?.join(", ")}
+            </p>
+          )}
+          {hasBcc && (
+            <p>
+              <span className="font-medium">Bcc:</span> {message.bcc?.join(", ")}
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Body */}
       <div className="mt-3 pl-9">

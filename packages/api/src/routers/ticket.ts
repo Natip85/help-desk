@@ -353,6 +353,8 @@ export const ticketRouter = createTRPCRouter({
         conversationId: z.string(),
         htmlBody: z.string().min(1),
         textBody: z.string(),
+        cc: z.array(z.string().email()).optional(),
+        bcc: z.array(z.string().email()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -432,6 +434,8 @@ export const ticketRouter = createTRPCRouter({
         from: `${fromName} <${fromEmail}>`,
         replyTo: [`${fromName} <${replyToAddress}>`],
         to: [toEmail],
+        cc: input.cc?.length ? input.cc : undefined,
+        bcc: input.bcc?.length ? input.bcc : undefined,
         subject,
         html: input.htmlBody,
         text: input.textBody,
@@ -462,6 +466,8 @@ export const ticketRouter = createTRPCRouter({
             resendEmailId: emailData?.id ?? null,
             fromEmail,
             toEmail: [toEmail],
+            cc: input.cc?.length ? input.cc : null,
+            bcc: input.bcc?.length ? input.bcc : null,
             subject,
             textBody: input.textBody,
             htmlBody: input.htmlBody,
@@ -528,6 +534,8 @@ export const ticketRouter = createTRPCRouter({
         toEmail: z.string().email(),
         htmlBody: z.string().min(1),
         textBody: z.string(),
+        cc: z.array(z.string().email()).optional(),
+        bcc: z.array(z.string().email()).optional(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -586,6 +594,8 @@ export const ticketRouter = createTRPCRouter({
         from: `${fromName} <${fromEmail}>`,
         replyTo: [`${fromName} <${replyToAddress}>`],
         to: [input.toEmail],
+        cc: input.cc?.length ? input.cc : undefined,
+        bcc: input.bcc?.length ? input.bcc : undefined,
         subject,
         html: input.htmlBody,
         text: input.textBody,
@@ -612,6 +622,8 @@ export const ticketRouter = createTRPCRouter({
             resendEmailId: emailData?.id ?? null,
             fromEmail,
             toEmail: [input.toEmail],
+            cc: input.cc?.length ? input.cc : null,
+            bcc: input.bcc?.length ? input.bcc : null,
             subject,
             textBody: input.textBody,
             htmlBody: input.htmlBody,
@@ -1293,6 +1305,8 @@ export const ticketRouter = createTRPCRouter({
         from: `${fromName} <${fromEmail}>`,
         replyTo: [`${fromName} <${replyToAddress}>`],
         to: [emailContact.email],
+        cc: input.cc?.length ? input.cc : undefined,
+        bcc: input.bcc?.length ? input.bcc : undefined,
         subject: input.subject,
         html: input.description,
       });
@@ -1316,6 +1330,8 @@ export const ticketRouter = createTRPCRouter({
           resendEmailId: emailData?.id ?? null,
           fromEmail,
           toEmail: [emailContact.email],
+          cc: input.cc?.length ? input.cc : null,
+          bcc: input.bcc?.length ? input.bcc : null,
           subject: input.subject,
           htmlBody: input.description,
         })

@@ -6,10 +6,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Forward, Loader2, Reply, X } from "lucide-react";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
+import type { CcBccSectionHandle } from "./cc-bcc-section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { useTRPC } from "@/trpc";
+import { CcBccSection } from "./cc-bcc-section";
 import { RichTextEditor } from "./rich-text-editor";
 
 type EmailEditorProps = {
@@ -25,10 +27,10 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
   const setIsOpen = (open: boolean) => setActiveEditor(open ? "reply" : null);
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const ccBccRef = useRef<CcBccSectionHandle>(null);
 
   useEffect(() => {
     if (isOpen) {
-      // Small delay to let the collapsible content expand before scrolling
       const timer = setTimeout(() => {
         containerRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
       }, 100);
@@ -44,6 +46,7 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
   const handleSendSuccess = () => {
     editorRef.current?.commands.clearContent();
+    ccBccRef.current?.reset();
     void setIsOpen(false);
     void queryClient.invalidateQueries({
       queryKey: trpc.contact.conversationThread.queryOptions({
@@ -71,11 +74,16 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
     if (!textBody.trim()) return;
 
+    const cc = ccBccRef.current?.getCc() ?? [];
+    const bcc = ccBccRef.current?.getBcc() ?? [];
+
     sendReply(
       {
         conversationId: ticketId,
         htmlBody,
         textBody,
+        cc: cc.length > 0 ? cc : undefined,
+        bcc: bcc.length > 0 ? bcc : undefined,
       },
       { onSuccess: handleSendSuccess }
     );
@@ -83,6 +91,7 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
   const handleDiscard = () => {
     editorRef.current?.commands.clearContent();
+    ccBccRef.current?.reset();
     void setIsOpen(false);
   };
 
@@ -138,6 +147,7 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
       <CollapsibleContent>
         <div className="flex flex-col">
+          <CcBccSection ref={ccBccRef} />
           <RichTextEditor
             key={ticketId}
             content={[] as JSONContent[]}
