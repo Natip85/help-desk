@@ -77,9 +77,9 @@ function MessageBubble({ message }: { message: ThreadMessage }) {
   const htmlBody = message.htmlBody?.trim();
   const textBody = message.textBody?.trim();
 
-  const hasCc = message.cc && message.cc.length > 0;
-  const hasBcc = isOutbound && message.bcc && message.bcc.length > 0;
-  const hasEmailDetails = hasCc ?? hasBcc;
+  const hasCc = (message.cc?.length ?? 0) > 0;
+  const hasBcc = isOutbound && (message.bcc?.length ?? 0) > 0;
+  const hasEmailDetails = hasCc || hasBcc;
 
   return (
     <div

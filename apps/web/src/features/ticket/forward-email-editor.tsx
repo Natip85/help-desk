@@ -39,8 +39,8 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
   const setIsOpen = (open: boolean) => setActiveEditor(open ? "forward" : null);
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const ccBccRef = useRef<CcBccSectionHandle>(null);
-  const [toEmails, setToEmails] = useState<string[]>([]);
+  const ccBccRef = useRef<CcBccSectionHandle | null>(null);
+  const [toEmail, setToEmail] = useState("");
   const hasInjectedContent = useRef(false);
   const threadRef = useRef<typeof thread>(undefined);
 
@@ -113,7 +113,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleSendSuccess = () => {
     editorRef.current?.commands.clearContent();
-    setToEmails([]);
+    setToEmail("");
     ccBccRef.current?.reset();
     void setIsOpen(false);
     void queryClient.invalidateQueries({
@@ -130,7 +130,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleSend = () => {
     const editor = editorRef.current;
-    if (!editor || toEmails.length === 0) return;
+    if (!editor || !toEmail) return;
 
     const htmlBody = editor.getHTML();
     const textBody = editor.getText();
@@ -143,7 +143,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
     forwardEmail(
       {
         conversationId: ticketId,
-        toEmail: toEmails[0],
+        toEmail,
         htmlBody,
         textBody,
         cc: cc.length > 0 ? cc : undefined,
@@ -155,7 +155,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleDiscard = () => {
     editorRef.current?.commands.clearContent();
-    setToEmails([]);
+    setToEmail("");
     ccBccRef.current?.reset();
     void setIsOpen(false);
   };
@@ -164,7 +164,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
   const fromName = ticket?.mailbox?.name ?? fromEmail.split("@")[0] ?? "Support";
   const fromInitials = fromName.slice(0, 2).toUpperCase();
 
-  const canSend = toEmails.length > 0;
+  const canSend = !!toEmail;
 
   return (
     <Collapsible
@@ -183,7 +183,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
               From: <span className="text-foreground">{fromEmail}</span>
             </p>
             <div className="text-muted-foreground flex items-center gap-1 text-xs">
-              To: <span className="text-foreground">{toEmails[0] || "..."}</span>
+              To: <span className="text-foreground">{toEmail || "..."}</span>
             </div>
           </div>
         : <div className="flex flex-1 items-center gap-2">
@@ -203,8 +203,11 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
             <label className="text-muted-foreground shrink-0 text-xs">To:</label>
             <div className="flex-1">
               <EmailRecipientPicker
-                value={toEmails}
-                onChange={setToEmails}
+                value={toEmail ? [toEmail] : []}
+                onChange={(emails) => {
+                  const latest = emails.at(-1) ?? "";
+                  setToEmail(latest);
+                }}
                 placeholder="Search contacts or type email..."
               />
             </div>

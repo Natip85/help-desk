@@ -95,7 +95,7 @@ export function SendEmailForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
-  const ccBccRef = useRef<CcBccSectionHandle>(null);
+  const ccBccRef = useRef<CcBccSectionHandle | null>(null);
   const [contactSearch, setContactSearch] = useState("");
   const [showCreateContact, setShowCreateContact] = useState(false);
   const tagAnchor = useComboboxAnchor();

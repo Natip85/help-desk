@@ -55,6 +55,7 @@ export const CcBccSection = forwardRef<CcBccSectionHandle>(function CcBccSection
             </div>
             <button
               type="button"
+              aria-label="Close CC/BCC"
               className="text-muted-foreground hover:text-foreground shrink-0 transition-colors"
               onClick={() => {
                 setCc([]);
