@@ -15,6 +15,20 @@
       "when": 1771141303860,
       "tag": "0001_bizarre_switch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1771275897655,
+      "tag": "0002_parallel_lady_deathstrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1771276601243,
+      "tag": "0003_tiny_overlord",
+      "breakpoints": true
     }
   ]
 }

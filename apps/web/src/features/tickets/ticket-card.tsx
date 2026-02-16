@@ -38,19 +38,23 @@ export const priorityConfig: Record<ConversationPriority, { label: string; class
 export const statusConfig: Record<ConversationStatus, { label: string; className: string }> = {
   open: {
     label: "Open",
-    className: "bg-sky-700",
+    className: "bg-[#6B8DAD]",
   },
   pending: {
     label: "Pending",
-    className: "bg-amber-700",
+    className: "bg-[#C0885A]",
   },
   resolved: {
     label: "Resolved",
-    className: "bg-green-700",
+    className: "bg-[#5D9E7E]",
   },
   closed: {
     label: "Closed",
-    className: "bg-zinc-700",
+    className: "bg-[#7C8187]",
+  },
+  merged: {
+    label: "Merged",
+    className: "bg-[#8A7BAD]",
   },
 };
 
@@ -269,7 +273,7 @@ export const TicketCardFooter = ({
   return (
     <CardFooter
       {...props}
-      className={cn("flex flex-col items-end justify-between p-0", className)}
+      className={cn("flex flex-col items-end justify-end p-0", className)}
     >
       {children}
     </CardFooter>

@@ -9,7 +9,7 @@ import { conversationTag } from "./tags";
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export const conversationStatus = ["open", "pending", "resolved", "closed"] as const;
+export const conversationStatus = ["open", "pending", "resolved", "closed", "merged"] as const;
 export type ConversationStatus = (typeof conversationStatus)[number];
 export const conversationStatusEnum = pgEnum("conversation_status", conversationStatus);
 
@@ -57,6 +57,7 @@ export const conversation = Utils.createTable(
     mailboxId: text("mailbox_id").references(() => mailbox.id),
     assignedToId: text("assigned_to_id").references(() => user.id),
     customFields: jsonb("custom_fields").$type<Record<string, string | string[]>>().default({}),
+    mergedIntoId: text("merged_into_id"),
     lastMessageAt: timestamp("last_message_at"),
     closedAt: timestamp("closed_at"),
     deletedAt: timestamp("deleted_at"),
@@ -68,6 +69,7 @@ export const conversation = Utils.createTable(
     index("conversation_contact_idx").on(t.contactId),
     index("conversation_org_idx").on(t.organizationId),
     index("conversation_deleted_at_idx").on(t.deletedAt),
+    index("conversation_merged_into_idx").on(t.mergedIntoId),
   ]
 );
 
@@ -159,6 +161,12 @@ export const conversationRelations = relations(conversation, ({ one, many }) => 
     fields: [conversation.assignedToId],
     references: [user.id],
   }),
+  mergedInto: one(conversation, {
+    fields: [conversation.mergedIntoId],
+    references: [conversation.id],
+    relationName: "mergedTickets",
+  }),
+  mergedTickets: many(conversation, { relationName: "mergedTickets" }),
   messages: many(message),
   conversationTags: many(conversationTag),
 }));

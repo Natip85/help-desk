@@ -1396,6 +1396,253 @@ export const ticketRouter = createTRPCRouter({
     return result;
   }),
 
+  merge: protectedProcedure
+    .input(
+      z.object({
+        primaryTicketId: z.string(),
+        secondaryTicketId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = ctx.session.session.activeOrganizationId;
+
+      if (!organizationId) {
+        throw new TRPCError({
+          code: "UNAUTHORIZED",
+          message: "No active organization selected",
+        });
+      }
+
+      if (input.primaryTicketId === input.secondaryTicketId) {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot merge a ticket into itself",
+        });
+      }
+
+      // Fetch both tickets and validate
+      const [primary, secondary] = await Promise.all([
+        ctx.db.query.conversation.findFirst({
+          where: and(
+            eq(conversation.id, input.primaryTicketId),
+            eq(conversation.organizationId, organizationId),
+            isNull(conversation.deletedAt)
+          ),
+          columns: { id: true, subject: true, status: true },
+        }),
+        ctx.db.query.conversation.findFirst({
+          where: and(
+            eq(conversation.id, input.secondaryTicketId),
+            eq(conversation.organizationId, organizationId),
+            isNull(conversation.deletedAt)
+          ),
+          columns: { id: true, subject: true, status: true },
+        }),
+      ]);
+
+      if (!primary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Primary ticket not found",
+        });
+      }
+
+      if (!secondary) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Secondary ticket not found",
+        });
+      }
+
+      if (primary.status === "merged") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Cannot merge into a ticket that is already merged",
+        });
+      }
+
+      if (secondary.status === "merged") {
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "This ticket has already been merged",
+        });
+      }
+
+      // Execute merge in a transaction
+      await ctx.db.transaction(async (tx) => {
+        // Update secondary ticket: mark as merged
+        await tx
+          .update(conversation)
+          .set({
+            status: "merged",
+            mergedIntoId: primary.id,
+            closedAt: new Date(),
+          })
+          .where(eq(conversation.id, secondary.id));
+
+        // Create merge event on the primary ticket
+        await tx.insert(conversationEvent).values({
+          organizationId,
+          conversationId: primary.id,
+          actorId: ctx.session.user.id,
+          type: "ticket_merged",
+          payload: {
+            mergedTicketId: secondary.id,
+            mergedTicketSubject: secondary.subject,
+          },
+        });
+
+        // Create merge event on the secondary ticket
+        await tx.insert(conversationEvent).values({
+          organizationId,
+          conversationId: secondary.id,
+          actorId: ctx.session.user.id,
+          type: "ticket_merged",
+          payload: {
+            mergedIntoTicketId: primary.id,
+            mergedIntoTicketSubject: primary.subject,
+          },
+        });
+      });
+
+      return { primaryTicketId: primary.id, secondaryTicketId: secondary.id };
+    }),
+
+  getMergedTickets: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const mergedTickets = await ctx.db.query.conversation.findMany({
+      where: and(
+        eq(conversation.organizationId, organizationId),
+        eq(conversation.mergedIntoId, input)
+      ),
+      columns: {
+        id: true,
+        subject: true,
+        status: true,
+        createdAt: true,
+      },
+      with: {
+        contact: {
+          columns: {
+            id: true,
+            email: true,
+            displayName: true,
+          },
+        },
+      },
+      orderBy: [desc(conversation.createdAt)],
+    });
+
+    return mergedTickets;
+  }),
+
+  unmerge: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const ticket = await ctx.db.query.conversation.findFirst({
+      where: and(eq(conversation.id, input), eq(conversation.organizationId, organizationId)),
+      columns: { id: true, subject: true, status: true, mergedIntoId: true },
+    });
+
+    if (!ticket) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Ticket not found",
+      });
+    }
+
+    if (ticket.status !== "merged" || !ticket.mergedIntoId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "This ticket is not merged",
+      });
+    }
+
+    const primaryTicketId = ticket.mergedIntoId;
+
+    await ctx.db.transaction(async (tx) => {
+      // Restore the ticket to open status
+      await tx
+        .update(conversation)
+        .set({
+          status: "open",
+          mergedIntoId: null,
+          closedAt: null,
+        })
+        .where(eq(conversation.id, ticket.id));
+
+      // Log unmerge event on the (formerly) secondary ticket
+      await tx.insert(conversationEvent).values({
+        organizationId,
+        conversationId: ticket.id,
+        actorId: ctx.session.user.id,
+        type: "ticket_unmerged",
+        payload: {
+          previouslyMergedIntoId: primaryTicketId,
+        },
+      });
+
+      // Log unmerge event on the primary ticket
+      await tx.insert(conversationEvent).values({
+        organizationId,
+        conversationId: primaryTicketId,
+        actorId: ctx.session.user.id,
+        type: "ticket_unmerged",
+        payload: {
+          unmergedTicketId: ticket.id,
+          unmergedTicketSubject: ticket.subject,
+        },
+      });
+    });
+
+    return { id: ticket.id };
+  }),
+
+  getTicketEvents: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const events = await ctx.db.query.conversationEvent.findMany({
+      where: and(
+        eq(conversationEvent.conversationId, input),
+        eq(conversationEvent.organizationId, organizationId),
+        or(
+          eq(conversationEvent.type, "ticket_merged"),
+          eq(conversationEvent.type, "ticket_unmerged")
+        )
+      ),
+      with: {
+        actor: {
+          columns: { id: true, name: true, image: true },
+        },
+      },
+      orderBy: [desc(conversationEvent.createdAt)],
+    });
+
+    return events;
+  }),
+
   export: protectedProcedure
     .use(requirePermission({ ticket: ["export"] }))
     .input(exportFormSchema)

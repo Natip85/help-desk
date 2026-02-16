@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import type { ConversationStatus } from "@help-desk/db/schema/conversations";
 
+import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc";
 import { statusConfig } from "./ticket-card";
 import { TicketCardActions } from "./ticket-card-actions";
@@ -28,6 +29,20 @@ export const TicketStatusSelect = ({ ticketId, value }: TicketStatusSelectProps)
     })
   );
 
+  if (value === "merged") {
+    const config = statusConfig.merged;
+    return (
+      <span
+        className={cn(
+          "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-white",
+          config.className
+        )}
+      >
+        {config.label}
+      </span>
+    );
+  }
+
   return (
     <TicketCardActions
       actions={[
@@ -35,11 +50,13 @@ export const TicketStatusSelect = ({ ticketId, value }: TicketStatusSelectProps)
           type: "select",
           label: "Status",
           value,
-          options: Object.entries(statusConfig).map(([val, config]) => ({
-            value: val,
-            label: config.label,
-            className: config.className,
-          })),
+          options: Object.entries(statusConfig)
+            .filter(([val]) => val !== "merged")
+            .map(([val, config]) => ({
+              value: val,
+              label: config.label,
+              className: config.className,
+            })),
           onValueChange: (v) => updateStatus({ id: ticketId, status: v as ConversationStatus }),
         },
       ]}

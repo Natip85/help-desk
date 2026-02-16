@@ -53,11 +53,6 @@ export const TicketDetailsCard = ({ item, ...props }: TicketDetailsCardProps) =>
         <TicketCardTags tags={item.tags} />
       </TicketCardHeader>
       <TicketCardFooter>
-        <TicketCardAssignee
-          onAssigneeChange={(assigneeId) =>
-            updateAssignee({ id: item.id, assignedToId: assigneeId })
-          }
-        />
         <div className="flex items-center gap-2">
           <TicketStatusSelect
             ticketId={item.id}
@@ -66,6 +61,11 @@ export const TicketDetailsCard = ({ item, ...props }: TicketDetailsCardProps) =>
           <TicketPrioritySelect
             ticketId={item.id}
             value={item.priority}
+          />
+          <TicketCardAssignee
+            onAssigneeChange={(assigneeId) =>
+              updateAssignee({ id: item.id, assignedToId: assigneeId })
+            }
           />
         </div>
       </TicketCardFooter>

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import type { ConversationPriority, ConversationStatus } from "@help-desk/db/schema/conversations";
 import type { FilterType } from "@help-desk/db/validators/default-filter";
 
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -198,6 +199,21 @@ export const TicketStatusesSidebar = () => {
 
           // System filter: status
           if (f.name === "status") {
+            if (ticket?.status === "merged") {
+              return (
+                <SidebarGroup key={f.name}>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-muted-foreground text-xs">{f.displayName}</span>
+                    <Badge
+                      variant="secondary"
+                      className="w-fit bg-purple-700 text-white"
+                    >
+                      Merged
+                    </Badge>
+                  </div>
+                </SidebarGroup>
+              );
+            }
             return renderSystemSelect(
               f.name,
               f.displayName,

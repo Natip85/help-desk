@@ -19,6 +19,8 @@ export const conversationEventType = [
   "tag_removed",
   "conversation_created",
   "conversation_closed",
+  "ticket_merged",
+  "ticket_unmerged",
 ] as const;
 export type ConversationEventType = (typeof conversationEventType)[number];
 export const conversationEventTypeEnum = pgEnum("conversation_event_type", conversationEventType);

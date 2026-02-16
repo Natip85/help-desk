@@ -64,13 +64,14 @@ export const ContactRecentTickets = ({ tickets }: ContactRecentTicketsProps) => 
                 {t.tags?.length && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {t.tags.slice(0, 3).map((tag) => (
-                      <span
+                      <Badge
                         key={tag.id}
-                        className="text-muted-foreground inline-flex items-center gap-1 rounded-md border px-2 py-0.5 text-[11px]"
+                        className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px]"
+                        style={{ backgroundColor: tag.color }}
                       >
                         <Tag className="size-3" />
                         {tag.name}
-                      </span>
+                      </Badge>
                     ))}
                     {t.tags.length > 3 && (
                       <span className="text-muted-foreground text-[11px]">

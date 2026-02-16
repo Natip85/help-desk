@@ -436,14 +436,16 @@ export function SendEmailForm() {
                   <SelectValue placeholder="Select status" />
                 </SelectTrigger>
                 <SelectContent>
-                  {conversationStatus.map((s) => (
-                    <SelectItem
-                      key={s}
-                      value={s}
-                    >
-                      {statusConfig[s].label}
-                    </SelectItem>
-                  ))}
+                  {conversationStatus
+                    .filter((s) => s !== "merged")
+                    .map((s) => (
+                      <SelectItem
+                        key={s}
+                        value={s}
+                      >
+                        {statusConfig[s].label}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
               <FieldError errors={field.state.meta.errors} />

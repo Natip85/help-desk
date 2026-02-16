@@ -1,0 +1,1 @@
+ALTER TYPE "public"."conversation_event_type" ADD VALUE 'ticket_unmerged';

@@ -3,6 +3,8 @@ import { CopyButton } from "@/components/copy-button";
 import { PageTitle } from "@/components/page-title";
 import { ActiveEditor } from "@/features/ticket/active-editor";
 import { ConversationThread } from "@/features/ticket/conversation-thread";
+import { MergedTicketBanner } from "@/features/ticket/merged-ticket-banner";
+import { MergedTicketsSection } from "@/features/ticket/merged-tickets-section";
 import { TicketHeader } from "@/features/ticket/ticket-header";
 import { createTicketDetailBreadcrumbs } from "@/lib/breadcrumbs";
 
@@ -19,10 +21,7 @@ export default async function TicketPage({ params }: PageProps) {
           className="px-2"
         />
         <div className="flex gap-2">
-          <PageTitle
-            title={ticketId}
-            subTitle="View and manage your ticket"
-          />
+          <PageTitle title={ticketId} />
           <CopyButton
             value={ticketId}
             label="Copy ticket ID"
@@ -30,6 +29,8 @@ export default async function TicketPage({ params }: PageProps) {
         </div>
         <TicketHeader ticketId={ticketId} />
       </div>
+      <MergedTicketBanner ticketId={ticketId} />
+      <MergedTicketsSection ticketId={ticketId} />
       <div className="bg-secondary/30 m-2 flex-1 space-y-3 rounded-xl p-3">
         <ConversationThread ticketId={ticketId} />
         <ActiveEditor ticketId={ticketId} />

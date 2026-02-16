@@ -1,7 +1,7 @@
 "use client";
 
 import type { RefObject } from "react";
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Forward, GitBranchPlus, MoreVertical, Reply, Trash2 } from "lucide-react";
@@ -9,6 +9,7 @@ import { parseAsStringLiteral, useQueryState } from "nuqs";
 import { toast } from "sonner";
 import { useResizeObserver } from "usehooks-ts";
 
+import { CopyButton } from "@/components/copy-button";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -24,9 +25,11 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
+import { channelIconMap } from "@/features/tickets/ticket-card";
 import { useTRPC } from "@/trpc";
 import { AddNoteDialog } from "./add-note-dialog";
 import { CloseTicketButton } from "./close-ticket-button";
+import { MergeTicketSheet } from "./merge-ticket-sheet";
 import { ToggleContactSidebarButton } from "./toggle-contact-sidebar-button";
 import { ToggleTicketStatusesSidebarButton } from "./toggle-ticket-statuses-sidebar-button";
 
@@ -91,6 +94,8 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
     parseAsStringLiteral(["reply", "forward"] as const)
   );
 
+  const [mergeSheetOpen, setMergeSheetOpen] = useState(false);
+
   const { mutate: softDelete, isPending: isDeleting } = useMutation(
     trpc.ticket.softDelete.mutationOptions({
       onSuccess: () => {
@@ -113,107 +118,145 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
   const showMore = !showSecondary || !showForward || !showAddNote;
 
   return (
-    <div
-      className="flex items-center justify-between gap-3"
-      ref={ref}
-    >
-      <div className="flex items-center gap-1.5">
-        <Button onClick={() => void setActiveEditor("reply")}>
-          <Reply />
-          Reply
-        </Button>
-
-        {showAddNote && <AddNoteDialog ticketId={ticketId} />}
-
-        {showForward && (
-          <Button
-            variant="outline"
-            onClick={() => void setActiveEditor("forward")}
-          >
-            <Forward />
-            Forward
+    <div className="flex flex-col gap-2">
+      {ticket?.subject && (
+        <div className="flex flex-col gap-1">
+          <h2 className="flex items-center gap-2 text-lg leading-snug font-semibold">
+            {(() => {
+              const ChannelIcon = channelIconMap[ticket.channel];
+              return ChannelIcon ?
+                  <ChannelIcon className="text-muted-foreground size-4 shrink-0" />
+                : null;
+            })()}
+            {ticket.subject}
+          </h2>
+          {ticket.contact?.email && (
+            <div className="text-muted-foreground flex items-center gap-1 text-sm">
+              <span>{ticket.contact.email}</span>
+              <CopyButton
+                value={ticket.contact.email}
+                label="Copy email"
+              />
+            </div>
+          )}
+        </div>
+      )}
+      <div
+        className="flex items-center justify-between gap-3"
+        ref={ref}
+      >
+        <div className="flex items-center gap-1.5">
+          <Button onClick={() => void setActiveEditor("reply")}>
+            <Reply />
+            Reply
           </Button>
-        )}
 
-        {showSecondary && (
-          <>
-            <Separator
-              orientation="vertical"
-              className="mx-0.5 h-8!"
-            />
-            {ticket?.status !== "closed" && <CloseTicketButton ticketId={ticketId} />}
+          {showAddNote && <AddNoteDialog ticketId={ticketId} />}
+
+          {showForward && (
             <Button
-              variant="ghost"
-              disabled
+              variant="outline"
+              onClick={() => void setActiveEditor("forward")}
             >
-              <GitBranchPlus />
-              Merge
+              <Forward />
+              Forward
             </Button>
-            <DeleteTicketButton
-              ticketId={ticketId}
-              isDeleting={isDeleting}
-              onDelete={softDelete}
-            />
-          </>
-        )}
+          )}
 
-        {showMore && (
-          <Popover>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    className="transition-all duration-300 ease-in-out"
-                  >
-                    <MoreVertical />
-                  </Button>
-                </PopoverTrigger>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>More actions</p>
-              </TooltipContent>
-            </Tooltip>
-            <PopoverContent
-              align="start"
-              className="flex w-fit max-w-[75vw] flex-wrap items-center gap-1.5"
-            >
-              {!showAddNote && <AddNoteDialog ticketId={ticketId} />}
-              {!showForward && (
+          {showSecondary && (
+            <>
+              <Separator
+                orientation="vertical"
+                className="mx-0.5 h-8!"
+              />
+              {ticket?.status !== "closed" && ticket?.status !== "merged" && (
+                <CloseTicketButton ticketId={ticketId} />
+              )}
+              {ticket?.status !== "merged" && (
                 <Button
-                  variant="outline"
-                  onClick={() => void setActiveEditor("forward")}
+                  variant="ghost"
+                  onClick={() => setMergeSheetOpen(true)}
                 >
-                  <Forward />
-                  Forward
+                  <GitBranchPlus />
+                  Merge
                 </Button>
               )}
-              {!showSecondary && (
-                <>
-                  {ticket?.status !== "closed" && <CloseTicketButton ticketId={ticketId} />}
-                  <Button
-                    variant="ghost"
-                    disabled
-                  >
-                    <GitBranchPlus />
-                    Merge
-                  </Button>
-                  <DeleteTicketButton
-                    ticketId={ticketId}
-                    isDeleting={isDeleting}
-                    onDelete={softDelete}
-                  />
-                </>
-              )}
-            </PopoverContent>
-          </Popover>
-        )}
-      </div>
+              <DeleteTicketButton
+                ticketId={ticketId}
+                isDeleting={isDeleting}
+                onDelete={softDelete}
+              />
+            </>
+          )}
 
-      <div className="flex items-center gap-1.5">
-        <ToggleContactSidebarButton contactId={ticket?.contact?.id} />
-        <ToggleTicketStatusesSidebarButton ticketId={ticketId} />
+          {showMore && (
+            <Popover>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon-sm"
+                      className="transition-all duration-300 ease-in-out"
+                    >
+                      <MoreVertical />
+                    </Button>
+                  </PopoverTrigger>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>More actions</p>
+                </TooltipContent>
+              </Tooltip>
+              <PopoverContent
+                align="start"
+                className="flex w-fit max-w-[75vw] flex-wrap items-center gap-1.5"
+              >
+                {!showAddNote && <AddNoteDialog ticketId={ticketId} />}
+                {!showForward && (
+                  <Button
+                    variant="outline"
+                    onClick={() => void setActiveEditor("forward")}
+                  >
+                    <Forward />
+                    Forward
+                  </Button>
+                )}
+                {!showSecondary && (
+                  <>
+                    {ticket?.status !== "closed" && ticket?.status !== "merged" && (
+                      <CloseTicketButton ticketId={ticketId} />
+                    )}
+                    {ticket?.status !== "merged" && (
+                      <Button
+                        variant="ghost"
+                        onClick={() => setMergeSheetOpen(true)}
+                      >
+                        <GitBranchPlus />
+                        Merge
+                      </Button>
+                    )}
+                    <DeleteTicketButton
+                      ticketId={ticketId}
+                      isDeleting={isDeleting}
+                      onDelete={softDelete}
+                    />
+                  </>
+                )}
+              </PopoverContent>
+            </Popover>
+          )}
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          <ToggleContactSidebarButton contactId={ticket?.contact?.id} />
+          <ToggleTicketStatusesSidebarButton ticketId={ticketId} />
+        </div>
+
+        <MergeTicketSheet
+          ticketId={ticketId}
+          open={mergeSheetOpen}
+          onOpenChange={setMergeSheetOpen}
+        />
       </div>
     </div>
   );

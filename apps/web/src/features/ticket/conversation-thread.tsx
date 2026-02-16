@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { ChevronDown, Forward, Notebook, Paperclip } from "lucide-react";
+import { ChevronDown, Forward, GitBranchPlus, Notebook, Paperclip, Undo2 } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -17,8 +18,12 @@ import { useTRPC } from "@/trpc";
 type ThreadData = RouterOutputs["contact"]["conversationThread"];
 type ThreadMessage = ThreadData["messages"][number];
 type ThreadNote = ThreadData["notes"][number];
+type TicketEvent = RouterOutputs["ticket"]["getTicketEvents"][number];
 
-type TimelineItem = { kind: "message"; data: ThreadMessage } | { kind: "note"; data: ThreadNote };
+type TimelineItem =
+  | { kind: "message"; data: ThreadMessage }
+  | { kind: "note"; data: ThreadNote }
+  | { kind: "event"; data: TicketEvent };
 
 function formatMessageDateTime(date: Date) {
   return new Date(date).toLocaleString("en-US", {
@@ -46,10 +51,15 @@ function sanitizeHtml(html: string): string {
   });
 }
 
-function buildTimeline(messages: ThreadMessage[], notes: ThreadNote[]): TimelineItem[] {
+function buildTimeline(
+  messages: ThreadMessage[],
+  notes: ThreadNote[],
+  events: TicketEvent[] = []
+): TimelineItem[] {
   const items: TimelineItem[] = [
     ...messages.map((m) => ({ kind: "message" as const, data: m })),
     ...notes.map((n) => ({ kind: "note" as const, data: n })),
+    ...events.map((e) => ({ kind: "event" as const, data: e })),
   ];
 
   return items.sort(
@@ -227,6 +237,102 @@ function NoteBubble({ note }: { note: ThreadNote }) {
 }
 
 // ---------------------------------------------------------------------------
+// MergeEventBubble
+// ---------------------------------------------------------------------------
+
+function MergeEventBubble({ event }: { event: TicketEvent }) {
+  const actorName = event.actor?.name ?? "System";
+  const payload = event.payload as Record<string, string> | null;
+  const isUnmerge = event.type === "ticket_unmerged";
+
+  if (isUnmerge) {
+    const unmergedTicketId = payload?.unmergedTicketId;
+    const unmergedTicketSubject = payload?.unmergedTicketSubject;
+    const previouslyMergedIntoId = payload?.previouslyMergedIntoId;
+
+    return (
+      <div className="flex items-center gap-3 rounded-lg px-4 py-3">
+        <div className="bg-muted flex size-6 items-center justify-center rounded-full">
+          <Undo2 className="text-muted-foreground size-3.5" />
+        </div>
+        <p className="text-muted-foreground text-sm">
+          <span className="text-foreground font-medium">{actorName}</span>{" "}
+          {unmergedTicketId ?
+            <>
+              unmerged{" "}
+              <Link
+                href={`/tickets/${unmergedTicketId}`}
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                {unmergedTicketSubject ?? "a ticket"}
+              </Link>{" "}
+              from this ticket
+            </>
+          : previouslyMergedIntoId ?
+            <>
+              unmerged this ticket from{" "}
+              <Link
+                href={`/tickets/${previouslyMergedIntoId}`}
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                its parent ticket
+              </Link>
+            </>
+          : "unmerged a ticket"}
+        </p>
+        <time className="text-muted-foreground ml-auto shrink-0 text-xs">
+          {formatMessageDateTime(event.createdAt)}
+        </time>
+      </div>
+    );
+  }
+
+  const isMergedInto = !!payload?.mergedIntoTicketId;
+  const linkedTicketId = isMergedInto ? payload?.mergedIntoTicketId : payload?.mergedTicketId;
+  const linkedTicketSubject =
+    isMergedInto ? payload?.mergedIntoTicketSubject : payload?.mergedTicketSubject;
+
+  return (
+    <div className="flex items-center gap-3 rounded-lg px-4 py-3">
+      <div className="bg-muted flex size-6 items-center justify-center rounded-full">
+        <GitBranchPlus className="text-muted-foreground size-3.5" />
+      </div>
+      <p className="text-muted-foreground text-sm">
+        <span className="text-foreground font-medium">{actorName}</span>{" "}
+        {isMergedInto ?
+          <>
+            merged this ticket into{" "}
+            {linkedTicketId ?
+              <Link
+                href={`/tickets/${linkedTicketId}`}
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                {linkedTicketSubject ?? "another ticket"}
+              </Link>
+            : "another ticket"}
+          </>
+        : <>
+            merged{" "}
+            {linkedTicketId ?
+              <Link
+                href={`/tickets/${linkedTicketId}`}
+                className="text-foreground font-medium underline underline-offset-2"
+              >
+                {linkedTicketSubject ?? "a ticket"}
+              </Link>
+            : "a ticket"}{" "}
+            into this ticket
+          </>
+        }
+      </p>
+      <time className="text-muted-foreground ml-auto shrink-0 text-xs">
+        {formatMessageDateTime(event.createdAt)}
+      </time>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // ConversationThread
 // ---------------------------------------------------------------------------
 
@@ -245,10 +351,12 @@ export function ConversationThread({ ticketId }: ConversationThreadProps) {
     refetch,
   } = useQuery(trpc.contact.conversationThread.queryOptions({ conversationId: ticketId }));
 
+  const { data: ticketEvents } = useQuery(trpc.ticket.getTicketEvents.queryOptions(ticketId));
+
   const timeline = useMemo(() => {
     if (!thread) return [];
-    return buildTimeline(thread.messages ?? [], thread.notes ?? []);
-  }, [thread]);
+    return buildTimeline(thread.messages ?? [], thread.notes ?? [], ticketEvents ?? []);
+  }, [thread, ticketEvents]);
 
   // Loading
   if (isPending) {
@@ -306,7 +414,9 @@ export function ConversationThread({ ticketId }: ConversationThreadProps) {
         <div key={item.data.id}>
           {item.kind === "message" ?
             <MessageBubble message={item.data} />
-          : <NoteBubble note={item.data} />}
+          : item.kind === "note" ?
+            <NoteBubble note={item.data} />
+          : <MergeEventBubble event={item.data} />}
           {idx < timeline.length - 1 && <Separator className="my-1" />}
         </div>
       ))}
