@@ -23,19 +23,18 @@ import {
 } from "@/components/ui/empty";
 import { useTRPC } from "@/trpc";
 import { useSidebarParams } from "../right-sidebars/query-params";
+import { useContactTableParams } from "../table/contacts/contact-table-params";
 import { DataTable } from "../table/data-table";
-import { TicketTableBulkActions } from "../table/tickets/ticket-table-bulk-actions";
-import { useTicketTableParams } from "../table/tickets/ticket-table-params";
-import { useTicketSearchParams } from "./search-params";
-import { TicketDetailsCard } from "./ticket-details-card";
+import { ContactDetailsCard } from "./contact-details-card";
+import { useContactSearchParams } from "./search-params";
 
-export const TicketList = () => {
+export const ContactsList = () => {
   const trpc = useTRPC();
-  const { searchParams, setSearchParams } = useTicketSearchParams();
-  const { columnVisibility, orderedColumns } = useTicketTableParams();
+  const { searchParams, setSearchParams } = useContactSearchParams();
+  const { columnVisibility, orderedColumns } = useContactTableParams();
   const { sidebarParams, toggleContactSidebarId } = useSidebarParams();
-  const { data, isFetching } = useSuspenseQuery(trpc.ticket.all.queryOptions(searchParams));
-  const { data: users } = useSuspenseQuery(trpc.user.getOrganizationMembers.queryOptions());
+  const { data, isFetching } = useSuspenseQuery(trpc.contact.all.queryOptions(searchParams));
+  // const { data: users } = useSuspenseQuery(trpc.user.getOrganizationMembers.queryOptions());
   const hasQuery = Boolean(searchParams.q && searchParams.q.length > 0);
 
   return (
@@ -80,23 +79,23 @@ export const TicketList = () => {
                 data={data.items}
                 columnVisibility={columnVisibility}
                 onClick={(row) => {
-                  toggleContactSidebarId(row.contact.id);
+                  toggleContactSidebarId(row.id);
                 }}
-                isActive={(row) => sidebarParams.contactId === row.contact.id}
-                renderBulkActions={({ selectedRows, table }) => (
-                  <TicketTableBulkActions
-                    selectedRows={selectedRows}
-                    table={table}
-                    users={users}
-                  />
-                )}
+                isActive={(row) => sidebarParams.contactId === row.id}
+                // renderBulkActions={({ selectedRows, table }) => (
+                //   <TicketTableBulkActions
+                //     selectedRows={selectedRows}
+                //     table={table}
+                //     users={users}
+                //   />
+                // )}
               />
             </ListRendererListItem>
 
             <ListRendererListItem type={"card"}>
               <div className="flex w-full flex-col gap-2">
                 {data.items.map((item) => (
-                  <TicketDetailsCard
+                  <ContactDetailsCard
                     key={item.id}
                     item={item}
                   />

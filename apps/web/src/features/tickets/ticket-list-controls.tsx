@@ -1,7 +1,7 @@
 import type { ListControlsBaseProps } from "./list-controls";
 import type { ViewMode } from "./search-params";
 import { useSidebarParams } from "../right-sidebars/query-params";
-import { useTicketTableParams } from "../table/ticket-table-params";
+import { useTicketTableParams } from "../table/tickets/ticket-table-params";
 import { ListControls } from "./list-controls";
 import { TicketsListTotalBadge } from "./list-total-badge";
 import { SavedFilterDropdown } from "./saved-filter-dropdown";

@@ -1,5 +1,5 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, ilike, inArray, or } from "drizzle-orm";
+import { and, asc, desc, eq, getTableColumns, ilike, inArray, or } from "drizzle-orm";
 import { z } from "zod";
 
 import { contact } from "@help-desk/db/schema/contacts";
@@ -9,6 +9,15 @@ import { note } from "@help-desk/db/schema/notes";
 import { contactFormSchema } from "@help-desk/db/validators";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { buildContactOrderBy, buildContactWhereConditions } from "../utils/contact-filters";
+import { createBasicListInput } from "../utils/list-input-schema";
+
+const contactColumns = getTableColumns(contact);
+const sortableColumns = Object.keys(contactColumns).filter(
+  (col) => !["id", "organizationId", "companyId"].includes(col)
+) as (keyof typeof contactColumns)[];
+
+const listInput = createBasicListInput(sortableColumns, "createdAt").extend({});
 
 function requireActiveOrganizationId(activeOrganizationId: string | null | undefined) {
   if (!activeOrganizationId) {
@@ -21,6 +30,71 @@ function requireActiveOrganizationId(activeOrganizationId: string | null | undef
 }
 
 export const contactRouter = createTRPCRouter({
+  all: protectedProcedure.input(listInput).query(async ({ ctx, input }) => {
+    const organizationId = ctx.session.session.activeOrganizationId;
+
+    if (!organizationId) {
+      throw new TRPCError({
+        code: "UNAUTHORIZED",
+        message: "No active organization selected",
+      });
+    }
+
+    const offset = (input.page - 1) * input.limit;
+
+    try {
+      // Build where conditions from filter + search
+      const { whereConditions } = buildContactWhereConditions({
+        db: ctx.db,
+        organizationId,
+        searchQuery: input.q,
+      });
+
+      // Build order by with column validation
+      const orderBy = buildContactOrderBy({
+        sort: input.sort,
+        allowedColumns: sortableColumns,
+      });
+
+      // Run paginated query + total count in parallel
+      const [items, total] = await Promise.all([
+        ctx.db.query.contact.findMany({
+          where: and(...whereConditions),
+          limit: input.limit,
+          offset,
+          orderBy,
+          with: {
+            company: {
+              columns: {
+                id: true,
+                name: true,
+              },
+            },
+          },
+        }),
+        ctx.db.$count(contact, and(...whereConditions)),
+      ]);
+
+      return {
+        items,
+        total,
+      };
+    } catch (error) {
+      if (error instanceof TRPCError) throw error;
+
+      // eslint-disable-next-line no-console
+      console.error("[contacts|all|error]", {
+        error: error instanceof Error ? error.message : String(error),
+        stack: error instanceof Error ? error.stack : "No stack trace",
+      });
+
+      throw new TRPCError({
+        code: "INTERNAL_SERVER_ERROR",
+        message: "Failed to fetch contacts",
+        cause: error,
+      });
+    }
+  }),
   getById: protectedProcedure.input(z.string()).query(async ({ ctx, input }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
     const contactId = input;
@@ -122,7 +196,6 @@ export const contactRouter = createTRPCRouter({
       recentEvents,
     };
   }),
-
   conversations: protectedProcedure
     .input(
       z.object({
@@ -176,7 +249,6 @@ export const contactRouter = createTRPCRouter({
         })),
       };
     }),
-
   conversationThread: protectedProcedure
     .input(z.object({ conversationId: z.string() }))
     .query(async ({ ctx, input }) => {
@@ -270,7 +342,6 @@ export const contactRouter = createTRPCRouter({
 
     return { count };
   }),
-
   getGlobalSearchAll: protectedProcedure
     .input(z.string().optional())
     .query(async ({ ctx, input }) => {
@@ -319,7 +390,6 @@ export const contactRouter = createTRPCRouter({
         });
       }
     }),
-
   create: protectedProcedure.input(contactFormSchema).mutation(async ({ ctx, input }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
 

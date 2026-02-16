@@ -5,20 +5,20 @@ import Link from "next/link";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 
-import type { TicketCardData } from "../tickets/ticket-card";
+import type { TicketCardData } from "../../tickets/ticket-card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTRPC } from "@/trpc";
-import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
+import { TicketAssigneeCombobox } from "../../tickets/ticket-assignee-combobox";
 import {
   channelIconMap,
   formatDate,
   getContactDisplayName,
   getContactInitials,
-} from "../tickets/ticket-card";
-import { TicketPrioritySelect } from "../tickets/ticket-priority-select";
-import { TicketStatusSelect } from "../tickets/ticket-status-select";
+} from "../../tickets/ticket-card";
+import { TicketPrioritySelect } from "../../tickets/ticket-priority-select";
+import { TicketStatusSelect } from "../../tickets/ticket-status-select";
 import { TicketTableListActions } from "./ticket-table-list-actions";
 
 export const columns: ColumnDef<TicketCardData>[] = [

@@ -7,6 +7,7 @@ import type { TicketSortOption } from "@help-desk/db/validators/ticket-sort";
 
 import type { GenericTableReturn } from "../table/use-table-params";
 import type { ViewMode } from "./search-params";
+import type { SortOption } from "./sort-menu";
 import type { SortFieldMap } from "./ticket-list-controls";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -47,14 +48,14 @@ const FilterButton = ({
   );
 };
 
-export type ListControls<V extends ViewMode> = {
+export type ListControls<V extends ViewMode, S extends SortOption = TicketSortOption> = {
   inputValue: string;
   filterCount: number;
-  sorts: TicketSortOption[];
+  sorts: S[];
   viewMode: V;
   handleInputChange: (value: string) => void;
   handleSetViewMode: (mode: V) => void;
-  handleSortChange: (value: TicketSortOption[]) => void;
+  handleSortChange: (value: S[]) => void;
   reset: () => void;
 };
 
@@ -68,10 +69,11 @@ export type ListControlsProps<
   V extends ViewMode,
   T,
   TColumnsList extends Record<string, boolean>[],
+  S extends SortOption = TicketSortOption,
 > = ListControlsBaseProps & {
   viewModes: V[];
   sortFieldsMap: SortFieldMap;
-  listControls: ListControls<V>;
+  listControls: ListControls<V, S>;
   tableParams: GenericTableReturn<T, TColumnsList>;
   filterButton?: React.ReactNode;
   gridViewContent?: React.ReactNode;
@@ -86,6 +88,7 @@ export const ListControls = <
   V extends ViewMode,
   T,
   TColumnsList extends Record<string, boolean>[],
+  S extends SortOption = TicketSortOption,
 >({
   totalBadge,
   viewModes,
@@ -105,7 +108,7 @@ export const ListControls = <
   filterButton,
   gridViewContent,
   tableParams: { columnOptions, toggleColumnVisibility, updateColumnOrder, resetTableParams },
-}: ListControlsProps<V, T, TColumnsList>) => {
+}: ListControlsProps<V, T, TColumnsList, S>) => {
   const ref = useRef<HTMLDivElement>(null);
   const { width = Infinity } = useResizeObserver({
     ref: ref as RefObject<HTMLElement>,
@@ -193,7 +196,7 @@ export const ListControls = <
         <SortMenu
           className="flex transition-all duration-300 ease-in-out"
           selectedSorts={sorts}
-          onSortChange={handleSortChange}
+          onSortChange={handleSortChange as (sorts: SortOption[]) => void}
           sortFields={sortFieldsMap[viewMode]}
         />
       )}
@@ -269,7 +272,7 @@ export const ListControls = <
             {!sortInMenu && (
               <SortMenu
                 selectedSorts={sorts}
-                onSortChange={handleSortChange}
+                onSortChange={handleSortChange as (sorts: SortOption[]) => void}
                 sortFields={sortFieldsMap[viewMode]}
               />
             )}

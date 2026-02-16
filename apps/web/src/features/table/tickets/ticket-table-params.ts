@@ -2,8 +2,8 @@ import { parseAsJson } from "nuqs";
 import { createLoader } from "nuqs/server";
 import { z } from "zod/v4";
 
+import { useGenericTableParams } from "../use-table-params";
 import { columns as columnDefs } from "./ticket-columns";
-import { useGenericTableParams } from "./use-table-params";
 
 const availableColumns = [
   "subject",

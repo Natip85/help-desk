@@ -4,7 +4,7 @@ import type { Row } from "@tanstack/react-table";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
 
-import type { TicketCardData } from "../tickets/ticket-card";
+import type { ContactCardData } from "../../contact/contact-card";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -14,11 +14,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useTRPC } from "@/trpc";
 
-type TicketTableListActionsProps = {
-  row: Row<TicketCardData>;
+type ContactTableListActionsProps = {
+  row: Row<ContactCardData>;
 };
 
-export function TicketTableListActions({ row }: TicketTableListActionsProps) {
+export function ContactTableListActions({ row }: ContactTableListActionsProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 

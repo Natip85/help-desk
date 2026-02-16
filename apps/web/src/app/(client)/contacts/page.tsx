@@ -1,5 +1,7 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
+import { ContactsHeader } from "@/features/contact/contacts-header";
+import { ContactsList } from "@/features/contact/contacts-list";
 import { contactsBreadcrumbs } from "@/lib/breadcrumbs";
 
 export default function ContactsPage() {
@@ -13,9 +15,9 @@ export default function ContactsPage() {
         title="Contacts"
         subTitle="Manage your contacts"
         className="w-full"
-      >
-        {/* <CreateOrganizationButton /> */}
-      </PageTitle>
+      />
+      <ContactsHeader />
+      <ContactsList />
     </div>
   );
 }
