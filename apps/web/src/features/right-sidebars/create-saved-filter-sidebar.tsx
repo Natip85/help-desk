@@ -25,8 +25,6 @@ import { useTicketSearchParams } from "../tickets/search-params";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
 import { useSidebarParams } from "./query-params";
 
-// ─── Filter Summary ──────────────────────────────────────────────────────────
-
 function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
   const trpc = useTRPC();
 
@@ -208,8 +206,6 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
     </div>
   );
 }
-
-// ─── Create Saved Filter Sidebar ─────────────────────────────────────────────
 
 export const CreateSavedFilterSidebar = () => {
   const trpc = useTRPC();

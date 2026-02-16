@@ -1,5 +1,6 @@
 "use client";
 
+import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Folder } from "lucide-react";
 
@@ -22,7 +23,6 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import { useTRPC } from "@/trpc";
-import { useSidebarParams } from "../right-sidebars/query-params";
 import { useContactTableParams } from "../table/contacts/contact-table-params";
 import { DataTable } from "../table/data-table";
 import { ContactDetailsCard } from "./contact-details-card";
@@ -30,11 +30,10 @@ import { useContactSearchParams } from "./search-params";
 
 export const ContactsList = () => {
   const trpc = useTRPC();
+  const router = useRouter();
   const { searchParams, setSearchParams } = useContactSearchParams();
   const { columnVisibility, orderedColumns } = useContactTableParams();
-  const { sidebarParams, toggleContactSidebarId } = useSidebarParams();
   const { data, isFetching } = useSuspenseQuery(trpc.contact.all.queryOptions(searchParams));
-  // const { data: users } = useSuspenseQuery(trpc.user.getOrganizationMembers.queryOptions());
   const hasQuery = Boolean(searchParams.q && searchParams.q.length > 0);
 
   return (
@@ -79,9 +78,8 @@ export const ContactsList = () => {
                 data={data.items}
                 columnVisibility={columnVisibility}
                 onClick={(row) => {
-                  toggleContactSidebarId(row.id);
+                  router.push(`/contacts/${row.id}`);
                 }}
-                isActive={(row) => sidebarParams.contactId === row.id}
                 // renderBulkActions={({ selectedRows, table }) => (
                 //   <TicketTableBulkActions
                 //     selectedRows={selectedRows}

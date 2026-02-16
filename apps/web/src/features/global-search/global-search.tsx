@@ -90,7 +90,6 @@ export function GlobalSearch() {
     onDebouncedChange: setGlobalSearchQuery,
   });
 
-  // Queries
   const queryInput = q && q.trim().length >= 2 ? q : skipToken;
   const { data: ticketsData, isLoading: isLoadingTickets } = useQuery(
     trpc.ticket.getGlobalSearchAll.queryOptions(queryInput)
@@ -99,13 +98,11 @@ export function GlobalSearch() {
     trpc.contact.getGlobalSearchAll.queryOptions(queryInput)
   );
 
-  // Total counts from DB (independent of search)
   const { data: ticketsTotalCount } = useQuery(trpc.ticket.totalCount.queryOptions());
   const { data: contactsTotalCount } = useQuery(trpc.contact.totalCount.queryOptions());
 
   const isLoading = isLoadingTickets || isLoadingContacts;
 
-  // Build grouped items for the Combobox
   const groups: SearchGroup[] = useMemo(() => {
     const tickets = ticketsData?.tickets ?? [];
     const contacts = contactsData?.contacts ?? [];

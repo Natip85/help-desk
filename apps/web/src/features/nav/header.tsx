@@ -20,7 +20,6 @@ export function Header() {
   return (
     <header className="bg-background sticky top-0 right-0 left-0 z-50 w-full">
       <div className="flex h-16 items-center justify-between pr-3 pl-12 sm:px-5 md:px-8">
-        {/* Logo */}
         <Link
           href="/"
           className="ml-8 hidden items-center gap-2 md:ml-0 md:flex"
@@ -31,9 +30,7 @@ export function Header() {
           <span className="text-foreground text-xl font-semibold tracking-tight">Help Desk</span>
         </Link>
 
-        {/* Right actions */}
         <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-5">
-          {/* Create Ticket/email Button */}
           {session && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -73,7 +70,6 @@ export function Header() {
               className="bg-accent hidden sm:block"
             />
           )}
-          {/* Global search */}
           {session && <GlobalSearch />}
 
           {session && <BellDot className="size-5 shrink-0" />}

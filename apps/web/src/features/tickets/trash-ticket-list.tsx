@@ -64,10 +64,7 @@ export function TrashTicketList() {
   );
 
   const invalidate = async () => {
-    // listDeleted is mounted on this page, so invalidate triggers a refetch
     await queryClient.invalidateQueries({ queryKey: trpc.ticket.listDeleted.queryKey() });
-    // all & totalCount are NOT mounted here, so remove stale cache
-    // so fresh data is fetched when the user navigates to /tickets
     queryClient.removeQueries({ queryKey: trpc.ticket.all.queryKey() });
     queryClient.removeQueries({ queryKey: trpc.ticket.totalCount.queryKey() });
   };

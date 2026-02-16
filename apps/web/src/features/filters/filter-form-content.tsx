@@ -25,8 +25,6 @@ import { useTRPC } from "@/trpc";
 import { FilterRenderer } from "../right-sidebars/filter-components";
 import { CreatedDateFilter } from "../tickets/created-date-filter";
 
-// ─── Types ──────────────────────────────────────────────────────────────────
-
 type MemberItem = {
   id: string;
   name: string;
@@ -39,8 +37,6 @@ export type FilterFormContentProps = {
   onFilterChange: (filter: TicketFilter) => void;
 };
 
-// ─── Constants ──────────────────────────────────────────────────────────────
-
 const UNASSIGNED_ID = "__unassigned__" as const;
 
 const unassignedItem: MemberItem = {
@@ -50,15 +46,11 @@ const unassignedItem: MemberItem = {
   image: null,
 };
 
-// ─── Map from system filter name → TicketFilter key ─────────────────────────
-
 const SYSTEM_FILTER_PARAM_KEY: Record<string, keyof TicketFilter> = {
   priority: "priorities",
   status: "statuses",
   channel: "channels",
 };
-
-// ─── Helpers ────────────────────────────────────────────────────────────────
 
 function getUserInitials(name: string) {
   const parts = name.trim().split(/\s+/);
@@ -67,8 +59,6 @@ function getUserInitials(name: string) {
   }
   return name.charAt(0).toUpperCase();
 }
-
-// ─── Reusable system filter combobox (Priority / Status / Channel) ──────────
 
 type SystemFilterSectionProps = {
   displayName: string;
@@ -135,8 +125,6 @@ function SystemFilterSection({
     </SidebarGroup>
   );
 }
-
-// ─── FilterFormContent ──────────────────────────────────────────────────────
 
 export function FilterFormContent({ filter, onFilterChange }: FilterFormContentProps) {
   const trpc = useTRPC();

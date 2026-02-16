@@ -18,7 +18,6 @@ export function RadioFilter({
       <RadioGroup
         value={currentValue}
         onValueChange={(value: string) => {
-          // If the user selects the same value, deselect it
           if (value === currentValue) {
             onValueChange(filterName, []);
           } else {
@@ -36,7 +35,6 @@ export function RadioFilter({
               value={option.value}
               id={`${filterName}-${option.value}`}
               onClick={() => {
-                // Allow deselection by clicking the already-selected radio
                 if (option.value === currentValue) {
                   onValueChange(filterName, []);
                 }

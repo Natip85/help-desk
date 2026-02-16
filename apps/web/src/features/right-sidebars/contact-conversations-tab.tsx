@@ -196,10 +196,6 @@ export const ContactConversationsTab = ({
   );
 };
 
-// ---------------------------------------------------------------------------
-// MessageThread
-// ---------------------------------------------------------------------------
-
 type ThreadMessages = RouterOutputs["contact"]["conversationThread"]["messages"];
 
 function MessageThread({

@@ -81,13 +81,11 @@ export function DefaultFiltersList() {
   const { mutate: reorderFilters } = useMutation(
     trpc.defaultFilter.reorder.mutationOptions({
       onSuccess: () => {
-        // Force refetch so sidebar picks up the new order
         void queryClient.refetchQueries({
           queryKey: trpc.defaultFilter.list.queryKey(),
         });
       },
       onError: () => {
-        // Revert optimistic update on failure
         void queryClient.refetchQueries({
           queryKey: trpc.defaultFilter.list.queryKey(),
         });
@@ -127,7 +125,6 @@ export function DefaultFiltersList() {
     const reordered = arrayMove(filters, oldIndex, newIndex);
     const orderedIds = reordered.map((f) => f.id);
 
-    // Optimistically update the cache
     queryClient.setQueryData(trpc.defaultFilter.list.queryKey(), (old: typeof data) => {
       if (!old) return old;
       const itemMap = new Map(old.items.map((item) => [item.id, item]));

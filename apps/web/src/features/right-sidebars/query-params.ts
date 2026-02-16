@@ -1,6 +1,5 @@
 "use client";
 
-// import { useParams } from "next/navigation";
 import { createSerializer, useQueryStates } from "nuqs";
 import { parseAsBoolean, parseAsString } from "nuqs/server";
 

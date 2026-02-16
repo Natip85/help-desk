@@ -6,8 +6,6 @@ import { FilterFormContent } from "@/features/filters/filter-form-content";
 import { useTicketSearchParams } from "../tickets/search-params";
 import { useSidebarParams } from "./query-params";
 
-// ─── Main sidebar ───────────────────────────────────────────────────────────
-
 export const TicketFilterSidebar = () => {
   const {
     searchParams: { filter },

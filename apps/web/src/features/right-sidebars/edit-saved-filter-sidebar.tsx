@@ -23,8 +23,6 @@ import { FilterFormContent } from "@/features/filters/filter-form-content";
 import { useTRPC } from "@/trpc";
 import { useSidebarParams } from "./query-params";
 
-// ─── Edit Saved Filter Sidebar ──────────────────────────────────────────────
-
 export const EditSavedFilterSidebar = () => {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
@@ -46,10 +44,8 @@ export const EditSavedFilterSidebar = () => {
     })
   );
 
-  // Local filter state, initialized from the fetched saved filter
   const [localFilter, setLocalFilter] = useState<TicketFilter>({});
 
-  // Re-initialize local filter when saved filter data loads or changes
   useEffect(() => {
     if (savedFilter?.filter) {
       setLocalFilter(savedFilter.filter);
@@ -85,7 +81,6 @@ export const EditSavedFilterSidebar = () => {
     },
   });
 
-  // Reset form when saved filter data loads
   useEffect(() => {
     if (savedFilter) {
       form.reset({

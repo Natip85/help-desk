@@ -47,7 +47,6 @@ export const RightSidebarContainer = ({ belowHeader }: { belowHeader?: boolean }
     }
   };
 
-  // TODO: check if we can remove this now that we are not using cookies
   const checkSidebar = () => {
     // closing reasons
     const noParams = !hasSidebarParams && isOpen;

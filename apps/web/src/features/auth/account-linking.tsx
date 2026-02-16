@@ -79,7 +79,6 @@ function AccountCard({ provider, account }: { provider: string; account?: Accoun
       if (res.error) {
         toast.error(res.error.message ?? "Failed to link account");
       }
-      // Note: On success, the user will be redirected to the OAuth provider
     } finally {
       setIsLoading(false);
     }

@@ -16,9 +16,7 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
         <div className="from-primary/5 absolute -bottom-40 -left-40 h-80 w-80 rounded-full bg-linear-to-tr via-transparent to-transparent blur-3xl" />
       </div>
 
-      {/* Main Content */}
       <main className="relative z-10 flex flex-col items-center px-6 pt-8 pb-16 md:pt-16">
-        {/* Welcome Text */}
         <div className="mb-8 text-center">
           <h1 className="text-foreground mb-2 text-2xl font-semibold tracking-tight md:text-3xl">
             Welcome back
@@ -31,7 +29,6 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
         {/* Auth Tabs Card */}
         <AuthTabs redirectUrl={redirectUrl} />
 
-        {/* Footer Links */}
         <div className="mt-10 space-y-4">
           <div className="text-muted-foreground flex items-center justify-center gap-4 text-xs">
             <Link
@@ -58,7 +55,6 @@ export default async function AuthPage({ searchParams }: AuthPageProps) {
         </div>
       </main>
 
-      {/* Footer */}
       <footer className="absolute right-0 bottom-0 left-0 p-6">
         <p className="text-muted-foreground text-center text-xs">
           Free forever. Your account, always in sync.

@@ -428,4 +428,74 @@ export const contactRouter = createTRPCRouter({
 
     return newContact;
   }),
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        email: z.string().email().optional(),
+        firstName: z.string().trim().optional(),
+        lastName: z.string().trim().optional(),
+        phone: z.string().trim().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+      const existing = await ctx.db.query.contact.findFirst({
+        where: and(eq(contact.id, input.id), eq(contact.organizationId, organizationId)),
+      });
+
+      if (!existing) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
+      }
+
+      if (input.email && input.email !== existing.email) {
+        const duplicate = await ctx.db.query.contact.findFirst({
+          where: and(eq(contact.organizationId, organizationId), eq(contact.email, input.email)),
+        });
+
+        if (duplicate) {
+          throw new TRPCError({
+            code: "CONFLICT",
+            message: "A contact with this email already exists",
+          });
+        }
+      }
+
+      const firstName =
+        input.firstName !== undefined ? input.firstName || null : existing.firstName;
+      const lastName = input.lastName !== undefined ? input.lastName || null : existing.lastName;
+      const displayName = [firstName, lastName].filter(Boolean).join(" ") || null;
+
+      const [updated] = await ctx.db
+        .update(contact)
+        .set({
+          ...(input.email !== undefined && { email: input.email }),
+          ...(input.firstName !== undefined && { firstName: input.firstName || null }),
+          ...(input.lastName !== undefined && { lastName: input.lastName || null }),
+          ...(input.phone !== undefined && { phone: input.phone || null }),
+          displayName,
+        })
+        .where(and(eq(contact.id, input.id), eq(contact.organizationId, organizationId)))
+        .returning();
+
+      return updated;
+    }),
+  delete: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+    const existing = await ctx.db.query.contact.findFirst({
+      where: and(eq(contact.id, input), eq(contact.organizationId, organizationId)),
+    });
+
+    if (!existing) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
+    }
+
+    await ctx.db
+      .delete(contact)
+      .where(and(eq(contact.id, input), eq(contact.organizationId, organizationId)));
+
+    return { success: true };
+  }),
 });

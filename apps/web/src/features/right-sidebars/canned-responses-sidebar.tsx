@@ -171,7 +171,6 @@ function FolderResponses({ folderId, search }: { folderId: string | undefined; s
 
   const items = data?.items ?? [];
 
-  // Client-side search filtering
   const filtered =
     search ? items.filter((item) => item.name.toLowerCase().includes(search.toLowerCase())) : items;
 

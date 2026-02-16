@@ -97,7 +97,6 @@ export function SendEmailForm() {
   const [showCreateContact, setShowCreateContact] = useState(false);
   const tagAnchor = useComboboxAnchor();
 
-  // Data queries
   const { data: mailboxesData } = useQuery(trpc.mailbox.list.queryOptions());
   const mailboxes: Mailbox[] = mailboxesData?.items ?? [];
 
@@ -151,9 +150,7 @@ export function SendEmailForm() {
       }}
       className="grid gap-6 p-6"
     >
-      {/* ── Row 1: From + To ───────────────────────────────────────── */}
       <div className="grid gap-6 sm:grid-cols-2">
-        {/* From (Mailbox) */}
         <form.Field name="mailboxId">
           {(field) => {
             const selectedMailbox = mailboxes.find((m) => m.id === field.state.value) ?? null;
@@ -219,7 +216,6 @@ export function SendEmailForm() {
           }}
         </form.Field>
 
-        {/* To (Contact) */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label>
@@ -243,7 +239,6 @@ export function SendEmailForm() {
             </button>
           </div>
 
-          {/* Existing contact combobox */}
           {!showCreateContact && (
             <form.Field name="contactId">
               {(field) => {
@@ -304,7 +299,6 @@ export function SendEmailForm() {
             </form.Field>
           )}
 
-          {/* Inline new contact fields */}
           <Collapsible open={showCreateContact}>
             <CollapsibleContent>
               <div className="bg-accent/30 border-accent space-y-3 rounded-md border p-3">
@@ -378,7 +372,6 @@ export function SendEmailForm() {
         </div>
       </div>
 
-      {/* ── Row 2: Subject ─────────────────────────────────────────── */}
       <form.Field name="subject">
         {(field) => (
           <div className="space-y-2">
@@ -396,7 +389,6 @@ export function SendEmailForm() {
         )}
       </form.Field>
 
-      {/* ── Description (Rich Text Editor) ─────────────────────────── */}
       <form.Field name="description">
         {(field) => (
           <div className="space-y-2">
@@ -418,7 +410,6 @@ export function SendEmailForm() {
         )}
       </form.Field>
 
-      {/* ── Row 3: Status + Priority (Default Filters) ─────────────── */}
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Status */}
         <form.Field name="status">
@@ -450,7 +441,6 @@ export function SendEmailForm() {
           )}
         </form.Field>
 
-        {/* Priority */}
         <form.Field name="priority">
           {(field) => (
             <div className="space-y-2">
@@ -481,7 +471,6 @@ export function SendEmailForm() {
         </form.Field>
       </div>
 
-      {/* ── Custom Filters (Optional) ──────────────────────────────── */}
       {customFilters.length > 0 && (
         <div className="space-y-4">
           <Label className="text-muted-foreground text-sm font-medium">Custom Filters</Label>
@@ -554,7 +543,6 @@ export function SendEmailForm() {
         </div>
       )}
 
-      {/* ── Tags (Optional) ────────────────────────────────────────── */}
       <form.Field name="tagIds">
         {(field) => {
           const selectedTags = (field.state.value ?? [])
@@ -626,7 +614,6 @@ export function SendEmailForm() {
         }}
       </form.Field>
 
-      {/* ── Cancel + Send ──────────────────────────────────────────── */}
       <form.Subscribe>
         {(state) => (
           <div className="flex justify-end gap-3 pt-2">

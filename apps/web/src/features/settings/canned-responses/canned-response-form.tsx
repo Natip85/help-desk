@@ -66,7 +66,6 @@ export function CannedResponseForm({ cannedId, folderId }: CannedResponseFormPro
       body: existing?.body ?? "",
     },
     onSubmit: async ({ value }) => {
-      // Get HTML from the editor
       const body = editorRef.current?.getHTML() ?? value.body;
 
       try {

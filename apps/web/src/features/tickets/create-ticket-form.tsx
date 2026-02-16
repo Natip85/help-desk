@@ -173,7 +173,6 @@ export function CreateTicketForm() {
       }}
       className="grid gap-6 p-6"
     >
-      {/* ── Row 1: Contact + Subject ─────────────────────────────────── */}
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Contact */}
         <div className="space-y-2">

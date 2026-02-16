@@ -14,19 +14,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc";
 
-// ---------------------------------------------------------------------------
-// Types
-// ---------------------------------------------------------------------------
-
 type ThreadData = RouterOutputs["contact"]["conversationThread"];
 type ThreadMessage = ThreadData["messages"][number];
 type ThreadNote = ThreadData["notes"][number];
 
 type TimelineItem = { kind: "message"; data: ThreadMessage } | { kind: "note"; data: ThreadNote };
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function formatMessageDateTime(date: Date) {
   return new Date(date).toLocaleString("en-US", {
@@ -48,11 +40,10 @@ function getInitials(name: string) {
 }
 
 function sanitizeHtml(html: string): string {
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
   return DOMPurify.sanitize(html, {
     USE_PROFILES: { html: true },
     ADD_ATTR: ["target"],
-  }) as string;
+  });
 }
 
 function buildTimeline(messages: ThreadMessage[], notes: ThreadNote[]): TimelineItem[] {
