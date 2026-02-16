@@ -35,7 +35,7 @@ export function Breadcrumbs({ pages, className, ...props }: Props) {
       <BreadcrumbList>
         {pagesArray.map((page, index) => (
           <Fragment key={page.label}>
-            {index > 0 && <BreadcrumbSeparator className="hidden md:block" />}
+            {index > 0 && <BreadcrumbSeparator />}
             <BreadcrumbItem>
               {index === pagesArray.length - 1 ?
                 <BreadcrumbPage>{formatTitle(page.label)}</BreadcrumbPage>

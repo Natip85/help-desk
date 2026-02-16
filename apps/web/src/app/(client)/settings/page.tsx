@@ -1,6 +1,5 @@
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
-import { Button } from "@/components/ui/button";
 import { SettingsMenu } from "@/features/settings/settings-menu";
 import { settingsBreadcrumbs } from "@/lib/breadcrumbs";
 
@@ -14,9 +13,7 @@ export default function SettingsPage() {
       <PageTitle
         title="Settings"
         subTitle="Manage your settings and preferences"
-      >
-        <Button>Click here</Button>
-      </PageTitle>
+      />
       <SettingsMenu />
     </div>
   );

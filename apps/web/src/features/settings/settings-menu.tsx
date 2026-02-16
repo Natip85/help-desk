@@ -10,7 +10,6 @@ import {
 } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
-import { Button } from "@/components/ui/button";
 import { Card, CardContentLink } from "@/components/ui/card";
 
 type SettingsItem = {
@@ -76,9 +75,7 @@ export function SettingsMenu() {
           key={section.title}
           className="flex flex-col gap-4"
         >
-          <PageTitle title={section.title}>
-            <Button>Click here</Button>
-          </PageTitle>
+          <PageTitle title={section.title} />
           <div className="grid grid-cols-2 gap-5 p-2 md:grid-cols-3">
             {section.items.map((item) => (
               <Card

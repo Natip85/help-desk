@@ -140,7 +140,7 @@ export function GlobalSearch() {
   };
 
   return (
-    <div className="w-full">
+    <div className="w-46 min-w-0 sm:w-64 md:w-96">
       <Combobox
         items={groups}
         onValueChange={handleSelect}
@@ -156,7 +156,7 @@ export function GlobalSearch() {
             showClear={!!value}
             placeholder="Search..."
             ref={inputRef}
-            className="bg-accent/50! w-96 ring-0! focus:ring-0! focus-visible:ring-0!"
+            className="bg-accent/50! w-full ring-0! focus:ring-0! focus-visible:ring-0!"
           />
           <Search className="text-muted-foreground absolute top-1/2 right-5 size-4 -translate-y-1/2" />
         </div>

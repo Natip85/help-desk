@@ -19,7 +19,7 @@ export function Header() {
   const { data: session } = authClient.useSession();
   return (
     <header className="bg-background sticky top-0 right-0 left-0 z-50 w-full">
-      <div className="flex h-16 items-center justify-between px-8">
+      <div className="flex h-16 items-center justify-between pr-3 pl-12 sm:px-5 md:px-8">
         {/* Logo */}
         <Link
           href="/"
@@ -32,12 +32,15 @@ export function Header() {
         </Link>
 
         {/* Right actions */}
-        <div className="flex items-center gap-5">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-5">
           {/* Create Ticket/email Button */}
           {session && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button>
+                <Button
+                  size="sm"
+                  className="sm:size-default"
+                >
                   Create
                   <ChevronDown />
                 </Button>
@@ -67,17 +70,17 @@ export function Header() {
           {session && (
             <Separator
               orientation="vertical"
-              className="bg-accent"
+              className="bg-accent hidden sm:block"
             />
           )}
           {/* Global search */}
           {session && <GlobalSearch />}
 
-          {session && <BellDot className="size-8" />}
+          {session && <BellDot className="size-5 shrink-0" />}
           {session && (
             <Separator
               orientation="vertical"
-              className="bg-accent"
+              className="bg-accent hidden sm:block"
             />
           )}
           <NavUserAvatar />
