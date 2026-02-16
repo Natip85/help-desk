@@ -6,11 +6,13 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, Forward, Loader2, X } from "lucide-react";
 import { parseAsStringLiteral, useQueryState } from "nuqs";
 
+import type { CcBccSectionHandle } from "./cc-bcc-section";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { Input } from "@/components/ui/input";
 import { useTRPC } from "@/trpc";
+import { CcBccSection } from "./cc-bcc-section";
+import { EmailRecipientPicker } from "./email-recipient-picker";
 import { RichTextEditor } from "./rich-text-editor";
 
 type ForwardEmailEditorProps = {
@@ -37,7 +39,8 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
   const setIsOpen = (open: boolean) => setActiveEditor(open ? "forward" : null);
   const editorRef = useRef<Editor | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const [toEmail, setToEmail] = useState("");
+  const ccBccRef = useRef<CcBccSectionHandle>(null);
+  const [toEmails, setToEmails] = useState<string[]>([]);
   const hasInjectedContent = useRef(false);
   const threadRef = useRef<typeof thread>(undefined);
 
@@ -50,7 +53,6 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
     trpc.contact.conversationThread.queryOptions({ conversationId: ticketId })
   );
 
-  // Keep threadRef in sync so handleEditorReady can access latest data
   useEffect(() => {
     threadRef.current = thread;
   }, [thread]);
@@ -87,7 +89,6 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
     }
   };
 
-  // Handle case where thread data arrives after the editor is already ready
   useEffect(() => {
     if (isOpen && thread) {
       injectQuotedContent();
@@ -112,7 +113,8 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleSendSuccess = () => {
     editorRef.current?.commands.clearContent();
-    setToEmail("");
+    setToEmails([]);
+    ccBccRef.current?.reset();
     void setIsOpen(false);
     void queryClient.invalidateQueries({
       queryKey: trpc.contact.conversationThread.queryOptions({
@@ -128,19 +130,24 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleSend = () => {
     const editor = editorRef.current;
-    if (!editor || !toEmail.trim()) return;
+    if (!editor || toEmails.length === 0) return;
 
     const htmlBody = editor.getHTML();
     const textBody = editor.getText();
 
     if (!textBody.trim()) return;
 
+    const cc = ccBccRef.current?.getCc() ?? [];
+    const bcc = ccBccRef.current?.getBcc() ?? [];
+
     forwardEmail(
       {
         conversationId: ticketId,
-        toEmail: toEmail.trim(),
+        toEmail: toEmails[0],
         htmlBody,
         textBody,
+        cc: cc.length > 0 ? cc : undefined,
+        bcc: bcc.length > 0 ? bcc : undefined,
       },
       { onSuccess: handleSendSuccess }
     );
@@ -148,7 +155,8 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
   const handleDiscard = () => {
     editorRef.current?.commands.clearContent();
-    setToEmail("");
+    setToEmails([]);
+    ccBccRef.current?.reset();
     void setIsOpen(false);
   };
 
@@ -156,8 +164,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
   const fromName = ticket?.mailbox?.name ?? fromEmail.split("@")[0] ?? "Support";
   const fromInitials = fromName.slice(0, 2).toUpperCase();
 
-  const isValidEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(toEmail.trim());
-  const canSend = toEmail.trim().length > 0 && isValidEmail;
+  const canSend = toEmails.length > 0;
 
   return (
     <Collapsible
@@ -176,7 +183,7 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
               From: <span className="text-foreground">{fromEmail}</span>
             </p>
             <div className="text-muted-foreground flex items-center gap-1 text-xs">
-              To: <span className="text-foreground">{toEmail || "..."}</span>
+              To: <span className="text-foreground">{toEmails[0] || "..."}</span>
             </div>
           </div>
         : <div className="flex flex-1 items-center gap-2">
@@ -192,23 +199,17 @@ export function ForwardEmailEditor({ ticketId }: ForwardEmailEditorProps) {
 
       <CollapsibleContent>
         <div className="flex flex-col">
-          <div className="flex items-center gap-2 border-b px-3 py-2">
-            <label
-              htmlFor="forward-to-email"
-              className="text-muted-foreground shrink-0 text-xs"
-            >
-              To:
-            </label>
-            <Input
-              id="forward-to-email"
-              type="email"
-              placeholder="recipient@example.com"
-              value={toEmail}
-              onChange={(e) => setToEmail(e.target.value)}
-              size="sm"
-              className="flex-1 border-none bg-transparent shadow-none focus-visible:ring-0"
-            />
+          <div className="flex items-center gap-2 border-b px-3 py-1.5">
+            <label className="text-muted-foreground shrink-0 text-xs">To:</label>
+            <div className="flex-1">
+              <EmailRecipientPicker
+                value={toEmails}
+                onChange={setToEmails}
+                placeholder="Search contacts or type email..."
+              />
+            </div>
           </div>
+          <CcBccSection ref={ccBccRef} />
           <RichTextEditor
             key={`${ticketId}-forward`}
             content={[] as JSONContent[]}

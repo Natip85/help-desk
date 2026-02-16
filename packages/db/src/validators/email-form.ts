@@ -21,6 +21,8 @@ export const emailFormSchema = z
     assignedToId: z.string().optional(),
     tagIds: z.array(z.string()).optional(),
     customFields: z.record(z.string(), z.union([z.string(), z.array(z.string())])).optional(),
+    cc: z.array(z.string().email()).optional(),
+    bcc: z.array(z.string().email()).optional(),
   })
   .refine((data) => !!data.contactId || !!data.newContact?.email, {
     message: "Select an existing contact or create a new one",
@@ -40,4 +42,6 @@ export const emailFormDefaults: EmailForm = {
   assignedToId: undefined,
   tagIds: [],
   customFields: {},
+  cc: [],
+  bcc: [],
 };

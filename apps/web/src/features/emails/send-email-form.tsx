@@ -14,6 +14,7 @@ import type { Tag } from "@help-desk/db/schema/tags";
 import { conversationPriority, conversationStatus } from "@help-desk/db/schema/conversations";
 import { emailFormDefaults, emailFormSchema } from "@help-desk/db/validators";
 
+import type { CcBccSectionHandle } from "../ticket/cc-bcc-section";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent } from "@/components/ui/collapsible";
@@ -41,6 +42,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useTRPC } from "@/trpc";
+import { CcBccSection } from "../ticket/cc-bcc-section";
 import { RichTextEditor } from "../ticket/rich-text-editor";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
 
@@ -93,6 +95,7 @@ export function SendEmailForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
+  const ccBccRef = useRef<CcBccSectionHandle>(null);
   const [contactSearch, setContactSearch] = useState("");
   const [showCreateContact, setShowCreateContact] = useState(false);
   const tagAnchor = useComboboxAnchor();
@@ -117,7 +120,13 @@ export function SendEmailForm() {
     defaultValues: emailFormDefaults,
     onSubmit: async ({ value }) => {
       try {
-        await createEmail(value);
+        const cc = ccBccRef.current?.getCc() ?? [];
+        const bcc = ccBccRef.current?.getBcc() ?? [];
+        await createEmail({
+          ...value,
+          cc: cc.length > 0 ? cc : undefined,
+          bcc: bcc.length > 0 ? bcc : undefined,
+        });
         await queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
         toast.success("Email sent successfully");
         router.push("/tickets");
@@ -396,6 +405,7 @@ export function SendEmailForm() {
               Description <span className="text-destructive">*</span>
             </Label>
             <div className="border-accent overflow-hidden rounded-md border">
+              <CcBccSection ref={ccBccRef} />
               <RichTextEditor
                 onEditorReady={(editor) => {
                   editorRef.current = editor;
