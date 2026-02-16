@@ -1,13 +1,12 @@
 import type { SearchParams } from "nuqs";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
-import { UploadIcon } from "lucide-react";
 
 import { auth } from "@help-desk/auth";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
-import { Button } from "@/components/ui/button";
+import { ExportTicketsSheet } from "@/features/tickets/export-tickets-sheet";
 import { NewTicketsBanner } from "@/features/tickets/new-tickets-banner";
 import { loadTicketSearchParams } from "@/features/tickets/search-params";
 import { TicketList } from "@/features/tickets/ticket-list";
@@ -36,10 +35,7 @@ export default async function TicketsPage({ searchParams }: PageProps) {
           className="px-2"
         />
         <PageTitle title="Tickets">
-          <Button disabled>
-            <UploadIcon />
-            Export
-          </Button>
+          <ExportTicketsSheet />
         </PageTitle>
         <TicketsHeader />
       </div>
