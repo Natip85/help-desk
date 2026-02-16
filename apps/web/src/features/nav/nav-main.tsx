@@ -52,6 +52,40 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
               );
 
             if (hasSubmenu && item.useDropdownMenu) {
+              // When sidebar is collapsed, the "..." action button is hidden,
+              // so we make the icon itself open the dropdown with submenu items
+              if (state === "collapsed" && !isMobile) {
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton isActive={isActive}>
+                          <item.icon />
+                          <span>{item.title}</span>
+                        </SidebarMenuButton>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        className="w-48 rounded-lg"
+                        side="right"
+                        align="start"
+                      >
+                        {item.submenu?.map((subItem) => (
+                          <DropdownMenuItem
+                            key={subItem.title}
+                            asChild
+                          >
+                            <Link href={subItem.url as Route}>
+                              <subItem.icon /> <span>{subItem.title}</span>
+                            </Link>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </SidebarMenuItem>
+                );
+              }
+
+              // Expanded sidebar — show "..." action on hover
               return (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
