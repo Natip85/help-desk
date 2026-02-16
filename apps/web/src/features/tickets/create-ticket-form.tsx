@@ -1,7 +1,7 @@
 "use client";
 
 import type { Editor } from "@tiptap/react";
-import { Fragment, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "@tanstack/react-form";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -46,6 +46,7 @@ import {
 import { useTRPC } from "@/trpc";
 import { RichTextEditor } from "../ticket/rich-text-editor";
 import { priorityConfig, statusConfig } from "./ticket-card";
+import { usePrefillTicketParams } from "./ticket-prefill-query-params";
 
 type ContactOption = {
   id: string;
@@ -118,9 +119,11 @@ export function CreateTicketForm() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
-  const [contactSearch, setContactSearch] = useState("");
+  const { prefillTicket, clearPrefillTicket } = usePrefillTicketParams();
+  const [contactSearch, setContactSearch] = useState(prefillTicket?.contactEmail ?? "");
   const [showCreateContact, setShowCreateContact] = useState(false);
   const tagAnchor = useComboboxAnchor();
+  const hasAppliedPrefillRef = useRef(false);
 
   const { data: contactsData } = useQuery(
     trpc.contact.getGlobalSearchAll.queryOptions(contactSearch)
@@ -135,7 +138,10 @@ export function CreateTicketForm() {
   const { mutateAsync: createTicket } = useMutation(trpc.ticket.create.mutationOptions());
 
   const form = useForm({
-    defaultValues: ticketFormDefaults,
+    defaultValues: {
+      ...ticketFormDefaults,
+      ...(prefillTicket?.contactId ? { contactId: prefillTicket.contactId } : {}),
+    },
     onSubmit: async ({ value }) => {
       try {
         await createTicket(value);
@@ -150,6 +156,14 @@ export function CreateTicketForm() {
       onSubmit: ticketFormSchema,
     },
   });
+
+  useEffect(() => {
+    if (hasAppliedPrefillRef.current) return;
+    if (!prefillTicket?.contactId) return;
+
+    hasAppliedPrefillRef.current = true;
+    clearPrefillTicket();
+  }, [prefillTicket?.contactId, clearPrefillTicket]);
 
   const handleToggleNewContact = () => {
     if (showCreateContact) {

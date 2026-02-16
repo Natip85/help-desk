@@ -41,6 +41,13 @@ export const trashTicketsBreadcrumbs: BreadcrumbPageType[] = [
   { href: "/tickets/trash", label: "Trash" },
 ];
 
+// Contacts sub-pages
+export const newContactBreadcrumbs: BreadcrumbPageType[] = [
+  homeBreadcrumb,
+  contactsBreadcrumb,
+  { href: "/contacts/new", label: "New Contact" },
+];
+
 // Emails sub-pages
 export const newEmailBreadcrumbs: BreadcrumbPageType[] = [
   homeBreadcrumb,

@@ -56,7 +56,7 @@ export function Header() {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link href="#">
+                  <Link href="/contacts/new">
                     <User />
                     Contact
                   </Link>

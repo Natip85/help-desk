@@ -25,6 +25,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc";
 import { priorityConfig, statusConfig } from "../tickets/ticket-card";
+import { serializePrefillTicket } from "../tickets/ticket-prefill-query-params";
 import { DeleteContactButton } from "./delete-contact-button";
 import { EditContactDialog } from "./edit-contact-dialog";
 
@@ -144,10 +145,14 @@ export function ContactPageContent({ contactId }: { contactId: string }) {
           />
           <Button
             size="sm"
-            disabled
+            asChild
           >
-            <Plus className="mr-1.5 size-4" />
-            New Ticket
+            <Link
+              href={`/tickets/new${serializePrefillTicket({ contactId: contact.id, contactEmail: contact.email })}`}
+            >
+              <Plus className="mr-1.5 size-4" />
+              New Ticket
+            </Link>
           </Button>
         </div>
       </div>
