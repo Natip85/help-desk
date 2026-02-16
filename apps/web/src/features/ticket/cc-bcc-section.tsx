@@ -18,15 +18,19 @@ export const CcBccSection = forwardRef<CcBccSectionHandle>(function CcBccSection
   const [cc, setCc] = useState<string[]>([]);
   const [bcc, setBcc] = useState<string[]>([]);
 
-  useImperativeHandle(ref, () => ({
-    getCc: () => cc,
-    getBcc: () => bcc,
-    reset: () => {
-      setCc([]);
-      setBcc([]);
-      setShowCcBcc(false);
-    },
-  }));
+  useImperativeHandle(
+    ref,
+    () => ({
+      getCc: () => cc,
+      getBcc: () => bcc,
+      reset: () => {
+        setCc([]);
+        setBcc([]);
+        setShowCcBcc(false);
+      },
+    }),
+    [cc, bcc]
+  );
 
   return (
     <>
