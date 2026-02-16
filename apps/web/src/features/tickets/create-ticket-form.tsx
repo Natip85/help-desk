@@ -120,7 +120,7 @@ export function CreateTicketForm() {
   const router = useRouter();
   const editorRef = useRef<Editor | null>(null);
   const { prefillTicket, clearPrefillTicket } = usePrefillTicketParams();
-  const [contactSearch, setContactSearch] = useState(prefillTicket?.contactEmail ?? "");
+  const [contactSearch, setContactSearch] = useState(prefillTicket?.prefillContactEmail ?? "");
   const [showCreateContact, setShowCreateContact] = useState(false);
   const tagAnchor = useComboboxAnchor();
   const hasAppliedPrefillRef = useRef(false);
@@ -140,7 +140,7 @@ export function CreateTicketForm() {
   const form = useForm({
     defaultValues: {
       ...ticketFormDefaults,
-      ...(prefillTicket?.contactId ? { contactId: prefillTicket.contactId } : {}),
+      ...(prefillTicket?.prefillContactId ? { contactId: prefillTicket.prefillContactId } : {}),
     },
     onSubmit: async ({ value }) => {
       try {
@@ -159,11 +159,11 @@ export function CreateTicketForm() {
 
   useEffect(() => {
     if (hasAppliedPrefillRef.current) return;
-    if (!prefillTicket?.contactId) return;
+    if (!prefillTicket?.prefillContactId) return;
 
     hasAppliedPrefillRef.current = true;
     clearPrefillTicket();
-  }, [prefillTicket?.contactId, clearPrefillTicket]);
+  }, [prefillTicket?.prefillContactId, clearPrefillTicket]);
 
   const handleToggleNewContact = () => {
     if (showCreateContact) {
@@ -185,7 +185,7 @@ export function CreateTicketForm() {
         e.stopPropagation();
         void form.handleSubmit();
       }}
-      className="grid gap-6 p-6"
+      className="grid gap-6"
     >
       <div className="grid gap-6 sm:grid-cols-2">
         {/* Contact */}

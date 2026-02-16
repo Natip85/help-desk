@@ -92,7 +92,7 @@ export function SettingsMenu() {
             {section.items.map((item) => (
               <Card
                 key={item.href}
-                className="bg-accent/50 hover:bg-accent/70 p-0 transition-all duration-300 hover:cursor-pointer"
+                className="bg-accent/50 hover:bg-accent/70 min-h-28 p-0 transition-all duration-300 hover:cursor-pointer"
               >
                 <CardContentLink
                   href={item.href}

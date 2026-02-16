@@ -157,7 +157,7 @@ export function SendEmailForm() {
         e.stopPropagation();
         void form.handleSubmit();
       }}
-      className="grid gap-6 p-6"
+      className="grid gap-6"
     >
       <div className="grid gap-6 sm:grid-cols-2">
         <form.Field name="mailboxId">

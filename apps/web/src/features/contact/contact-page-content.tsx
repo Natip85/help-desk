@@ -148,7 +148,7 @@ export function ContactPageContent({ contactId }: { contactId: string }) {
             asChild
           >
             <Link
-              href={`/tickets/new${serializePrefillTicket({ contactId: contact.id, contactEmail: contact.email })}`}
+              href={`/tickets/new${serializePrefillTicket({ prefillContactId: contact.id, prefillContactEmail: contact.email })}`}
             >
               <Plus className="mr-1.5 size-4" />
               New Ticket

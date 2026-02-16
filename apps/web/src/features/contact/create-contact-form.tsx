@@ -89,7 +89,7 @@ export function CreateContactForm() {
         e.stopPropagation();
         void form.handleSubmit();
       }}
-      className="grid gap-6 p-6"
+      className="grid gap-6"
     >
       {/* Email */}
       <form.Field name="email">

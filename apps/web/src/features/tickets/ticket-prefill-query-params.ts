@@ -3,8 +3,8 @@
 import { createSerializer, parseAsString, useQueryStates } from "nuqs";
 
 export const prefillTicketParser = {
-  contactId: parseAsString,
-  contactEmail: parseAsString,
+  prefillContactId: parseAsString,
+  prefillContactEmail: parseAsString,
 };
 
 export const serializePrefillTicket = createSerializer(prefillTicketParser);
@@ -13,7 +13,7 @@ export const usePrefillTicketParams = () => {
   const [prefillTicket, setPrefillTicket] = useQueryStates(prefillTicketParser);
 
   const clearPrefillTicket = () => {
-    void setPrefillTicket({ contactId: null, contactEmail: null });
+    void setPrefillTicket({ prefillContactId: null, prefillContactEmail: null });
   };
 
   const createTicketForContactLink = (params: { contactId?: string; contactEmail?: string }) => {
@@ -28,7 +28,7 @@ export const usePrefillTicketParams = () => {
     return {
       label: "New Ticket",
       disabled: false,
-      href: `/tickets/new${serializePrefillTicket(params)}`,
+      href: `/tickets/new${serializePrefillTicket({ prefillContactId: params.contactId, prefillContactEmail: params.contactEmail })}`,
     };
   };
 
