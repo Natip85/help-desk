@@ -71,7 +71,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
             {filter.statuses.map((s) => (
               <Badge
                 key={s}
-                variant="secondary"
+                variant="outline"
               >
                 {statusConfig[s]?.label ?? s}
               </Badge>
@@ -87,7 +87,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
             {filter.priorities.map((p) => (
               <Badge
                 key={p}
-                variant="secondary"
+                variant="outline"
               >
                 {priorityConfig[p]?.label ?? p}
               </Badge>
@@ -103,7 +103,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
             {filter.channels.map((c) => (
               <Badge
                 key={c}
-                variant="secondary"
+                variant="outline"
               >
                 {getLabel("channel", c)}
               </Badge>
@@ -116,13 +116,13 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
         <div className="space-y-1">
           <p className="text-muted-foreground text-xs font-medium">Assignee</p>
           <div className="flex flex-wrap gap-1">
-            {filter.isUnassigned && <Badge variant="secondary">Unassigned</Badge>}
+            {filter.isUnassigned && <Badge variant="outline">Unassigned</Badge>}
             {filter.assignedToIds?.map((id) => {
               const member = members.find((m) => m.id === id);
               return (
                 <Badge
                   key={id}
-                  variant="secondary"
+                  variant="outline"
                 >
                   {member?.name ?? id}
                 </Badge>
@@ -141,7 +141,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
               return (
                 <Badge
                   key={id}
-                  variant="secondary"
+                  variant="outline"
                 >
                   {tag && (
                     <span
@@ -160,7 +160,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
       {(filter.createdAt?.from ?? filter.createdAt?.to) && (
         <div className="space-y-1">
           <p className="text-muted-foreground text-xs font-medium">Created</p>
-          <Badge variant="secondary">
+          <Badge variant="outline">
             {filter.createdAt.from && new Date(filter.createdAt.from).toLocaleDateString()}
             {filter.createdAt.from && filter.createdAt.to && " – "}
             {filter.createdAt.to && new Date(filter.createdAt.to).toLocaleDateString()}
@@ -171,7 +171,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
       {(filter.lastMessageAt?.from ?? filter.lastMessageAt?.to) && (
         <div className="space-y-1">
           <p className="text-muted-foreground text-xs font-medium">Last message</p>
-          <Badge variant="secondary">
+          <Badge variant="outline">
             {filter.lastMessageAt.from && new Date(filter.lastMessageAt.from).toLocaleDateString()}
             {filter.lastMessageAt.from && filter.lastMessageAt.to && " – "}
             {filter.lastMessageAt.to && new Date(filter.lastMessageAt.to).toLocaleDateString()}
@@ -194,7 +194,7 @@ function FilterCriteriaSummary({ filter }: { filter: TicketFilter }) {
               {values.map((v) => (
                 <Badge
                   key={v}
-                  variant="secondary"
+                  variant="outline"
                 >
                   {getLabel(fieldName, v)}
                 </Badge>

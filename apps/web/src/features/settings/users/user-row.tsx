@@ -147,15 +147,15 @@ export function UserRow({ user, selfId }: { user: UserWithRole; selfId: string }
             </div>
           </div>
           <div className="flex items-center gap-2 not-empty:mt-2">
-            {user.banned && <Badge variant="destructive">Banned</Badge>}
+            {user.banned && <Badge variant="outline">Banned</Badge>}
             {!user.emailVerified && <Badge variant="outline">Unverified</Badge>}
-            {isSelf && <Badge>You</Badge>}
+            {isSelf && <Badge variant="outline">You</Badge>}
           </div>
         </div>
       </TableCell>
       <TableCell>
         {isSelf ?
-          <Badge variant={user.role === "admin" ? "default" : "secondary"}>{user.role}</Badge>
+          <Badge variant="outline">{user.role}</Badge>
         : <Select
             value={user.role ?? "user"}
             onValueChange={(role: (typeof ROLES)[number]) => handleSetRole(user.id, role)}

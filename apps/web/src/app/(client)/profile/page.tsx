@@ -46,7 +46,7 @@ export default async function ProfilePage() {
           <div className="flex-1">
             <div className="flex items-center gap-5">
               <h1 className="text-3xl font-bold">{session.user.name || "User Profile"}</h1>
-              <Badge>{session.user.role}</Badge>
+              <Badge variant="outline">{session.user.role}</Badge>
             </div>
             <p className="text-muted-foreground">{session.user.email}</p>
           </div>
@@ -166,9 +166,7 @@ async function SecurityTab({
         <Card>
           <CardHeader className="flex items-center justify-between gap-2">
             <CardTitle>Two-Factor Authentication</CardTitle>
-            <Badge variant={isTwoFactorEnabled ? "default" : "secondary"}>
-              {isTwoFactorEnabled ? "Enabled" : "Disabled"}
-            </Badge>
+            <Badge variant="outline">{isTwoFactorEnabled ? "Enabled" : "Disabled"}</Badge>
           </CardHeader>
           <CardContent>
             <TwoFactorAuth isEnabled={isTwoFactorEnabled} />

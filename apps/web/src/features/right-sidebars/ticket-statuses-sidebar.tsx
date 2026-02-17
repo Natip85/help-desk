@@ -205,8 +205,8 @@ export const TicketStatusesSidebar = () => {
                   <div className="flex flex-col gap-1">
                     <span className="text-muted-foreground text-xs">{f.displayName}</span>
                     <Badge
-                      variant="secondary"
-                      className="w-fit bg-purple-700 text-white"
+                      variant="outline"
+                      className="w-fit"
                     >
                       Merged
                     </Badge>

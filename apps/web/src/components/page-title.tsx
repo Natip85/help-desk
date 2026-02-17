@@ -20,7 +20,7 @@ export function PageTitle({ title, children, subTitle, className, statusBadge, .
       <div className={cn("flex flex-wrap items-center justify-between gap-4", className)}>
         <div className="flex min-w-0 flex-1 items-center gap-4">
           <h2 className="line-clamp-2 text-2xl font-semibold tracking-tight">{title}</h2>
-          {statusBadge && <Badge>{statusBadge}</Badge>}
+          {statusBadge && <Badge variant="outline">{statusBadge}</Badge>}
         </div>
         {children && <div className="flex shrink-0 items-center gap-3">{children}</div>}
       </div>

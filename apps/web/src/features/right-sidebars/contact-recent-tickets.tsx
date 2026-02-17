@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Tag, Ticket } from "lucide-react";
+import { Ticket } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -66,10 +66,10 @@ export const ContactRecentTickets = ({ tickets }: ContactRecentTicketsProps) => 
                     {t.tags.slice(0, 3).map((tag) => (
                       <Badge
                         key={tag.id}
+                        variant="outline"
                         className="inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-[11px]"
                         style={{ backgroundColor: tag.color }}
                       >
-                        <Tag className="size-3" />
                         {tag.name}
                       </Badge>
                     ))}

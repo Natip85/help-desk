@@ -177,6 +177,7 @@ export const columns: ColumnDef<TicketCardData>[] = [
         {row.original.tags.map((tag) => (
           <Badge
             key={tag.id}
+            variant="outline"
             style={{ backgroundColor: tag.color }}
           >
             {tag.name}

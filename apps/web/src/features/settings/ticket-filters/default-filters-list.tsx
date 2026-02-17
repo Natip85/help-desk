@@ -227,7 +227,7 @@ function SortableFilterItem({
             <h3 className="text-sm font-semibold">{filter.displayName}</h3>
             {filter.isSystem && (
               <Badge
-                variant="secondary"
+                variant="outline"
                 className="text-[10px]"
               >
                 System
