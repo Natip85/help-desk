@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { ListChecks } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useSidebarParams } from "../right-sidebars/query-params";
 
 export const ToggleTicketStatusesSidebarButton = ({ ticketId }: { ticketId: string }) => {
@@ -14,12 +15,17 @@ export const ToggleTicketStatusesSidebarButton = ({ ticketId }: { ticketId: stri
   }, [ticketId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
-    <Button
-      variant="outline"
-      onClick={() => toggleTicketStatusesSidebarId(ticketId)}
-    >
-      <ListChecks />
-      Ticket statuses
-    </Button>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="outline"
+          onClick={() => toggleTicketStatusesSidebarId(ticketId)}
+        >
+          <ListChecks />
+          <span className="hidden sm:block">Ticket statuses</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>Ticket statuses</TooltipContent>
+    </Tooltip>
   );
 };
