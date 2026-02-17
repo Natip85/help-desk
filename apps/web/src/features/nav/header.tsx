@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { BellDot, CheckCircleIcon, ChevronDown, MailIcon, Ticket, User } from "lucide-react";
+import { CheckCircleIcon, ChevronDown, MailIcon, Ticket, User } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -12,11 +12,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { GlobalSearch } from "@/features/global-search/global-search";
+import { usePusherNotifications } from "@/hooks/use-pusher";
 import { authClient } from "@/lib/auth-client";
+import { NotificationBell } from "../notifications/notification-bell";
 import { NavUserAvatar } from "./nav-user-avatar";
 
 export function Header() {
   const { data: session } = authClient.useSession();
+  usePusherNotifications();
+
   return (
     <header className="bg-background sticky top-0 right-0 left-0 z-50 w-full">
       <div className="flex h-16 items-center justify-between pr-3 pl-12 sm:px-5 md:px-8">
@@ -72,7 +76,7 @@ export function Header() {
           )}
           {session && <GlobalSearch />}
 
-          {session && <BellDot className="size-5 shrink-0" />}
+          {session && <NotificationBell />}
           {session && (
             <Separator
               orientation="vertical"

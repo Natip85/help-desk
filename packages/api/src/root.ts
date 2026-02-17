@@ -3,6 +3,7 @@ import { cannedResponseRouter } from "./routers/canned-response";
 import { contactRouter } from "./routers/contact";
 import { defaultFilterRouter } from "./routers/default-filter";
 import { mailboxRouter } from "./routers/mailbox";
+import { notificationRouter } from "./routers/notification";
 import { savedFilterRouter } from "./routers/saved-filter";
 import { tagRouter } from "./routers/tag";
 import { ticketRouter } from "./routers/ticket";
@@ -19,6 +20,7 @@ export const appRouter = createTRPCRouter({
   cannedResponse: cannedResponseRouter,
   savedFilter: savedFilterRouter,
   defaultFilter: defaultFilterRouter,
+  notification: notificationRouter,
 });
 
 // export type definition of API

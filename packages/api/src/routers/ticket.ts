@@ -24,11 +24,13 @@ import {
 import { conversationEvent } from "@help-desk/db/schema/events";
 import { mailbox } from "@help-desk/db/schema/mailboxes";
 import { note } from "@help-desk/db/schema/notes";
+import { notification } from "@help-desk/db/schema/notifications";
 import { conversationTag } from "@help-desk/db/schema/tags";
 import { emailFormSchema, exportFormSchema, ticketFormSchema } from "@help-desk/db/validators";
 import { env } from "@help-desk/env/server";
 
 import { loadTicketFacts, runAutomationsForTicket } from "../lib/automation-engine";
+import { pusher } from "../lib/pusher";
 import { resend } from "../lib/resend";
 import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { createListInput } from "../utils/list-input-schema";
@@ -288,7 +290,7 @@ export const ticketRouter = createTRPCRouter({
         .update(conversation)
         .set({ assignedToId: input.assignedToId })
         .where(and(eq(conversation.id, input.id), eq(conversation.organizationId, organizationId)))
-        .returning({ id: conversation.id });
+        .returning({ id: conversation.id, subject: conversation.subject });
 
       if (!updated) {
         throw new TRPCError({
@@ -307,6 +309,34 @@ export const ticketRouter = createTRPCRouter({
           assignedToId: input.assignedToId,
         },
       });
+
+      // Send notification to the assigned user (skip if assigning to self)
+      if (input.assignedToId && input.assignedToId !== ctx.session.user.id) {
+        const ticketLabel = updated.subject ?? `Ticket #${updated.id.slice(0, 8)}`;
+        const [newNotification] = await ctx.db
+          .insert(notification)
+          .values({
+            userId: input.assignedToId,
+            organizationId,
+            type: "ticket_assigned",
+            title: `Ticket assigned: ${ticketLabel}`,
+            body: `${ctx.session.user.name} assigned "${ticketLabel}" to you`,
+            data: {
+              conversationId: input.id,
+              assignedBy: ctx.session.user.id,
+              assignedByName: ctx.session.user.name,
+            },
+          })
+          .returning();
+
+        if (newNotification) {
+          await pusher.trigger(
+            `private-user-${input.assignedToId}`,
+            "notification:new",
+            newNotification
+          );
+        }
+      }
 
       return updated;
     }),
@@ -892,6 +922,39 @@ export const ticketRouter = createTRPCRouter({
             or(...input.ids.map((id) => eq(conversation.id, id)))
           )
         );
+
+      // Send notification to the assigned user (skip if assigning to self or unassigning)
+      if (
+        input.assigneeId &&
+        input.assigneeId !== ctx.session.user.id &&
+        rowCount &&
+        rowCount > 0
+      ) {
+        const [newNotification] = await ctx.db
+          .insert(notification)
+          .values({
+            userId: input.assigneeId,
+            organizationId,
+            type: "ticket_assigned",
+            title:
+              rowCount === 1 ? "Ticket assigned to you" : `${rowCount} tickets assigned to you`,
+            body: `${ctx.session.user.name} assigned ${rowCount === 1 ? "a ticket" : `${rowCount} tickets`} to you`,
+            data: {
+              conversationIds: input.ids,
+              assignedBy: ctx.session.user.id,
+              assignedByName: ctx.session.user.name,
+            },
+          })
+          .returning();
+
+        if (newNotification) {
+          await pusher.trigger(
+            `private-user-${input.assigneeId}`,
+            "notification:new",
+            newNotification
+          );
+        }
+      }
 
       return { count: rowCount };
     }),
