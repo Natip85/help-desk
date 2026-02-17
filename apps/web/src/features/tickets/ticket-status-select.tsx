@@ -5,6 +5,7 @@ import { toast } from "sonner";
 
 import type { ConversationStatus } from "@help-desk/db/schema/conversations";
 
+import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { useTRPC } from "@/trpc";
 import { statusConfig } from "./ticket-card";
@@ -32,14 +33,12 @@ export const TicketStatusSelect = ({ ticketId, value }: TicketStatusSelectProps)
   if (value === "merged") {
     const config = statusConfig.merged;
     return (
-      <span
-        className={cn(
-          "inline-flex items-center rounded-md px-2 py-1 text-xs font-medium text-white",
-          config.className
-        )}
+      <Badge
+        variant="outline"
+        className={cn(config.className)}
       >
         {config.label}
-      </span>
+      </Badge>
     );
   }
 
