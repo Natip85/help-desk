@@ -115,15 +115,35 @@ export const domainRouter = createTRPCRouter({
         });
       }
 
-      // Fetch updated domain details (status + records)
-      const { data: domainData, error: getError } = await resend.domains.get(
-        existing.resendDomainId
-      );
+      // Poll for updated status -- Resend verification is async so we
+      // retry a few times with a short delay before giving up.
+      const maxAttempts = 5;
+      const delayMs = 2000;
+      let domainData: Awaited<ReturnType<typeof resend.domains.get>>["data"] = null;
 
-      if (getError || !domainData) {
+      for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, delayMs));
+
+        const { data, error: getError } = await resend.domains.get(existing.resendDomainId);
+
+        if (getError || !data) {
+          throw new TRPCError({
+            code: "INTERNAL_SERVER_ERROR",
+            message: `Failed to fetch domain status: ${getError?.message ?? "Unknown error"}`,
+          });
+        }
+
+        domainData = data;
+
+        if (data.status === "verified") {
+          break;
+        }
+      }
+
+      if (!domainData) {
         throw new TRPCError({
           code: "INTERNAL_SERVER_ERROR",
-          message: `Failed to fetch domain status: ${getError?.message ?? "Unknown error"}`,
+          message: "Failed to fetch domain status after verification.",
         });
       }
 
