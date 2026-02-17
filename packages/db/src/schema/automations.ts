@@ -8,11 +8,12 @@ import { organization } from "./auth";
 
 export type AutomationAction =
   | { type: "add_tag"; value: string }
+  | { type: "remove_tag"; value: string }
   | { type: "set_priority"; value: string }
   | { type: "set_status"; value: string }
   | { type: "assign_to"; value: string };
 
-export type AutomationTrigger = "ticket_created";
+export type AutomationTrigger = "ticket_created" | "ticket_replied" | "status_changed";
 
 // ─── Automation ───────────────────────────────────────────────────────────────
 

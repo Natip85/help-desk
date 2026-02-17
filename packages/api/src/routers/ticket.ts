@@ -28,6 +28,7 @@ import { conversationTag } from "@help-desk/db/schema/tags";
 import { emailFormSchema, exportFormSchema, ticketFormSchema } from "@help-desk/db/validators";
 import { env } from "@help-desk/env/server";
 
+import { loadTicketFacts, runAutomationsForTicket } from "../lib/automation-engine";
 import { resend } from "../lib/resend";
 import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { createListInput } from "../utils/list-input-schema";
@@ -39,7 +40,7 @@ const sortableColumns = Object.keys(conversationColumns).filter(
     !["id", "organizationId", "assignedToId", "contactId", "companyId", "mailboxId"].includes(col)
 ) as (keyof typeof conversationColumns)[];
 
-const listInput = createListInput(sortableColumns, "createdAt").extend({});
+const listInput = createListInput(sortableColumns, "lastMessageAt").extend({});
 
 export const ticketRouter = createTRPCRouter({
   all: protectedProcedure.input(listInput).query(async ({ ctx, input }) => {
@@ -250,6 +251,17 @@ export const ticketRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Ticket not found",
         });
+      }
+
+      // Run status_changed automations
+      try {
+        const facts = await loadTicketFacts(ctx.db, input.id);
+        if (facts) {
+          await runAutomationsForTicket(ctx.db, organizationId, input.id, facts, "status_changed");
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[Automations] Failed to run status_changed automations:", error);
       }
 
       return updated;
@@ -535,6 +547,17 @@ export const ticketRouter = createTRPCRouter({
 
         return newMessage;
       });
+
+      // Run ticket_replied automations
+      try {
+        const facts = await loadTicketFacts(ctx.db, conv.id);
+        if (facts) {
+          await runAutomationsForTicket(ctx.db, organizationId, conv.id, facts, "ticket_replied");
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[Automations] Failed to run ticket_replied automations:", error);
+      }
 
       return { messageId: result.id };
     }),

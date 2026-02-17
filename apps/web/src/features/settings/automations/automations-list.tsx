@@ -154,13 +154,16 @@ export function AutomationsList() {
 function formatTrigger(trigger: string): string {
   const map: Record<string, string> = {
     ticket_created: "Ticket Created",
+    ticket_replied: "Agent Replied",
+    status_changed: "Status Changed",
   };
   return map[trigger] ?? trigger;
 }
 
 function formatAction(action: { type: string; value: string }): string {
   const map: Record<string, string> = {
-    add_tag: "Tag",
+    add_tag: "Add Tag",
+    remove_tag: "Remove Tag",
     set_priority: "Priority",
     set_status: "Status",
     assign_to: "Assign",

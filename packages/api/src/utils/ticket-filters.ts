@@ -215,7 +215,7 @@ export const buildTicketOrderBy = ({
 
   // Add default sort if no sort specified
   if (orderBy.length === 0) {
-    orderBy.push(defaultSort ?? desc(conversation.createdAt));
+    orderBy.push(defaultSort ?? desc(conversation.lastMessageAt));
   }
 
   return orderBy;

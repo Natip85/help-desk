@@ -9,6 +9,10 @@ import { useTicketListControls } from "./use-ticket-list-controls";
 
 export const ticketSortFields: SortField[] = [
   {
+    label: "Last message at",
+    value: "lastMessageAt",
+  },
+  {
     label: "Created at",
     value: "createdAt",
   },

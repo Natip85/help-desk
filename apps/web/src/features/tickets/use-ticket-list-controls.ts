@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { debounce } from "lodash-es";
 
 import type { TicketSortOption } from "@help-desk/db/validators/ticket-sort";
@@ -16,19 +16,13 @@ export function useTicketListControls() {
   const { filterCount } = useFilterParamsList();
 
   const [inputValue, setInputValue] = useState(searchParams.q);
-  const [sorts, setSorts] = useState(searchParams.sort);
   const [viewMode, setViewMode] = useState(searchParams.viewMode);
 
   const debouncedSetSearchQuery = (value: string) => {
     void setSearchParams({ q: value, page: 1 });
   };
 
-  const debouncedSetSorts = (value: TicketSortOption[]) => {
-    void setSearchParams({ sort: value });
-  };
-
   const debouncedSearch = debounce(debouncedSetSearchQuery, 500);
-  const debouncedSorts = debounce(debouncedSetSorts, 500);
 
   const handleInputChange = (value: string) => {
     setInputValue(value);
@@ -36,8 +30,7 @@ export function useTicketListControls() {
   };
 
   const handleSortChange = (value: TicketSortOption[]) => {
-    setSorts(value);
-    debouncedSorts(value);
+    void setSearchParams({ sort: value });
   };
 
   const handleSetViewMode = (mode: ViewMode) => {
@@ -50,19 +43,12 @@ export function useTicketListControls() {
     void setSearchParams({ q: "", page: 1 });
   };
 
-  useEffect(
-    () => () => {
-      setSorts([]);
-    },
-    []
-  );
-
   return {
     inputValue,
     filterCount,
     searchParams,
     sidebarParams,
-    sorts,
+    sorts: searchParams.sort,
     viewMode,
     handleInputChange,
     handleSetViewMode,

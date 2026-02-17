@@ -25,10 +25,23 @@ const operatorMap: Record<string, string> = {
   notIn: "notIn",
 };
 
+const arrayFields = new Set(["tags"]);
+
+const arrayOperatorMap: Record<string, string> = {
+  contains: "arrayContains",
+  doesNotContain: "arrayNotContains",
+};
+
 function convertRule(rule: RuleType): EngineCondition {
+  let operator = operatorMap[rule.operator] ?? rule.operator;
+
+  if (arrayFields.has(rule.field) && arrayOperatorMap[rule.operator]) {
+    operator = arrayOperatorMap[rule.operator];
+  }
+
   return {
     fact: rule.field,
-    operator: operatorMap[rule.operator] ?? rule.operator,
+    operator,
     value: rule.value as string,
   };
 }

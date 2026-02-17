@@ -17,7 +17,7 @@ export const ticketSearchParamsParser = {
   page: parseAsInteger.withDefault(1),
   viewMode: parseAsJson((value) => viewModeSchema.parse(value)).withDefault("card"),
   sort: parseAsJson((value) => ticketSortSchema.parse(value)).withDefault([
-    { field: "createdAt", direction: "desc" },
+    { field: "lastMessageAt", direction: "desc" },
   ]),
   filter: parseAsJson((value) => ticketFilterSchema.optional().parse(value)).withDefault({}),
 };

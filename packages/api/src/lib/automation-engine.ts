@@ -3,7 +3,7 @@ import { and, eq } from "drizzle-orm";
 import { Engine } from "json-rules-engine";
 
 import type { Database } from "@help-desk/db";
-import type { AutomationAction } from "@help-desk/db/schema/automations";
+import type { AutomationAction, AutomationTrigger } from "@help-desk/db/schema/automations";
 import { automation } from "@help-desk/db/schema/automations";
 import { conversation } from "@help-desk/db/schema/conversations";
 import { conversationTag, tag } from "@help-desk/db/schema/tags";
@@ -17,6 +17,7 @@ export type TicketFacts = {
   channel: string;
   priority: string;
   status: string;
+  tags: string[];
 };
 
 // ─── Evaluate ─────────────────────────────────────────────────────────────────
@@ -45,6 +46,20 @@ export async function evaluateAutomations(
   engine.addOperator("beginsWith", (factValue: unknown, compareValue: unknown) => {
     if (typeof factValue !== "string" || typeof compareValue !== "string") return false;
     return factValue.toLowerCase().startsWith(compareValue.toLowerCase());
+  });
+
+  engine.addOperator("arrayContains", (factValue: unknown, compareValue: unknown) => {
+    if (!Array.isArray(factValue) || typeof compareValue !== "string") return false;
+    return factValue.some(
+      (item) => typeof item === "string" && item.toLowerCase() === compareValue.toLowerCase()
+    );
+  });
+
+  engine.addOperator("arrayNotContains", (factValue: unknown, compareValue: unknown) => {
+    if (!Array.isArray(factValue) || typeof compareValue !== "string") return true;
+    return !factValue.some(
+      (item) => typeof item === "string" && item.toLowerCase() === compareValue.toLowerCase()
+    );
   });
 
   for (const rule of rules) {
@@ -104,6 +119,24 @@ export async function executeActions(
           break;
         }
 
+        case "remove_tag": {
+          const tagToRemove = await db.query.tag.findFirst({
+            where: and(eq(tag.organizationId, organizationId), eq(tag.name, action.value)),
+          });
+
+          if (tagToRemove) {
+            await db
+              .delete(conversationTag)
+              .where(
+                and(
+                  eq(conversationTag.conversationId, conversationId),
+                  eq(conversationTag.tagId, tagToRemove.id)
+                )
+              );
+          }
+          break;
+        }
+
         case "set_priority": {
           await db
             .update(conversation)
@@ -141,13 +174,14 @@ export async function runAutomationsForTicket(
   db: Database,
   organizationId: string,
   conversationId: string,
-  facts: TicketFacts
+  facts: TicketFacts,
+  trigger: AutomationTrigger = "ticket_created"
 ): Promise<void> {
   const activeRules = await db.query.automation.findMany({
     where: and(
       eq(automation.organizationId, organizationId),
       eq(automation.isActive, true),
-      eq(automation.trigger, "ticket_created")
+      eq(automation.trigger, trigger)
     ),
   });
 
@@ -168,4 +202,32 @@ export async function runAutomationsForTicket(
     );
     await executeActions(db, conversationId, organizationId, matchedActions);
   }
+}
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+export async function loadTicketFacts(
+  db: Database,
+  conversationId: string
+): Promise<TicketFacts | null> {
+  const conv = await db.query.conversation.findFirst({
+    where: eq(conversation.id, conversationId),
+    with: {
+      mailbox: { columns: { email: true } },
+      contact: { columns: { email: true } },
+      conversationTags: { with: { tag: { columns: { name: true } } } },
+    },
+  });
+
+  if (!conv) return null;
+
+  return {
+    mailboxEmail: conv.mailbox?.email ?? null,
+    senderEmail: conv.contact?.email ?? "",
+    subject: conv.subject ?? "",
+    channel: conv.channel,
+    priority: conv.priority,
+    status: conv.status,
+    tags: conv.conversationTags.map((ct) => ct.tag.name),
+  };
 }

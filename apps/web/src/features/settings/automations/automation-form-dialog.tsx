@@ -36,8 +36,16 @@ import { automationFields, automationOperators } from "./automation-query-config
 import { queryToEngine } from "./query-to-engine";
 
 type AutomationAction = {
-  type: "add_tag" | "set_priority" | "set_status" | "assign_to";
+  type: "add_tag" | "remove_tag" | "set_priority" | "set_status" | "assign_to";
   value: string;
+};
+
+type AutomationTrigger = "ticket_created" | "ticket_replied" | "status_changed";
+
+const triggerLabels: Record<AutomationTrigger, string> = {
+  ticket_created: "Ticket Created",
+  ticket_replied: "Agent Replied",
+  status_changed: "Status Changed",
 };
 
 const defaultQuery: RuleGroupType = {
@@ -64,6 +72,10 @@ export function AutomationFormDialog({
   const trpc = useTRPC();
   const queryClient = useQueryClient();
   const isEditing = !!editAutomation;
+
+  const [trigger, setTrigger] = useState<AutomationTrigger>(
+    () => editAutomation?.trigger ?? "ticket_created"
+  );
 
   const [query, setQuery] = useState<RuleGroupType>(
     () => (editAutomation?.conditionsTree as RuleGroupType) ?? defaultQuery
@@ -99,11 +111,6 @@ export function AutomationFormDialog({
     },
     onSubmit: async ({ value }) => {
       try {
-        if (query.rules.length === 0) {
-          toast.error("Add at least one condition");
-          return;
-        }
-
         const hasEmptyAction = actions.some((a) => !a.value.trim());
         if (hasEmptyAction) {
           toast.error("All action values must be filled in");
@@ -124,6 +131,7 @@ export function AutomationFormDialog({
             id: editAutomation.id,
             name: value.name,
             description: value.description || undefined,
+            trigger,
             conditionsTree: query as unknown as Record<string, unknown>,
             conditions: engineConditions as unknown as Record<string, unknown>,
             actions: typedActions,
@@ -133,7 +141,7 @@ export function AutomationFormDialog({
           await createAutomation({
             name: value.name,
             description: value.description || undefined,
-            trigger: "ticket_created",
+            trigger,
             conditionsTree: query as unknown as Record<string, unknown>,
             conditions: engineConditions as unknown as Record<string, unknown>,
             actions: typedActions,
@@ -233,9 +241,34 @@ export function AutomationFormDialog({
             )}
           </form.Field>
 
+          {/* Trigger */}
+          <div className="space-y-2">
+            <Label>Trigger</Label>
+            <Select
+              value={trigger}
+              onValueChange={(val) => setTrigger(val as AutomationTrigger)}
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.entries(triggerLabels) as [AutomationTrigger, string][]).map(
+                  ([value, label]) => (
+                    <SelectItem
+                      key={value}
+                      value={value}
+                    >
+                      {label}
+                    </SelectItem>
+                  )
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
           {/* Conditions - Query Builder */}
           <div className="space-y-2">
-            <Label>When these conditions are met</Label>
+            <Label>When these conditions are met (optional)</Label>
             <div className="automation-query-builder rounded-md border p-3">
               <QueryBuilder
                 fields={automationFields}
@@ -272,6 +305,7 @@ export function AutomationFormDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="add_tag">Add tag</SelectItem>
+                    <SelectItem value="remove_tag">Remove tag</SelectItem>
                     <SelectItem value="set_priority">Set priority</SelectItem>
                     <SelectItem value="set_status">Set status</SelectItem>
                     <SelectItem value="assign_to">Assign to</SelectItem>
@@ -382,7 +416,7 @@ function ActionValueInput({
     );
   }
 
-  if (action.type === "add_tag") {
+  if (action.type === "add_tag" || action.type === "remove_tag") {
     return (
       <TagSelect
         value={action.value}

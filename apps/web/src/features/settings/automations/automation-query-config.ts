@@ -54,6 +54,12 @@ export const automationFields: Field[] = [
     ],
     defaultOperator: "=",
   },
+  {
+    name: "tags",
+    label: "Tags",
+    placeholder: "e.g. New",
+    defaultOperator: "contains",
+  },
 ];
 
 export const automationOperators = [

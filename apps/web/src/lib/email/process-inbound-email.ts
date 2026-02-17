@@ -446,6 +446,7 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
         channel: "email",
         priority: "normal",
         status: "open",
+        tags: [],
       });
     } catch (error) {
       // eslint-disable-next-line no-console
