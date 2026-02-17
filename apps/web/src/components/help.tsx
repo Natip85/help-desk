@@ -38,7 +38,7 @@ export const HelpDialog = (props: React.ComponentProps<"button">) => {
         {...props}
         onClick={() => setOpen(!open)}
       >
-        <HelpCircle className="size-8" /> Help
+        <HelpCircle /> <span>Help</span>
       </button>
       <Dialog
         open={open}
