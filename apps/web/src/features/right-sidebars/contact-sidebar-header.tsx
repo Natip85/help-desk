@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Copy, Mail } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 
 import type { RouterOutputs } from "@help-desk/api";
 
@@ -50,7 +50,27 @@ export const ContactSidebarHeader = ({ contact, company }: ContactSidebarHeaderP
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0">
               <h2 className="truncate text-base font-semibold">{displayName}</h2>
-              <p className="text-muted-foreground truncate text-sm">{contact.email}</p>
+              <div className="flex items-center gap-1">
+                <p className="text-muted-foreground truncate text-sm">{contact.email}</p>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      onClick={() => {
+                        void navigator.clipboard.writeText(contact.email).then(() => {
+                          setCopied(true);
+                        });
+                      }}
+                      className="h-auto p-1"
+                    >
+                      {copied ?
+                        <Check className="size-4" />
+                      : <Copy className="size-4" />}
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>{copied ? "Copied" : "Copy email to clipboard"}</TooltipContent>
+                </Tooltip>
+              </div>
               {company?.name && (
                 <p className="text-muted-foreground truncate text-xs">
                   {company.name}
@@ -58,39 +78,6 @@ export const ContactSidebarHeader = ({ contact, company }: ContactSidebarHeaderP
                 </p>
               )}
             </div>
-          </div>
-
-          <div className="mt-3 flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                void navigator.clipboard.writeText(contact.email).then(() => {
-                  setCopied(true);
-                });
-              }}
-            >
-              <Mail className="mr-2 size-4" />
-              Copy email
-            </Button>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant="ghost"
-                  onClick={() => {
-                    void navigator.clipboard.writeText(contact.email).then(() => {
-                      setCopied(true);
-                    });
-                  }}
-                  className="h-auto p-1"
-                >
-                  {copied ?
-                    <Check className="size-4" />
-                  : <Copy className="size-4" />}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>{copied ? "Copied" : "Copy to clipboard"}</TooltipContent>
-            </Tooltip>
           </div>
         </div>
       </div>
