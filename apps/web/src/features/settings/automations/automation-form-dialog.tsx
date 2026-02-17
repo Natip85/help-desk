@@ -9,8 +9,6 @@ import QueryBuilder from "react-querybuilder";
 import { toast } from "sonner";
 import z from "zod";
 
-import "react-querybuilder/dist/query-builder.css";
-
 import type { Automation } from "@help-desk/db/schema/automations";
 
 import { Button } from "@/components/ui/button";
@@ -269,23 +267,27 @@ export function AutomationFormDialog({
           {/* Conditions - Query Builder */}
           <div className="space-y-2">
             <Label>When these conditions are met (optional)</Label>
-            <div className="automation-query-builder rounded-md border p-3">
-              <QueryBuilder
-                fields={automationFields}
-                operators={automationOperators}
-                query={query}
-                onQueryChange={setQuery}
-                controlClassnames={{
-                  queryBuilder: "space-y-2",
-                  ruleGroup: "border rounded-md p-3 space-y-2 bg-muted/30",
-                  rule: "flex flex-wrap items-center gap-2",
-                  addRule: "text-sm",
-                  addGroup: "text-sm",
-                  removeGroup: "text-sm",
-                  removeRule: "text-sm",
-                }}
-              />
-            </div>
+            <QueryBuilder
+              fields={automationFields}
+              operators={automationOperators}
+              query={query}
+              onQueryChange={setQuery}
+              controlClassnames={{
+                queryBuilder: "qb-root",
+                ruleGroup: "qb-group",
+                header: "qb-header",
+                body: "qb-body",
+                rule: "qb-rule",
+                combinators: "qb-combinators",
+                addRule: "qb-btn",
+                addGroup: "qb-btn",
+                removeGroup: "qb-remove-group",
+                removeRule: "qb-remove-rule",
+                fields: "qb-select",
+                operators: "qb-select",
+                value: "qb-value",
+              }}
+            />
           </div>
 
           {/* Actions */}

@@ -179,3 +179,137 @@
 .ProseMirror:focus {
   outline: none;
 }
+
+/* ── Query Builder (react-querybuilder) ── */
+
+.qb-root {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Group container ── */
+.qb-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 0.75rem;
+  background: color-mix(in oklch, var(--accent) 20%, transparent);
+}
+
+.qb-group .qb-group {
+  background: color-mix(in oklch, var(--accent) 40%, transparent);
+}
+
+/* ── Header: combinator + buttons + optional remove ── */
+.qb-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.qb-header .qb-remove-group {
+  margin-left: auto;
+}
+
+/* ── Body: rules + nested groups ── */
+.qb-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ── Individual rule row ── */
+.qb-rule {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Value + remove button share the second row */
+.qb-rule .qb-value {
+  grid-column: 1 / 2;
+}
+
+.qb-rule .qb-remove-rule {
+  grid-row: 2;
+  grid-column: 2;
+  justify-self: end;
+}
+
+/* ── Shared control styles (selects & inputs) ── */
+.qb-combinators,
+.qb-select,
+.qb-value {
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input);
+  color: var(--foreground);
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  outline: none;
+  appearance: auto;
+}
+
+.qb-combinators {
+  width: auto;
+  min-width: 5rem;
+}
+
+.qb-combinators:focus,
+.qb-select:focus,
+.qb-value:focus {
+  box-shadow: 0 0 0 2px color-mix(in oklch, var(--ring) 30%, transparent);
+}
+
+/* ── Buttons (+ Rule, + Group) ── */
+.qb-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  padding: 0 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--input);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.qb-btn:hover {
+  background: var(--accent);
+}
+
+/* ── Remove buttons (×) ── */
+.qb-remove-group,
+.qb-remove-rule {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.75rem;
+  height: 1.75rem;
+  border: none;
+  border-radius: var(--radius);
+  background: transparent;
+  color: var(--muted-foreground);
+  font-size: 1.125rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    color 0.15s,
+    background 0.15s;
+}
+
+.qb-remove-group:hover,
+.qb-remove-rule:hover {
+  background: color-mix(in oklch, var(--destructive) 15%, transparent);
+  color: var(--destructive);
+}
