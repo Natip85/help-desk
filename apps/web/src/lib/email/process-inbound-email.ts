@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull, like, notInArray } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { runAutomationsForTicket } from "@help-desk/api/lib/automation-engine";
 import { db } from "@help-desk/db";
@@ -86,13 +86,6 @@ function parseEmailAddress(raw: string): { email: string; name: string | null } 
     };
   }
   return { email: raw.toLowerCase().trim(), name: null };
-}
-
-/**
- * Strips Re:, Fwd:, FW: prefixes from a subject for thread matching.
- */
-function normalizeSubject(subject: string): string {
-  return subject.replace(/^(re|fwd|fw):\s*/gi, "").trim();
 }
 
 /**
@@ -328,25 +321,13 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
       }
     }
 
-    // 5b. Fallback: match by normalized subject + same contact
-    //     Exclude deleted and merged conversations so new emails don't silently
-    //     disappear into conversations the user can no longer see.
-    if (!existingConversation && subject) {
-      const normalized = normalizeSubject(subject);
-      if (normalized) {
-        existingConversation = await tx.query.conversation.findFirst({
-          where: and(
-            eq(conversation.organizationId, org.id),
-            eq(conversation.contactId, existingContact.id),
-            like(conversation.subject, normalized),
-            isNull(conversation.deletedAt),
-            notInArray(conversation.status, ["merged"])
-          ),
-        });
-      }
-    }
+    // Note: Subject-based fallback matching was removed because it caused
+    // unrelated emails with common subjects (e.g. "Hi", "Help") to be
+    // incorrectly merged into existing conversations. Genuine replies are
+    // threaded reliably via In-Reply-To, References, Resend email ID, and
+    // plus-addressed Reply-To headers (steps 5-pre through 5a3 above).
 
-    // 5c. Create new conversation if no match found
+    // 5b. Create new conversation if no match found
     if (!existingConversation) {
       const [newConversation] = await tx
         .insert(conversation)
