@@ -123,6 +123,14 @@ export function EmailRecipientPicker({
     [onChange]
   );
 
+  const commitPendingEmail = useCallback(() => {
+    const trimmed = searchTerm.trim();
+    if (trimmed && EMAIL_REGEX.test(trimmed) && !value.includes(trimmed)) {
+      onChange([...value, trimmed]);
+      setSearchTerm("");
+    }
+  }, [searchTerm, value, onChange]);
+
   return (
     <Combobox
       multiple
@@ -148,6 +156,17 @@ export function EmailRecipientPicker({
                 <ComboboxChipsInput
                   placeholder={selected.length > 0 ? "" : placeholder}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  onBlur={commitPendingEmail}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === "Tab" || e.key === ",") {
+                      const trimmed = searchTerm.trim();
+                      if (trimmed && EMAIL_REGEX.test(trimmed) && !value.includes(trimmed)) {
+                        e.preventDefault();
+                        onChange([...value, trimmed]);
+                        setSearchTerm("");
+                      }
+                    }
+                  }}
                 />
               </Fragment>
             );
