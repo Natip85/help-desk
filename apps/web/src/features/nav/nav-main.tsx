@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { ChevronDown, MoreHorizontal } from "lucide-react";
 
 import type { NavigationItems } from "./nav-types";
+import { HelpDialog } from "@/components/help";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
@@ -212,6 +213,15 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
 
       <SidebarGroup className="mt-auto">
         <SidebarMenu>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              size="lg"
+              asChild
+              tooltip="Help"
+            >
+              <HelpDialog />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
           {footerItems.map((item) => {
             const isActive =
               pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url + "/"));
