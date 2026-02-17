@@ -1,3 +1,4 @@
+import { automationRouter } from "./routers/automation";
 import { cannedResponseRouter } from "./routers/canned-response";
 import { contactRouter } from "./routers/contact";
 import { defaultFilterRouter } from "./routers/default-filter";
@@ -14,6 +15,7 @@ export const appRouter = createTRPCRouter({
   contact: contactRouter,
   mailbox: mailboxRouter,
   tags: tagRouter,
+  automation: automationRouter,
   cannedResponse: cannedResponseRouter,
   savedFilter: savedFilterRouter,
   defaultFilter: defaultFilterRouter,

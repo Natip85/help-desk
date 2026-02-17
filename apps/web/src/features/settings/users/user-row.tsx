@@ -147,7 +147,7 @@ export function UserRow({ user, selfId }: { user: UserWithRole; selfId: string }
             </div>
           </div>
           <div className="flex items-center gap-2 not-empty:mt-2">
-            {user.banned && <Badge variant="outline">Banned</Badge>}
+            {user.banned && <Badge variant="destructive">Banned</Badge>}
             {!user.emailVerified && <Badge variant="outline">Unverified</Badge>}
             {isSelf && <Badge variant="outline">You</Badge>}
           </div>

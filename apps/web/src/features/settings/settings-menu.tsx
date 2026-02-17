@@ -70,7 +70,7 @@ const settingsSections: SettingsSection[] = [
         description:
           "Manage your ticket automations to automatically assign tickets to users or groups",
         icon: ZapIcon,
-        href: "/settings/ticket-automations",
+        href: "/settings/automations",
       },
     ],
   },

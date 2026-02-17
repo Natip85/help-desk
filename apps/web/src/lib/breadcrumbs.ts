@@ -93,6 +93,12 @@ export const settingsTicketFiltersBreadcrumbs: BreadcrumbPageType[] = [
   { href: "/settings/ticket-filters", label: "Ticket Filters" },
 ];
 
+export const settingsAutomationsBreadcrumbs: BreadcrumbPageType[] = [
+  homeBreadcrumb,
+  settingsBreadcrumb,
+  { href: "/settings/automations", label: "Automations" },
+];
+
 // Factory functions for dynamic breadcrumbs
 export function createTicketDetailBreadcrumbs(
   ticketId: string,

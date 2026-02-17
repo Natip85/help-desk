@@ -1,5 +1,6 @@
 import { and, eq, inArray, like } from "drizzle-orm";
 
+import { runAutomationsForTicket } from "@help-desk/api/lib/automation-engine";
 import { db } from "@help-desk/db";
 import {
   attachment,
@@ -169,7 +170,8 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
   }
 
   // 4-9. Run all DB operations in a transaction
-  await db.transaction(async (tx) => {
+  const txResult = await db.transaction(async (tx) => {
+    let isNewConversation = false;
     // ── 4. Find or create contact ──────────────────────────────────────────
 
     let existingContact = await tx.query.contact.findFirst({
@@ -362,6 +364,7 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
       }
 
       existingConversation = newConversation;
+      isNewConversation = true;
 
       // Log conversation_created event
       await tx.insert(conversationEvent).values({
@@ -439,5 +442,26 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
     console.log(
       `Processed inbound email: contact=${existingContact.id}, conversation=${existingConversation.id}, message=${newMessage.id}`
     );
+
+    return { conversationId: existingConversation.id, isNewConversation };
   });
+
+  // ── 10. Run automations for newly created tickets ─────────────────────────
+
+  if (txResult.isNewConversation) {
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+      await runAutomationsForTicket(db, org.id, txResult.conversationId, {
+        mailboxEmail: matchedMailbox?.email ?? null,
+        senderEmail,
+        subject: subject || "(no subject)",
+        channel: "email",
+        priority: "normal",
+        status: "open",
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[Automations] Failed to run automations for new ticket:", error);
+    }
+  }
 }
