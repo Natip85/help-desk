@@ -1,4 +1,4 @@
-import { and, eq, inArray, like } from "drizzle-orm";
+import { and, eq, inArray, isNull, like, notInArray } from "drizzle-orm";
 
 import { runAutomationsForTicket } from "@help-desk/api/lib/automation-engine";
 import { db } from "@help-desk/db";
@@ -329,6 +329,8 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
     }
 
     // 5b. Fallback: match by normalized subject + same contact
+    //     Exclude deleted and merged conversations so new emails don't silently
+    //     disappear into conversations the user can no longer see.
     if (!existingConversation && subject) {
       const normalized = normalizeSubject(subject);
       if (normalized) {
@@ -336,7 +338,9 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
           where: and(
             eq(conversation.organizationId, org.id),
             eq(conversation.contactId, existingContact.id),
-            like(conversation.subject, normalized)
+            like(conversation.subject, normalized),
+            isNull(conversation.deletedAt),
+            notInArray(conversation.status, ["merged"])
           ),
         });
       }
@@ -404,10 +408,13 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
     }
 
     // ── 7. Update conversation ─────────────────────────────────────────────
+    //    Clear deletedAt so soft-deleted conversations resurface when a
+    //    genuine reply arrives (e.g. via In-Reply-To / References headers).
 
     const updates: Partial<typeof conversation.$inferInsert> = {
       lastMessageAt: new Date(),
       status: "open",
+      deletedAt: null,
     };
 
     await tx.update(conversation).set(updates).where(eq(conversation.id, existingConversation.id));
