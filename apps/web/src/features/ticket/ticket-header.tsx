@@ -151,17 +151,13 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
             Reply
           </Button>
 
-          {showAddNote && <AddNoteDialog ticketId={ticketId} />}
-
-          {showForward && (
-            <Button
-              variant="outline"
-              onClick={() => void setActiveEditor("forward")}
-            >
+          {showAddNote && (
+            <Button onClick={() => void setActiveEditor("forward")}>
               <Forward />
               Forward
             </Button>
           )}
+          {showForward && <AddNoteDialog ticketId={ticketId} />}
 
           {showSecondary && (
             <>
@@ -211,8 +207,7 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
                 align="start"
                 className="flex w-fit max-w-[75vw] flex-wrap items-center gap-1.5"
               >
-                {!showAddNote && <AddNoteDialog ticketId={ticketId} />}
-                {!showForward && (
+                {!showAddNote && (
                   <Button
                     variant="outline"
                     onClick={() => void setActiveEditor("forward")}
@@ -221,6 +216,7 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
                     Forward
                   </Button>
                 )}
+                {!showForward && <AddNoteDialog ticketId={ticketId} />}
                 {!showSecondary && (
                   <>
                     {ticket?.status !== "closed" && ticket?.status !== "merged" && (
