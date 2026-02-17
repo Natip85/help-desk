@@ -1,5 +1,16 @@
 import { TRPCError } from "@trpc/server";
-import { and, asc, desc, eq, getTableColumns, ilike, inArray, or } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  exists,
+  getTableColumns,
+  ilike,
+  inArray,
+  isNull,
+  or,
+} from "drizzle-orm";
 import { z } from "zod";
 
 import { contact } from "@help-desk/db/schema/contacts";
@@ -363,7 +374,23 @@ export const contactRouter = createTRPCRouter({
               ilike(contact.firstName, `%${searchTerm}%`),
               ilike(contact.lastName, `%${searchTerm}%`),
               ilike(contact.displayName, `%${searchTerm}%`),
-              ilike(contact.email, `%${searchTerm}%`)
+              ilike(contact.email, `%${searchTerm}%`),
+              exists(
+                ctx.db
+                  .select({ id: conversation.id })
+                  .from(conversation)
+                  .where(
+                    and(
+                      eq(conversation.contactId, contact.id),
+                      eq(conversation.organizationId, organizationId),
+                      isNull(conversation.deletedAt),
+                      or(
+                        ilike(conversation.subject, `%${searchTerm}%`),
+                        ilike(conversation.id, `%${searchTerm}%`)
+                      )
+                    )
+                  )
+              )
             )
           ),
           columns: {

@@ -3,6 +3,7 @@ import {
   and,
   desc,
   eq,
+  exists,
   getTableColumns,
   gte,
   ilike,
@@ -1011,7 +1012,29 @@ export const ticketRouter = createTRPCRouter({
             isNull(conversation.deletedAt),
             or(
               ilike(conversation.subject, `%${searchTerm}%`),
-              ilike(conversation.id, `%${searchTerm}%`)
+              ilike(conversation.id, `%${searchTerm}%`),
+              exists(
+                ctx.db
+                  .select({ id: message.id })
+                  .from(message)
+                  .where(
+                    and(
+                      eq(message.conversationId, conversation.id),
+                      ilike(message.textBody, `%${searchTerm}%`)
+                    )
+                  )
+              ),
+              exists(
+                ctx.db
+                  .select({ id: contact.id })
+                  .from(contact)
+                  .where(
+                    and(
+                      eq(contact.id, conversation.contactId),
+                      ilike(contact.email, `%${searchTerm}%`)
+                    )
+                  )
+              )
             )
           ),
           columns: {
