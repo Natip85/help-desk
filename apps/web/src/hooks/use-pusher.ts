@@ -13,7 +13,7 @@ import { useTRPC } from "@/trpc";
 
 let pusherInstance: Pusher | null = null;
 
-function getPusherClient() {
+export function getPusherClient() {
   pusherInstance ??= new Pusher(env.NEXT_PUBLIC_PUSHER_KEY, {
     cluster: env.NEXT_PUBLIC_PUSHER_CLUSTER,
     authEndpoint: "/api/pusher/auth",

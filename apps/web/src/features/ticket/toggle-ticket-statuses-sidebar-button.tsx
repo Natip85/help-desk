@@ -22,7 +22,7 @@ export const ToggleTicketStatusesSidebarButton = ({ ticketId }: { ticketId: stri
           onClick={() => toggleTicketStatusesSidebarId(ticketId)}
         >
           <ListChecks />
-          <span className="hidden sm:block">Ticket statuses</span>
+          <span className="sr-only">Ticket statuses</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>Ticket statuses</TooltipContent>

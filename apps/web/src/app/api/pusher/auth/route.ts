@@ -30,6 +30,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Missing socket_id or channel_name" }, { status: 400 });
   }
 
+  // Authorize presence channels for ticket collision detection
+  if (channel.startsWith("presence-ticket-")) {
+    const authResponse = pusher.authorizeChannel(socketId, channel, {
+      user_id: session.user.id,
+      user_info: {
+        name: session.user.name,
+        image: session.user.image ?? null,
+      },
+    });
+    return NextResponse.json(authResponse);
+  }
+
   // Only allow users to subscribe to their own private channel
   const expectedChannel = `private-user-${session.user.id}`;
   if (channel !== expectedChannel) {

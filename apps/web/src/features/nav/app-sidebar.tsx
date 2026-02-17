@@ -88,13 +88,14 @@ const data = {
       url: "/contacts",
       icon: Users2,
     },
+  ],
+  footerItems: [
     {
       title: "Settings",
       url: "/settings",
       icon: Settings,
     },
   ],
-  footerItems: [],
 };
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

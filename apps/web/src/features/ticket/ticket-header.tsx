@@ -30,6 +30,7 @@ import { useTRPC } from "@/trpc";
 import { AddNoteDialog } from "./add-note-dialog";
 import { CloseTicketButton } from "./close-ticket-button";
 import { MergeTicketSheet } from "./merge-ticket-sheet";
+import { PresenceEyeIndicator } from "./ticket-presence-bar";
 import { ToggleContactSidebarButton } from "./toggle-contact-sidebar-button";
 import { ToggleTicketStatusesSidebarButton } from "./toggle-ticket-statuses-sidebar-button";
 
@@ -119,28 +120,6 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
 
   return (
     <div className="flex flex-col gap-2">
-      {ticket?.subject && (
-        <div className="flex flex-col gap-1">
-          <h2 className="flex items-center gap-2 text-lg leading-snug font-semibold">
-            {(() => {
-              const ChannelIcon = channelIconMap[ticket.channel];
-              return ChannelIcon ?
-                  <ChannelIcon className="text-muted-foreground size-4 shrink-0" />
-                : null;
-            })()}
-            {ticket.subject}
-          </h2>
-          {ticket.contact?.email && (
-            <div className="text-muted-foreground flex items-center gap-1 text-sm">
-              <span>{ticket.contact.email}</span>
-              <CopyButton
-                value={ticket.contact.email}
-                label="Copy email"
-              />
-            </div>
-          )}
-        </div>
-      )}
       <div
         className="flex items-center justify-between gap-3"
         ref={ref}
@@ -243,7 +222,8 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
           )}
         </div>
 
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-3">
+          <PresenceEyeIndicator />
           <ToggleContactSidebarButton contactId={ticket?.contact?.id} />
           <ToggleTicketStatusesSidebarButton ticketId={ticketId} />
         </div>
@@ -254,6 +234,28 @@ export const TicketHeader = ({ ticketId }: { ticketId: string }) => {
           onOpenChange={setMergeSheetOpen}
         />
       </div>
+      {ticket?.subject && (
+        <div className="flex flex-col gap-1">
+          <h2 className="flex items-center gap-2 text-lg leading-snug font-semibold">
+            {(() => {
+              const ChannelIcon = channelIconMap[ticket.channel];
+              return ChannelIcon ?
+                  <ChannelIcon className="text-muted-foreground size-4 shrink-0" />
+                : null;
+            })()}
+            {ticket.subject}
+          </h2>
+          {ticket.contact?.email && (
+            <div className="text-muted-foreground flex items-center gap-1 text-sm">
+              <span>{ticket.contact.email}</span>
+              <CopyButton
+                value={ticket.contact.email}
+                label="Copy email"
+              />
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 };

@@ -211,17 +211,8 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
         </SidebarMenu>
       </SidebarGroup>
 
-      <SidebarGroup className="mt-auto">
+      <SidebarGroup className="mt-auto pb-20">
         <SidebarMenu>
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              size="lg"
-              asChild
-              tooltip="Help"
-            >
-              <HelpDialog />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
           {footerItems.map((item) => {
             const isActive =
               pathname === item.url || (item.url !== "/" && pathname.startsWith(item.url + "/"));
@@ -240,6 +231,14 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
               </SidebarMenuItem>
             );
           })}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Help"
+            >
+              <HelpDialog />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </>

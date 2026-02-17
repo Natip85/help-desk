@@ -17,7 +17,7 @@ export const ToggleContactSidebarButton = ({ contactId }: { contactId: string | 
           onClick={() => contactId && toggleContactSidebarId(contactId)}
         >
           <User />
-          <span className="hidden sm:block">View contact</span>
+          <span className="sr-only">View contact</span>
         </Button>
       </TooltipTrigger>
       <TooltipContent>View contact</TooltipContent>
