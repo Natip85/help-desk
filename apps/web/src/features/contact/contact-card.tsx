@@ -44,7 +44,7 @@ export const ContactCard = ({
       <Card
         {...props}
         className={cn(
-          "group border-primary hover:ring-primary hover:bg-accent/5 flex min-h-[76px] flex-row items-center justify-between border-l-4 p-0 px-6 py-3 shadow-sm transition-all duration-300 group-active:z-10 hover:ring-2 has-data-[slot=card-footer]:pb-3",
+          "group border-primary hover:ring-primary hover:bg-accent/5 flex min-h-28 flex-row items-center justify-between border-l-4 p-0 px-6 py-3 shadow-sm transition-all duration-300 group-active:z-10 hover:ring-2 has-data-[slot=card-footer]:pb-3",
           isActive && "ring-primary bg-accent/5 ring-1",
           onCardClick && "cursor-pointer",
           className
