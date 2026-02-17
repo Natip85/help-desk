@@ -53,7 +53,7 @@ export const TicketDetailsCard = ({ item, ...props }: TicketDetailsCardProps) =>
         <TicketCardTags tags={item.tags} />
       </TicketCardHeader>
       <TicketCardFooter>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-col items-center gap-2 sm:flex-row">
           <TicketStatusSelect
             ticketId={item.id}
             value={item.status}
