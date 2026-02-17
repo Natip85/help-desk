@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { useRouter } from "next/navigation";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { DomainsTab } from "./domains-tab";
 import { InvitesTab } from "./invites-tab";
 import { MailboxesTab } from "./mailboxes-tab";
 import { MembersTab } from "./members-tab";
@@ -57,9 +58,10 @@ export function OrganizationTabs({ organization, organizationId }: OrganizationT
       defaultValue="members"
       className="mx-auto w-full max-w-6xl"
     >
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="members">Members ({organization.members?.length ?? 0})</TabsTrigger>
         <TabsTrigger value="invitations">Invitations ({pendingInvitations.length})</TabsTrigger>
+        <TabsTrigger value="domains">Domains</TabsTrigger>
         <TabsTrigger value="mailboxes">Mailboxes</TabsTrigger>
       </TabsList>
       <TabsContent value="members">
@@ -76,6 +78,10 @@ export function OrganizationTabs({ organization, organizationId }: OrganizationT
           organizationId={organizationId}
           onUpdate={handleUpdate}
         />
+      </TabsContent>
+
+      <TabsContent value="domains">
+        <DomainsTab />
       </TabsContent>
 
       <TabsContent value="mailboxes">

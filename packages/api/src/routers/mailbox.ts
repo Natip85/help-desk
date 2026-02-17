@@ -2,9 +2,38 @@ import { TRPCError } from "@trpc/server";
 import { and, desc, eq } from "drizzle-orm";
 import { z } from "zod";
 
+import { db } from "@help-desk/db";
+import { domain } from "@help-desk/db/schema/domains";
 import { mailbox } from "@help-desk/db/schema/mailboxes";
 
 import { createTRPCRouter, protectedProcedure } from "../trpc";
+
+async function requireVerifiedDomain(organizationId: string, email: string) {
+  const emailDomain = email.toLowerCase().split("@")[1];
+  if (!emailDomain) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Invalid email address.",
+    });
+  }
+
+  const verifiedDomain = await db.query.domain.findFirst({
+    where: and(
+      eq(domain.organizationId, organizationId),
+      eq(domain.domain, emailDomain),
+      eq(domain.status, "verified")
+    ),
+  });
+
+  if (!verifiedDomain) {
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: `The domain "${emailDomain}" is not verified. Please verify it in Settings > Domains first.`,
+    });
+  }
+
+  return verifiedDomain;
+}
 
 function requireActiveOrganizationId(activeOrganizationId: string | null | undefined) {
   if (!activeOrganizationId) {
@@ -38,6 +67,9 @@ export const mailboxRouter = createTRPCRouter({
     )
     .mutation(async ({ ctx, input }) => {
       const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+      // Ensure the email's domain is verified for this organization
+      await requireVerifiedDomain(organizationId, input.email);
 
       return await ctx.db.transaction(async (tx) => {
         // If setting as default, unset any existing default first
@@ -81,6 +113,11 @@ export const mailboxRouter = createTRPCRouter({
 
       if (!existing) {
         throw new TRPCError({ code: "NOT_FOUND", message: "Mailbox not found" });
+      }
+
+      // If email is being changed, verify the new domain
+      if (input.email) {
+        await requireVerifiedDomain(organizationId, input.email);
       }
 
       return await ctx.db.transaction(async (tx) => {

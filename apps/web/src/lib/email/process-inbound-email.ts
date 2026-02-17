@@ -8,6 +8,7 @@ import {
   contact,
   conversation,
   conversationEvent,
+  domain,
   mailbox,
   message,
   organization,
@@ -134,7 +135,7 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
   // 2. Parse the sender
   const { email: senderEmail, name: senderName } = parseEmailAddress(from);
 
-  // 3. Resolve organization via mailbox match, then fall back to first org
+  // 3. Resolve organization via mailbox match, then domain match
   let matchedMailbox: typeof mailbox.$inferSelect | undefined;
   for (const toAddress of to) {
     const found = await db.query.mailbox.findFirst({
@@ -155,11 +156,39 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
     });
   }
 
-  // Fallback: use the first organization in the database
-  org ??= await db.query.organization.findFirst();
+  // Fallback: try domain-based routing if no mailbox matched
+  if (!org) {
+    for (const toAddress of to) {
+      const emailDomain = toAddress.toLowerCase().split("@")[1];
+      if (!emailDomain) continue;
+
+      const verifiedDomain = await db.query.domain.findFirst({
+        where: and(eq(domain.domain, emailDomain), eq(domain.status, "verified")),
+      });
+
+      if (verifiedDomain) {
+        org = await db.query.organization.findFirst({
+          where: eq(organization.id, verifiedDomain.organizationId),
+        });
+
+        // Assign the org's default mailbox so the conversation has a mailboxId
+        if (org) {
+          matchedMailbox = await db.query.mailbox.findFirst({
+            where: and(eq(mailbox.organizationId, org.id), eq(mailbox.isDefault, true)),
+          });
+        }
+        break;
+      }
+    }
+  }
 
   if (!org) {
-    throw new Error("No organization found. Create one before processing emails.");
+    // No mailbox match and no verified domain match -- drop the email
+    // eslint-disable-next-line no-console
+    console.log(
+      `No organization found for recipients: ${to.join(", ")}. Dropping email ${email_id}.`
+    );
+    return;
   }
 
   // 4-9. Run all DB operations in a transaction
@@ -444,7 +473,6 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
 
   if (txResult.isNewConversation) {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-call
       await runAutomationsForTicket(db, org.id, txResult.conversationId, {
         mailboxEmail: matchedMailbox?.email ?? null,
         senderEmail,

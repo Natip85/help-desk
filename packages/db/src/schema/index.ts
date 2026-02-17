@@ -1,5 +1,6 @@
 export * from "./auth";
 export * from "./contacts";
+export * from "./domains";
 export * from "./mailboxes";
 export * from "./conversations";
 export * from "./tags";

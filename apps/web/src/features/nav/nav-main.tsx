@@ -211,7 +211,7 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
         </SidebarMenu>
       </SidebarGroup>
 
-      <SidebarGroup className="mt-auto pb-20">
+      <SidebarGroup className="mt-auto pb-12">
         <SidebarMenu>
           {footerItems.map((item) => {
             const isActive =
