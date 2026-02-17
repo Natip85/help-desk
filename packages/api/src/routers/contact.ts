@@ -112,11 +112,7 @@ export const contactRouter = createTRPCRouter({
     const contactId = input;
 
     const found = await ctx.db.query.contact.findFirst({
-      where: and(
-        eq(contact.id, contactId),
-        eq(contact.organizationId, organizationId),
-        isNull(contact.deletedAt)
-      ),
+      where: and(eq(contact.id, contactId), eq(contact.organizationId, organizationId)),
       with: {
         company: {
           columns: {
@@ -206,6 +202,7 @@ export const contactRouter = createTRPCRouter({
         phone: found.phone,
         createdAt: found.createdAt,
         updatedAt: found.updatedAt,
+        deletedAt: found.deletedAt,
       },
       company: found.company,
       recentTickets,

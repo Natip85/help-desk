@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { skipToken, useQuery } from "@tanstack/react-query";
+import { skipToken, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -22,9 +23,23 @@ export const ContactInfoSidebar = () => {
     setSidebarParams,
   } = useSidebarParams();
 
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"overview" | "conversations">("overview");
 
   const contactQuery = useQuery(trpc.contact.getById.queryOptions(contactId ?? skipToken));
+
+  const { mutate: restoreContact, isPending: isRestoring } = useMutation(
+    trpc.contact.restore.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.contact.all.queryKey() });
+        void contactQuery.refetch();
+        toast.success("Contact restored");
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to restore contact");
+      },
+    })
+  );
 
   const data = contactQuery.data;
 
@@ -112,6 +127,20 @@ export const ContactInfoSidebar = () => {
       />
 
       <SidebarContent className="scrollbar-gutter-stable flex-1 overflow-y-auto p-2">
+        {data.contact.deletedAt && (
+          <div className="bg-destructive/10 text-destructive mb-2 flex items-center justify-between rounded-md px-3 py-2 text-sm">
+            <span>This contact was deleted</span>
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-7 text-xs"
+              onClick={() => restoreContact(data.contact.id)}
+              disabled={isRestoring}
+            >
+              {isRestoring ? "Restoring..." : "Restore"}
+            </Button>
+          </div>
+        )}
         <Tabs
           value={activeTab}
           onValueChange={(t) => setActiveTab(t as typeof activeTab)}
