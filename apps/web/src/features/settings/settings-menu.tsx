@@ -8,6 +8,7 @@ import {
   MessageCircleCode,
   TagsIcon,
   Users2,
+  ZapIcon,
 } from "lucide-react";
 
 import { PageTitle } from "@/components/page-title";
@@ -63,6 +64,13 @@ const settingsSections: SettingsSection[] = [
         description: "Manage your saved ticket filter presets",
         icon: BookmarkIcon,
         href: "/settings/saved-filters",
+      },
+      {
+        title: "Ticket automations",
+        description:
+          "Manage your ticket automations to automatically assign tickets to users or groups",
+        icon: ZapIcon,
+        href: "/settings/ticket-automations",
       },
     ],
   },
