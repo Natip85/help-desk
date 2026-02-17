@@ -8,6 +8,7 @@ import {
   getTableColumns,
   ilike,
   inArray,
+  isNotNull,
   isNull,
   or,
 } from "drizzle-orm";
@@ -111,7 +112,11 @@ export const contactRouter = createTRPCRouter({
     const contactId = input;
 
     const found = await ctx.db.query.contact.findFirst({
-      where: and(eq(contact.id, contactId), eq(contact.organizationId, organizationId)),
+      where: and(
+        eq(contact.id, contactId),
+        eq(contact.organizationId, organizationId),
+        isNull(contact.deletedAt)
+      ),
       with: {
         company: {
           columns: {
@@ -349,7 +354,10 @@ export const contactRouter = createTRPCRouter({
   totalCount: protectedProcedure.query(async ({ ctx }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
 
-    const count = await ctx.db.$count(contact, eq(contact.organizationId, organizationId));
+    const count = await ctx.db.$count(
+      contact,
+      and(eq(contact.organizationId, organizationId), isNull(contact.deletedAt))
+    );
 
     return { count };
   }),
@@ -370,6 +378,7 @@ export const contactRouter = createTRPCRouter({
         const contacts = await ctx.db.query.contact.findMany({
           where: and(
             eq(contact.organizationId, organizationId),
+            isNull(contact.deletedAt),
             or(
               ilike(contact.firstName, `%${searchTerm}%`),
               ilike(contact.lastName, `%${searchTerm}%`),
@@ -420,9 +429,13 @@ export const contactRouter = createTRPCRouter({
   create: protectedProcedure.input(contactFormSchema).mutation(async ({ ctx, input }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
 
-    // Check for duplicate email within the organization
+    // Check for duplicate email within the organization (excluding soft-deleted)
     const existing = await ctx.db.query.contact.findFirst({
-      where: and(eq(contact.organizationId, organizationId), eq(contact.email, input.email)),
+      where: and(
+        eq(contact.organizationId, organizationId),
+        eq(contact.email, input.email),
+        isNull(contact.deletedAt)
+      ),
     });
 
     if (existing) {
@@ -469,7 +482,11 @@ export const contactRouter = createTRPCRouter({
       const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
 
       const existing = await ctx.db.query.contact.findFirst({
-        where: and(eq(contact.id, input.id), eq(contact.organizationId, organizationId)),
+        where: and(
+          eq(contact.id, input.id),
+          eq(contact.organizationId, organizationId),
+          isNull(contact.deletedAt)
+        ),
       });
 
       if (!existing) {
@@ -478,7 +495,11 @@ export const contactRouter = createTRPCRouter({
 
       if (input.email && input.email !== existing.email) {
         const duplicate = await ctx.db.query.contact.findFirst({
-          where: and(eq(contact.organizationId, organizationId), eq(contact.email, input.email)),
+          where: and(
+            eq(contact.organizationId, organizationId),
+            eq(contact.email, input.email),
+            isNull(contact.deletedAt)
+          ),
         });
 
         if (duplicate) {
@@ -511,18 +532,43 @@ export const contactRouter = createTRPCRouter({
   delete: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
     const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
 
-    const existing = await ctx.db.query.contact.findFirst({
-      where: and(eq(contact.id, input), eq(contact.organizationId, organizationId)),
-    });
+    const [updated] = await ctx.db
+      .update(contact)
+      .set({ deletedAt: new Date() })
+      .where(
+        and(
+          eq(contact.id, input),
+          eq(contact.organizationId, organizationId),
+          isNull(contact.deletedAt)
+        )
+      )
+      .returning({ id: contact.id });
 
-    if (!existing) {
+    if (!updated) {
       throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found" });
     }
 
-    await ctx.db
-      .delete(contact)
-      .where(and(eq(contact.id, input), eq(contact.organizationId, organizationId)));
-
     return { success: true };
+  }),
+  restore: protectedProcedure.input(z.string()).mutation(async ({ ctx, input }) => {
+    const organizationId = requireActiveOrganizationId(ctx.session.session.activeOrganizationId);
+
+    const [updated] = await ctx.db
+      .update(contact)
+      .set({ deletedAt: null })
+      .where(
+        and(
+          eq(contact.id, input),
+          eq(contact.organizationId, organizationId),
+          isNotNull(contact.deletedAt)
+        )
+      )
+      .returning({ id: contact.id });
+
+    if (!updated) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Contact not found or not deleted" });
+    }
+
+    return updated;
   }),
 });

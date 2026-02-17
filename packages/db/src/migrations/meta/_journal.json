@@ -29,6 +29,13 @@
       "when": 1771276601243,
       "tag": "0003_tiny_overlord",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1771335255338,
+      "tag": "0004_tiny_mathemanic",
+      "breakpoints": true
     }
   ]
 }

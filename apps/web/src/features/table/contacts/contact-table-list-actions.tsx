@@ -3,6 +3,7 @@
 import type { Row } from "@tanstack/react-table";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { MoreVertical } from "lucide-react";
+import { toast } from "sonner";
 
 import type { ContactCardData } from "../../contact/contact-card";
 import { Button } from "@/components/ui/button";
@@ -22,10 +23,29 @@ export function ContactTableListActions({ row }: ContactTableListActionsProps) {
   const trpc = useTRPC();
   const queryClient = useQueryClient();
 
-  const { mutateAsync: softDelete } = useMutation(
-    trpc.ticket.softDelete.mutationOptions({
+  const invalidateContacts = () => {
+    void queryClient.invalidateQueries({ queryKey: trpc.contact.all.queryKey() });
+  };
+
+  const { mutateAsync: restoreContact } = useMutation(
+    trpc.contact.restore.mutationOptions({
       onSuccess: () => {
-        void queryClient.invalidateQueries({ queryKey: trpc.ticket.all.queryKey() });
+        invalidateContacts();
+        toast.success("Contact restored");
+      },
+    })
+  );
+
+  const { mutateAsync: softDelete } = useMutation(
+    trpc.contact.delete.mutationOptions({
+      onSuccess: () => {
+        invalidateContacts();
+        toast("Contact deleted", {
+          action: {
+            label: "Undo",
+            onClick: () => void restoreContact(row.original.id),
+          },
+        });
       },
     })
   );

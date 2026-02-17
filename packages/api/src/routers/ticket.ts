@@ -1096,7 +1096,11 @@ export const ticketRouter = createTRPCRouter({
 
     if (input.contactId) {
       const existing = await ctx.db.query.contact.findFirst({
-        where: and(eq(contact.id, input.contactId), eq(contact.organizationId, organizationId)),
+        where: and(
+          eq(contact.id, input.contactId),
+          eq(contact.organizationId, organizationId),
+          isNull(contact.deletedAt)
+        ),
       });
 
       if (!existing) {
@@ -1112,7 +1116,8 @@ export const ticketRouter = createTRPCRouter({
       const duplicate = await ctx.db.query.contact.findFirst({
         where: and(
           eq(contact.organizationId, organizationId),
-          eq(contact.email, input.newContact.email)
+          eq(contact.email, input.newContact.email),
+          isNull(contact.deletedAt)
         ),
       });
 
@@ -1251,7 +1256,11 @@ export const ticketRouter = createTRPCRouter({
 
     if (input.contactId) {
       const existing = await ctx.db.query.contact.findFirst({
-        where: and(eq(contact.id, input.contactId), eq(contact.organizationId, organizationId)),
+        where: and(
+          eq(contact.id, input.contactId),
+          eq(contact.organizationId, organizationId),
+          isNull(contact.deletedAt)
+        ),
       });
 
       if (!existing) {
@@ -1267,7 +1276,8 @@ export const ticketRouter = createTRPCRouter({
       const duplicate = await ctx.db.query.contact.findFirst({
         where: and(
           eq(contact.organizationId, organizationId),
-          eq(contact.email, input.newContact.email)
+          eq(contact.email, input.newContact.email),
+          isNull(contact.deletedAt)
         ),
       });
 

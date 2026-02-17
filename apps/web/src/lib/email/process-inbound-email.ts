@@ -171,6 +171,12 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
       where: and(eq(contact.organizationId, org.id), eq(contact.email, senderEmail)),
     });
 
+    // Restore soft-deleted contact when they send a new email
+    if (existingContact?.deletedAt) {
+      await tx.update(contact).set({ deletedAt: null }).where(eq(contact.id, existingContact.id));
+      existingContact = { ...existingContact, deletedAt: null };
+    }
+
     if (!existingContact) {
       // Try to auto-match company by email domain
       const domain = senderEmail.split("@")[1] ?? "";

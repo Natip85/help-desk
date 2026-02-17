@@ -1,6 +1,6 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
-import { asc, desc, eq, ilike, or } from "drizzle-orm";
+import { asc, desc, eq, ilike, isNull, or } from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
 import { contact } from "@help-desk/db/schema/contacts";
@@ -37,7 +37,10 @@ export const buildContactWhereConditions = ({
   searchQuery,
   additionalConditions = [],
 }: BuildContactWhereConditionsOptions) => {
-  const whereConditions: SQL[] = [eq(contact.organizationId, organizationId)];
+  const whereConditions: SQL[] = [
+    eq(contact.organizationId, organizationId),
+    isNull(contact.deletedAt),
+  ];
 
   // Add ilike search across name / email columns
   const trimmedQuery = searchQuery?.trim();

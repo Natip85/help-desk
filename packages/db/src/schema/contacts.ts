@@ -1,6 +1,6 @@
 import type { AnyPgColumn } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
-import { index, text, uniqueIndex } from "drizzle-orm/pg-core";
+import { index, text, timestamp, uniqueIndex } from "drizzle-orm/pg-core";
 
 import * as Utils from "../utils";
 import { organization } from "./auth";
@@ -48,11 +48,13 @@ export const contact = Utils.createTable(
     avatarUrl: text("avatar_url"),
     phone: text("phone"),
     companyId: text("company_id").references((): AnyPgColumn => company.id),
+    deletedAt: timestamp("deleted_at"),
     ...Utils.createUpdateTimestamps,
   },
   (t) => [
     uniqueIndex("contact_org_email_idx").on(t.organizationId, t.email),
     index("contact_company_idx").on(t.companyId),
+    index("contact_deleted_at_idx").on(t.deletedAt),
   ]
 );
 

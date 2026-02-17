@@ -31,11 +31,29 @@ export function DeleteContactButton({ contactId, contactName }: DeleteContactBut
   const queryClient = useQueryClient();
   const [isOpen, setIsOpen] = useState(false);
 
+  const { mutate: restoreContact } = useMutation(
+    trpc.contact.restore.mutationOptions({
+      onSuccess: () => {
+        void queryClient.invalidateQueries({ queryKey: trpc.contact.all.queryKey() });
+        toast.success("Contact restored");
+        router.push(`/contacts/${contactId}`);
+      },
+      onError: (error) => {
+        toast.error(error.message ?? "Failed to restore contact");
+      },
+    })
+  );
+
   const { mutate: deleteContact, isPending } = useMutation(
     trpc.contact.delete.mutationOptions({
       onSuccess: () => {
         void queryClient.invalidateQueries({ queryKey: trpc.contact.all.queryKey() });
-        toast.success("Contact deleted");
+        toast("Contact deleted", {
+          action: {
+            label: "Undo",
+            onClick: () => restoreContact(contactId),
+          },
+        });
         router.push("/contacts");
       },
       onError: (error) => {
@@ -62,8 +80,8 @@ export function DeleteContactButton({ contactId, contactName }: DeleteContactBut
         <AlertDialogHeader>
           <AlertDialogTitle>Delete Contact</AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to delete &quot;{contactName}&quot;? This action cannot be undone
-            and will permanently remove this contact.
+            Are you sure you want to delete &quot;{contactName}&quot;? The contact will be removed
+            from your contacts list but their existing conversations will be preserved.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
