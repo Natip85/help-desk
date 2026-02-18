@@ -12,13 +12,13 @@ const WithMeta = () => {
     <TooltipProvider>
       <Tooltip>
         <TooltipTrigger asChild>
-          <kbd className="flex items-center gap-1 rounded bg-gray-700 px-2 py-1 font-mono text-sm">
+          <kbd className="bg-accent/50 flex items-center gap-1 rounded px-2 py-1 font-mono text-sm">
             <Command className="size-3" /> / <Option className="size-3" />
           </kbd>
         </TooltipTrigger>
         <TooltipContent
           side="top"
-          className="text-foreground bg-gray-600 text-sm"
+          className="text-foreground bg-accent/40 text-sm"
         >
           <p>Command or Control</p>
         </TooltipContent>
@@ -55,7 +55,7 @@ export const HelpDialog = (props: React.ComponentProps<"button">) => {
                 <div className="flex items-center justify-between">
                   <span>Toggle left sidebar</span>
                   <div className="flex items-center gap-1">
-                    <kbd className="rounded bg-gray-700 px-2 py-1 font-mono text-sm">b</kbd>
+                    <kbd className="bg-accent/50 rounded px-2 py-1 font-mono text-sm">b</kbd>
                     <span>+</span>
                     <WithMeta />
                   </div>
@@ -64,7 +64,7 @@ export const HelpDialog = (props: React.ComponentProps<"button">) => {
                   <span>Help menu (this one)</span>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <kbd className="rounded bg-gray-700 px-2 py-1 font-mono text-sm">?</kbd>
+                      <kbd className="bg-accent/50 rounded px-2 py-1 font-mono text-sm">?</kbd>
                     </div>
                   </div>
                 </div>

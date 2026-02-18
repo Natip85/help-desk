@@ -32,7 +32,10 @@ export function DeleteOrganizationButton({ organization }: { organization: Organ
   }
   return (
     <AlertDialog>
-      <AlertDialogTrigger asChild>
+      <AlertDialogTrigger
+        asChild
+        className="w-full"
+      >
         <Button
           onSelect={(e) => e.preventDefault()}
           variant="destructive"

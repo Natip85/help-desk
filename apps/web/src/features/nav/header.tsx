@@ -38,10 +38,7 @@ export function Header() {
           {session && (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button
-                  size="sm"
-                  className="sm:size-default"
-                >
+                <Button className="sm:size-default">
                   Create
                   <ChevronDown />
                 </Button>

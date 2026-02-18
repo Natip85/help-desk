@@ -208,6 +208,14 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
               </SidebarMenuItem>
             );
           })}
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              asChild
+              tooltip="Help"
+            >
+              <HelpDialog />
+            </SidebarMenuButton>
+          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
 
@@ -231,14 +239,6 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
               </SidebarMenuItem>
             );
           })}
-          <SidebarMenuItem>
-            <SidebarMenuButton
-              asChild
-              tooltip="Help"
-            >
-              <HelpDialog />
-            </SidebarMenuButton>
-          </SidebarMenuItem>
         </SidebarMenu>
       </SidebarGroup>
     </>

@@ -5,7 +5,6 @@ import { auth } from "@help-desk/auth";
 
 import { Breadcrumbs } from "@/components/breadcrumbs";
 import { PageTitle } from "@/components/page-title";
-import { DeleteOrganizationButton } from "@/features/settings/organizations/delete-organization-button";
 import { OrganizationTabs } from "@/features/settings/organizations/organization-tabs";
 import { createOrganizationDetailBreadcrumbs } from "@/lib/breadcrumbs";
 
@@ -36,9 +35,7 @@ export default async function OrganizationIdPage({ params }: OrganizationIdPageP
         title={organization.name}
         subTitle="Manage your organization  members and mailboxes"
         className="w-full"
-      >
-        <DeleteOrganizationButton organization={organization} />
-      </PageTitle>
+      />
       <OrganizationTabs
         organization={organization}
         organizationId={orgId}
