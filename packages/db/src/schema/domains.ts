@@ -4,8 +4,6 @@ import { index, jsonb, text, uniqueIndex } from "drizzle-orm/pg-core";
 import * as Utils from "../utils";
 import { organization } from "./auth";
 
-// ─── Domain ──────────────────────────────────────────────────────────────────
-
 export const domain = Utils.createTable(
   "domain",
   {
@@ -40,8 +38,6 @@ export const domain = Utils.createTable(
 
 export type Domain = typeof domain.$inferSelect;
 export type NewDomain = typeof domain.$inferInsert;
-
-// ─── Relations ───────────────────────────────────────────────────────────────
 
 export const domainRelations = relations(domain, ({ one }) => ({
   organization: one(organization, {
