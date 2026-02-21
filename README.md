@@ -30,7 +30,7 @@ cd help-desk
 pnpm install
 ```
 
-Add `apps/web/.env` with your configuration. Contact the team for full setup details.
+Add `apps/web/.env` with your configuration. Open a [GitHub Issue](https://github.com/Natip85/help-desk/issues) for setup help.
 
 ```bash
 ./start-database.sh
