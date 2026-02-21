@@ -818,6 +818,11 @@ export const ticketRouter = createTRPCRouter({
       return { latestMessageAt: null, totalCount: 0, latestSlaBreachedAt: null };
     }
 
+    // Piggyback SLA processing on the polling cycle (fire-and-forget).
+    // Idempotent guards in processOrgSla prevent duplicate work even if
+    // multiple clients poll concurrently.
+    void slaEngine.processOrgSla(ctx.db, organizationId);
+
     const whereCondition = and(
       eq(conversation.organizationId, organizationId),
       isNull(conversation.deletedAt)
