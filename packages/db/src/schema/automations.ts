@@ -13,7 +13,11 @@ export type AutomationAction =
   | { type: "set_status"; value: string }
   | { type: "assign_to"; value: string };
 
-export type AutomationTrigger = "ticket_created" | "ticket_replied" | "status_changed";
+export type AutomationTrigger =
+  | "ticket_created"
+  | "ticket_replied"
+  | "status_changed"
+  | "sla_breached";
 
 // ─── Automation ───────────────────────────────────────────────────────────────
 

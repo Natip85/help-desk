@@ -61,6 +61,10 @@ export const conversation = Utils.createTable(
     lastMessageAt: timestamp("last_message_at"),
     closedAt: timestamp("closed_at"),
     deletedAt: timestamp("deleted_at"),
+    firstResponseAt: timestamp("first_response_at"),
+    slaFirstResponseDueAt: timestamp("sla_first_response_due_at"),
+    slaBreachedAt: timestamp("sla_breached_at"),
+    slaWarningNotifiedAt: timestamp("sla_warning_notified_at"),
     ...Utils.createUpdateTimestamps,
   },
   (t) => [
@@ -70,6 +74,7 @@ export const conversation = Utils.createTable(
     index("conversation_org_idx").on(t.organizationId),
     index("conversation_deleted_at_idx").on(t.deletedAt),
     index("conversation_merged_into_idx").on(t.mergedIntoId),
+    index("conversation_sla_due_idx").on(t.slaFirstResponseDueAt),
   ]
 );
 

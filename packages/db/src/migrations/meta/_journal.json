@@ -43,6 +43,27 @@
       "when": 1771357534909,
       "tag": "0005_hesitant_nebula",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1771667006572,
+      "tag": "0006_certain_diamondback",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1771667268389,
+      "tag": "0007_overjoyed_pandemic",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1771669741805,
+      "tag": "0008_striped_the_executioner",
+      "breakpoints": true
     }
   ]
 }

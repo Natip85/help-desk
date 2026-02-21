@@ -12,6 +12,7 @@ const POLL_INTERVAL = 15_000; // 15 seconds
 type Baseline = {
   latestMessageAt: string | null;
   totalCount: number;
+  latestSlaBreachedAt: string | null;
 };
 
 export const NewTicketsBanner = () => {
@@ -33,6 +34,7 @@ export const NewTicketsBanner = () => {
     setBaseline({
       latestMessageAt: data.latestMessageAt?.toISOString() ?? null,
       totalCount: data.totalCount,
+      latestSlaBreachedAt: data.latestSlaBreachedAt?.toISOString() ?? null,
     });
   }
 
@@ -40,7 +42,8 @@ export const NewTicketsBanner = () => {
     data &&
     baseline &&
     (data.totalCount !== baseline.totalCount ||
-      (data.latestMessageAt?.toISOString() ?? null) !== baseline.latestMessageAt);
+      (data.latestMessageAt?.toISOString() ?? null) !== baseline.latestMessageAt ||
+      (data.latestSlaBreachedAt?.toISOString() ?? null) !== baseline.latestSlaBreachedAt);
 
   const handleRefresh = useCallback(() => {
     if (!data) return;
@@ -49,6 +52,7 @@ export const NewTicketsBanner = () => {
     setBaseline({
       latestMessageAt: data.latestMessageAt?.toISOString() ?? null,
       totalCount: data.totalCount,
+      latestSlaBreachedAt: data.latestSlaBreachedAt?.toISOString() ?? null,
     });
 
     // Invalidate ticket list, ticket detail, and conversation thread queries

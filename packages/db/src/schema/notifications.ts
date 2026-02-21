@@ -6,7 +6,7 @@ import { organization, user } from "./auth";
 
 // ─── Enums ───────────────────────────────────────────────────────────────────
 
-export const notificationType = ["ticket_assigned"] as const;
+export const notificationType = ["ticket_assigned", "sla_breach_warning"] as const;
 export type NotificationType = (typeof notificationType)[number];
 export const notificationTypeEnum = pgEnum("notification_type", notificationType);
 

@@ -30,7 +30,9 @@ const automationActionSchema = z.discriminatedUnion("type", [
 const createAutomationSchema = z.object({
   name: z.string().min(1, "Name is required"),
   description: z.string().optional(),
-  trigger: z.enum(["ticket_created", "ticket_replied", "status_changed"]).default("ticket_created"),
+  trigger: z
+    .enum(["ticket_created", "ticket_replied", "status_changed", "sla_breached"])
+    .default("ticket_created"),
   conditionsTree: z.record(z.string(), z.any()),
   conditions: z.record(z.string(), z.any()),
   actions: z.array(automationActionSchema).min(1, "At least one action is required"),
@@ -77,7 +79,9 @@ export const automationRouter = createTRPCRouter({
         id: z.string(),
         name: z.string().min(1).optional(),
         description: z.string().optional(),
-        trigger: z.enum(["ticket_created", "ticket_replied", "status_changed"]).optional(),
+        trigger: z
+          .enum(["ticket_created", "ticket_replied", "status_changed", "sla_breached"])
+          .optional(),
         conditionsTree: z.record(z.string(), z.any()).optional(),
         conditions: z.record(z.string(), z.any()).optional(),
         actions: z.array(automationActionSchema).min(1).optional(),

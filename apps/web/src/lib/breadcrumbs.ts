@@ -99,6 +99,12 @@ export const settingsAutomationsBreadcrumbs: BreadcrumbPageType[] = [
   { href: "/settings/automations", label: "Automations" },
 ];
 
+export const settingsSlaBreadcrumbs: BreadcrumbPageType[] = [
+  homeBreadcrumb,
+  settingsBreadcrumb,
+  { href: "/settings/sla", label: "SLA & Business Hours" },
+];
+
 // Factory functions for dynamic breadcrumbs
 export function createTicketDetailBreadcrumbs(
   ticketId: string,

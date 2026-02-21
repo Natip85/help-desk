@@ -15,6 +15,9 @@ export const dateRangeSchema = z
 
 export type DateRange = NonNullable<z.infer<typeof dateRangeSchema>>;
 
+export const slaStatusValues = ["breached", "active", "met"] as const;
+export type SlaStatus = (typeof slaStatusValues)[number];
+
 export const ticketFilterSchema = z.object({
   statuses: z.array(z.enum(conversationStatus)).optional(),
   priorities: z.array(z.enum(conversationPriority)).optional(),
@@ -25,6 +28,7 @@ export const ticketFilterSchema = z.object({
   companyIds: z.array(z.string()).optional(),
   mailboxIds: z.array(z.string()).optional(),
   tagIds: z.array(z.string()).optional(),
+  slaStatus: z.enum(slaStatusValues).optional(),
   createdAt: dateRangeSchema,
   lastMessageAt: dateRangeSchema,
   closedAt: dateRangeSchema,

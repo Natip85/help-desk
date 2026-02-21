@@ -27,6 +27,7 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SidebarContent, SidebarGroup, SidebarHeader } from "@/components/ui/sidebar";
 import { useDefaultFilters } from "@/features/settings/ticket-filters/use-default-filters";
+import { SlaBadge } from "@/features/tickets/sla-badge";
 import { useTRPC } from "@/trpc";
 import { TicketAssigneeCombobox } from "../tickets/ticket-assignee-combobox";
 import { TicketTagCombobox } from "../tickets/ticket-tag-combobox";
@@ -280,6 +281,20 @@ export const TicketStatusesSidebar = () => {
             />
           );
         })}
+
+        {/* ── SLA status ── */}
+        {ticket?.slaFirstResponseDueAt && (
+          <SidebarGroup>
+            <div className="flex flex-col gap-1">
+              <span className="text-muted-foreground text-xs">SLA</span>
+              <SlaBadge
+                firstResponseAt={ticket.firstResponseAt}
+                slaFirstResponseDueAt={ticket.slaFirstResponseDueAt}
+                slaBreachedAt={ticket.slaBreachedAt}
+              />
+            </div>
+          </SidebarGroup>
+        )}
 
         {/* ── Pinned fields (no DB entry, always at the bottom) ── */}
 

@@ -32,6 +32,7 @@ import { env } from "@help-desk/env/server";
 import { loadTicketFacts, runAutomationsForTicket } from "../lib/automation-engine";
 import { pusher } from "../lib/pusher";
 import { resend } from "../lib/resend";
+import * as slaEngine from "../lib/sla-engine";
 import { createTRPCRouter, protectedProcedure, requirePermission } from "../trpc";
 import { createListInput } from "../utils/list-input-schema";
 import { buildTicketOrderBy, buildTicketWhereConditions } from "../utils/ticket-filters";
@@ -221,6 +222,13 @@ export const ticketRouter = createTRPCRouter({
           code: "NOT_FOUND",
           message: "Ticket not found",
         });
+      }
+
+      try {
+        await slaEngine.recomputeOnPriorityChange(ctx.db, input.id, input.priority, organizationId);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[SLA] Failed to recompute deadline on priority change:", error);
       }
 
       return updated;
@@ -578,6 +586,14 @@ export const ticketRouter = createTRPCRouter({
         return newMessage;
       });
 
+      // Record first response for SLA tracking
+      try {
+        await slaEngine.recordFirstResponse(ctx.db, conv.id);
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error("[SLA] Failed to record first response:", error);
+      }
+
       // Run ticket_replied automations
       try {
         const facts = await loadTicketFacts(ctx.db, conv.id);
@@ -799,7 +815,7 @@ export const ticketRouter = createTRPCRouter({
     const organizationId = ctx.session.session.activeOrganizationId;
 
     if (!organizationId) {
-      return { latestMessageAt: null, totalCount: 0 };
+      return { latestMessageAt: null, totalCount: 0, latestSlaBreachedAt: null };
     }
 
     const whereCondition = and(
@@ -807,18 +823,24 @@ export const ticketRouter = createTRPCRouter({
       isNull(conversation.deletedAt)
     );
 
-    const [latestConversation, totalCount] = await Promise.all([
+    const [latestConversation, totalCount, latestBreached] = await Promise.all([
       ctx.db.query.conversation.findFirst({
         where: whereCondition,
         orderBy: [desc(conversation.lastMessageAt)],
         columns: { lastMessageAt: true },
       }),
       ctx.db.$count(conversation, whereCondition),
+      ctx.db.query.conversation.findFirst({
+        where: and(whereCondition, isNotNull(conversation.slaBreachedAt)),
+        orderBy: [desc(conversation.slaBreachedAt)],
+        columns: { slaBreachedAt: true },
+      }),
     ]);
 
     return {
       latestMessageAt: latestConversation?.lastMessageAt ?? null,
       totalCount,
+      latestSlaBreachedAt: latestBreached?.slaBreachedAt ?? null,
     };
   }),
 
@@ -1301,6 +1323,25 @@ export const ticketRouter = createTRPCRouter({
       return newTicket;
     });
 
+    // Compute SLA deadline outside the transaction
+    try {
+      const deadline = await slaEngine.computeDeadline(
+        ctx.db,
+        organizationId,
+        input.priority ?? "normal",
+        result.createdAt
+      );
+      if (deadline) {
+        await ctx.db
+          .update(conversation)
+          .set({ slaFirstResponseDueAt: deadline })
+          .where(eq(conversation.id, result.id));
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[SLA] Failed to compute deadline on ticket create:", error);
+    }
+
     return result;
   }),
 
@@ -1511,6 +1552,25 @@ export const ticketRouter = createTRPCRouter({
 
       return newConversation;
     });
+
+    // Compute SLA deadline outside the transaction
+    try {
+      const deadline = await slaEngine.computeDeadline(
+        ctx.db,
+        organizationId,
+        input.priority ?? "normal",
+        result.createdAt
+      );
+      if (deadline) {
+        await ctx.db
+          .update(conversation)
+          .set({ slaFirstResponseDueAt: deadline })
+          .where(eq(conversation.id, result.id));
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[SLA] Failed to compute deadline on email create:", error);
+    }
 
     return result;
   }),

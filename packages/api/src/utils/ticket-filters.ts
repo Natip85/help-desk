@@ -1,7 +1,22 @@
 import type { SQL } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 import { endOfDay } from "date-fns";
-import { asc, desc, eq, gte, ilike, inArray, isNull, lte, or, sql } from "drizzle-orm";
+import {
+  and,
+  asc,
+  desc,
+  eq,
+  gt,
+  gte,
+  ilike,
+  inArray,
+  isNotNull,
+  isNull,
+  lt,
+  lte,
+  or,
+  sql,
+} from "drizzle-orm";
 import { getTableColumns } from "drizzle-orm/utils";
 
 import type { Database } from "@help-desk/db";
@@ -145,6 +160,48 @@ export const createTicketFilters = (
         )}]`;
         const combined = or(textMatch, arrayMatch);
         if (combined) conditions.push(combined);
+      }
+    }
+  }
+
+  // SLA status filter
+  if (filter.slaStatus) {
+    const now = new Date();
+    switch (filter.slaStatus) {
+      case "breached": {
+        const breachCondition = or(
+          isNotNull(conversation.slaBreachedAt),
+          and(
+            isNull(conversation.firstResponseAt),
+            isNotNull(conversation.slaFirstResponseDueAt),
+            lt(conversation.slaFirstResponseDueAt, now)
+          ),
+          and(
+            isNotNull(conversation.firstResponseAt),
+            isNotNull(conversation.slaFirstResponseDueAt),
+            gt(conversation.firstResponseAt, conversation.slaFirstResponseDueAt)
+          )
+        );
+        if (breachCondition) conditions.push(breachCondition);
+        break;
+      }
+      case "active": {
+        const activeCondition = and(
+          isNull(conversation.firstResponseAt),
+          isNotNull(conversation.slaFirstResponseDueAt),
+          gte(conversation.slaFirstResponseDueAt, now)
+        );
+        if (activeCondition) conditions.push(activeCondition);
+        break;
+      }
+      case "met": {
+        const metCondition = and(
+          isNotNull(conversation.firstResponseAt),
+          isNotNull(conversation.slaFirstResponseDueAt),
+          lte(conversation.firstResponseAt, conversation.slaFirstResponseDueAt)
+        );
+        if (metCondition) conditions.push(metCondition);
+        break;
       }
     }
   }

@@ -1,6 +1,7 @@
 import { and, eq, inArray } from "drizzle-orm";
 
 import { runAutomationsForTicket } from "@help-desk/api/lib/automation-engine";
+import * as slaEngine from "@help-desk/api/lib/sla-engine";
 import { db } from "@help-desk/db";
 import {
   attachment,
@@ -472,6 +473,20 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
   // ── 10. Run automations for newly created tickets ─────────────────────────
 
   if (txResult.isNewConversation) {
+    // Compute SLA deadline for the new inbound ticket
+    try {
+      const deadline = await slaEngine.computeDeadline(db, org.id, "normal", new Date());
+      if (deadline) {
+        await db
+          .update(conversation)
+          .set({ slaFirstResponseDueAt: deadline })
+          .where(eq(conversation.id, txResult.conversationId));
+      }
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error("[SLA] Failed to compute deadline for inbound email:", error);
+    }
+
     try {
       await runAutomationsForTicket(db, org.id, txResult.conversationId, {
         mailboxEmail: matchedMailbox?.email ?? null,

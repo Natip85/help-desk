@@ -10,6 +10,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useTRPC } from "@/trpc";
+import { SlaBadge } from "../../tickets/sla-badge";
 import { TicketAssigneeCombobox } from "../../tickets/ticket-assignee-combobox";
 import {
   channelIconMap,
@@ -166,6 +167,20 @@ export const columns: ColumnDef<TicketCardData>[] = [
         value={row.original.priority}
       />
     ),
+  },
+  {
+    id: "sla",
+    header: () => <div>SLA</div>,
+    cell: ({ row }) => (
+      <SlaBadge
+        firstResponseAt={row.original.firstResponseAt}
+        slaFirstResponseDueAt={row.original.slaFirstResponseDueAt}
+        slaBreachedAt={row.original.slaBreachedAt}
+        size="sm"
+      />
+    ),
+    size: 120,
+    maxSize: 120,
   },
   // Passive: opens contact sidebar
   {

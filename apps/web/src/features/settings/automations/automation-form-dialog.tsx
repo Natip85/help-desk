@@ -38,12 +38,13 @@ type AutomationAction = {
   value: string;
 };
 
-type AutomationTrigger = "ticket_created" | "ticket_replied" | "status_changed";
+type AutomationTrigger = "ticket_created" | "ticket_replied" | "status_changed" | "sla_breached";
 
 const triggerLabels: Record<AutomationTrigger, string> = {
   ticket_created: "Ticket Created",
   ticket_replied: "Agent Replied",
   status_changed: "Status Changed",
+  sla_breached: "SLA Breached",
 };
 
 const defaultQuery: RuleGroupType = {

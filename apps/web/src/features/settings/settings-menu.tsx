@@ -7,6 +7,7 @@ import {
   ListChevronsDownUpIcon,
   MessageCircleCode,
   TagsIcon,
+  TimerIcon,
   Users2,
   ZapIcon,
 } from "lucide-react";
@@ -71,6 +72,12 @@ const settingsSections: SettingsSection[] = [
           "Manage your ticket automations to automatically assign tickets to users or groups",
         icon: ZapIcon,
         href: "/settings/automations",
+      },
+      {
+        title: "SLA & Business hours",
+        description: "Set first-response targets per priority and define your working hours",
+        icon: TimerIcon,
+        href: "/settings/sla",
       },
     ],
   },

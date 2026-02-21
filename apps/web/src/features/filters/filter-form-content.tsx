@@ -4,7 +4,8 @@ import { Fragment } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 import type { Tag } from "@help-desk/db/schema/tags";
-import type { TicketFilter } from "@help-desk/db/validators/ticket-filter";
+import type { SlaStatus, TicketFilter } from "@help-desk/db/validators/ticket-filter";
+import { slaStatusValues } from "@help-desk/db/validators/ticket-filter";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -19,6 +20,13 @@ import {
   ComboboxValue,
   useComboboxAnchor,
 } from "@/components/ui/combobox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { SidebarGroup, SidebarGroupLabel } from "@/components/ui/sidebar";
 import { useDefaultFilters } from "@/features/settings/ticket-filters/use-default-filters";
 import { useTRPC } from "@/trpc";
@@ -336,6 +344,38 @@ export function FilterFormContent({ filter, onFilterChange }: FilterFormContentP
             </ComboboxList>
           </ComboboxContent>
         </Combobox>
+      </SidebarGroup>
+
+      <SidebarGroup>
+        <SidebarGroupLabel>SLA Status</SidebarGroupLabel>
+        <Select
+          value={filter.slaStatus ?? "all"}
+          onValueChange={(val) => {
+            onFilterChange({
+              ...filter,
+              slaStatus: val === "all" ? undefined : (val as SlaStatus),
+            });
+          }}
+        >
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="All" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All</SelectItem>
+            {slaStatusValues.map((status) => (
+              <SelectItem
+                key={status}
+                value={status}
+              >
+                {status === "breached" ?
+                  "Breached"
+                : status === "active" ?
+                  "Active"
+                : "Met"}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </SidebarGroup>
 
       <SidebarGroup>

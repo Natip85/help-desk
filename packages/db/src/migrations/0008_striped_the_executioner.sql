@@ -1,0 +1,1 @@
+ALTER TABLE "conversation" ADD COLUMN "sla_warning_notified_at" timestamp;

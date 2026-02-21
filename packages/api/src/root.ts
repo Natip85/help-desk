@@ -6,6 +6,7 @@ import { domainRouter } from "./routers/domain";
 import { mailboxRouter } from "./routers/mailbox";
 import { notificationRouter } from "./routers/notification";
 import { savedFilterRouter } from "./routers/saved-filter";
+import { slaRouter } from "./routers/sla";
 import { tagRouter } from "./routers/tag";
 import { ticketRouter } from "./routers/ticket";
 import { userRouter } from "./routers/user";
@@ -23,9 +24,9 @@ export const appRouter = createTRPCRouter({
   savedFilter: savedFilterRouter,
   defaultFilter: defaultFilterRouter,
   notification: notificationRouter,
+  sla: slaRouter,
 });
 
-// export type definition of API
 export type AppRouter = typeof appRouter;
 
 /**
