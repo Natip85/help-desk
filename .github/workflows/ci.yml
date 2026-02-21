@@ -1,0 +1,67 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: Lint, Type Check, Build & Test
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://localhost:5432/test
+      BETTER_AUTH_SECRET: xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+      BETTER_AUTH_URL: https://example.com
+      CORS_ORIGIN: https://example.com
+      GOOGLE_CLIENT_ID: x
+      GOOGLE_CLIENT_SECRET: x
+      GITHUB_CLIENT_ID: x
+      GITHUB_CLIENT_SECRET: x
+      GITHUB_WEBHOOK_SECRET: x
+      GITHUB_APP_URL: https://example.com
+      RESEND_API_KEY: x
+      SENDER_EMAIL: test@example.com
+      PUSHER_APP_ID: x
+      PUSHER_SECRET: x
+      NEXT_PUBLIC_PUSHER_KEY: x
+      NEXT_PUBLIC_PUSHER_CLUSTER: mt1
+      UPLOADTHING_TOKEN: x
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Format check
+        run: pnpm run format
+
+      - name: Lint
+        run: pnpm run lint
+
+      - name: Type check
+        run: pnpm run check-types
+
+      - name: Build
+        run: pnpm run build
+
+      - name: Test
+        run: pnpm run test
