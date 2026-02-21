@@ -25,7 +25,7 @@ export default async function TicketsPage({ searchParams }: PageProps) {
   // const { success: canExport } = await auth.api.hasPermission({
   //   headers: await headers(),
   //   body: { permissions: { ticket: ["export"] } },
-  // });
+  // })
 
   const params = await loadTicketSearchParams(searchParams);
 
