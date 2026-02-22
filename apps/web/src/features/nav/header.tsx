@@ -1,7 +1,9 @@
 "use client";
 
+import Image from "next/image";
 import Link from "next/link";
-import { CheckCircleIcon, ChevronDown, MailIcon, Ticket, User } from "lucide-react";
+import { ChevronDown, MailIcon, Ticket, User } from "lucide-react";
+import { useTheme } from "next-themes";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -20,18 +22,21 @@ import { NavUserAvatar } from "./nav-user-avatar";
 export function Header() {
   const { data: session } = authClient.useSession();
   usePusherNotifications();
-
+  const { resolvedTheme } = useTheme();
+  const logo = resolvedTheme === "dark" ? "/logo.png" : "/logo.png";
   return (
     <header className="bg-background sticky top-0 right-0 left-0 z-50 w-full">
       <div className="flex h-16 items-center justify-between pr-3 pl-12 sm:px-5 md:px-8">
         <Link
           href="/"
-          className="ml-8 hidden items-center gap-2 md:ml-0 md:flex"
+          className="relative ml-8 hidden size-14 items-center gap-2 md:ml-0 md:flex"
         >
-          <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-lg">
-            <CheckCircleIcon className="text-background h-4 w-4" />
-          </div>
-          <span className="text-foreground text-xl font-semibold tracking-tight">Help Desk</span>
+          <Image
+            src={logo}
+            alt="Yarcone"
+            fill
+            className="scale-200 object-contain"
+          />
         </Link>
 
         <div className="ml-auto flex items-center gap-2 sm:gap-3 md:gap-5">
