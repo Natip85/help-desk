@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
 import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "../index.css";
@@ -53,6 +54,7 @@ export default function RootLayout({
               <UploadThingSSR />
             </Suspense>
             <Analytics />
+            <SpeedInsights />
             <Suspense>
               <Header />
             </Suspense>
