@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Suspense } from "react";
 import { Geist, Geist_Mono } from "next/font/google";
 import { connection } from "next/server";
+import { Analytics } from "@vercel/analytics/next";
 import { NuqsAdapter } from "nuqs/adapters/next/app";
 
 import "../index.css";
@@ -51,6 +52,7 @@ export default function RootLayout({
             <Suspense>
               <UploadThingSSR />
             </Suspense>
+            <Analytics />
             <Suspense>
               <Header />
             </Suspense>
