@@ -106,6 +106,7 @@
     "@help-desk/eslint-config": "workspace:*",
     "@help-desk/prettier-config": "workspace:*",
     "@tailwindcss/postcss": "^4.1.10",
+    "@tailwindcss/typography": "^0.5.19",
     "@tanstack/react-query-devtools": "^5.91.1",
     "@types/lodash-es": "^4.17.12",
     "@types/node": "^20",
