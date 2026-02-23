@@ -2,18 +2,14 @@
 
 import * as React from "react";
 import { usePathname } from "next/navigation";
-import {
-  ChevronsLeft,
-  ChevronsRight,
-  LayoutTemplate,
-  Menu,
-  Settings,
-  Ticket,
-  Tickets,
-  Trash2,
-  Users2,
-} from "lucide-react";
+import { ChevronsLeft, ChevronsRight, Menu } from "lucide-react";
 
+import { AnimatedLayoutTemplate } from "@/components/icons/animated-layout-template";
+import { AnimatedSettings } from "@/components/icons/animated-settings";
+import { AnimatedTicket } from "@/components/icons/animated-ticket";
+import { AnimatedTickets } from "@/components/icons/animated-tickets";
+import { AnimatedTrash2 } from "@/components/icons/animated-trash";
+import { AnimatedUsers2 } from "@/components/icons/animated-users";
 import {
   Sidebar,
   SidebarContent,
@@ -62,35 +58,35 @@ const data = {
     {
       title: "Dashboard",
       url: "/dashboard",
-      icon: LayoutTemplate,
+      icon: AnimatedLayoutTemplate,
     },
     {
       title: "Tickets",
       url: "/tickets",
-      icon: Ticket,
+      icon: AnimatedTicket,
       useDropdownMenu: true,
       submenu: [
         {
           title: "All tickets",
           url: "/tickets",
-          icon: Tickets,
+          icon: AnimatedTickets,
         },
         {
           title: "Trash",
           url: "/tickets/trash",
-          icon: Trash2,
+          icon: AnimatedTrash2,
         },
       ],
     },
     {
       title: "Contacts",
       url: "/contacts",
-      icon: Users2,
+      icon: AnimatedUsers2,
     },
     {
       title: "Settings",
       url: "/settings",
-      icon: Settings,
+      icon: AnimatedSettings,
     },
   ],
   footerItems: [],

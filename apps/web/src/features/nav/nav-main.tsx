@@ -210,6 +210,7 @@ export function NavMain({ items, children, footerItems, ...props }: NavMainProps
           })}
           <SidebarMenuItem>
             <SidebarMenuButton
+              className="hover:cursor-pointer"
               asChild
               tooltip="Help"
             >

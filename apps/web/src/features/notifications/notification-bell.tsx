@@ -7,6 +7,7 @@ import { Bell, CheckCheck } from "lucide-react";
 
 import type { Notification } from "@help-desk/db/schema/notifications";
 
+import { AnimatedBell } from "@/components/icons/animated-bell";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
@@ -78,7 +79,7 @@ export function NotificationBell() {
           size="icon"
           className="relative h-8 w-8"
         >
-          <Bell className="h-4 w-4" />
+          <AnimatedBell className="h-4 w-4" />
           {unreadCount > 0 && (
             <span className="bg-destructive text-destructive-foreground absolute -top-0.5 -right-0.5 flex h-4 min-w-4 items-center justify-center rounded-full px-1 text-[10px] font-medium">
               {unreadCount > 99 ? "99+" : unreadCount}

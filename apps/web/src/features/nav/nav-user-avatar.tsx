@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { LogOut, User } from "lucide-react";
 
+import { AnimatedLogOut } from "@/components/icons/animated-log-out";
+import { AnimatedUser } from "@/components/icons/animated-user";
 import { ModeToggle } from "@/components/mode-toggle";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -83,7 +84,7 @@ export function NavUserAvatar() {
               href="/profile"
               className="flex items-center gap-2"
             >
-              <User />
+              <AnimatedUser />
               Profile
             </Link>
           </DropdownMenuItem>
@@ -99,7 +100,7 @@ export function NavUserAvatar() {
             })
           }
         >
-          <LogOut />
+          <AnimatedLogOut />
           Log out
         </DropdownMenuItem>
       </DropdownMenuContent>

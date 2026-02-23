@@ -1,8 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Command, HelpCircle, Option } from "lucide-react";
+import { Command, Option } from "lucide-react";
 
+import { AnimatedHelpCircle } from "@/components/icons/animated-help-circle";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useKeypress } from "@/hooks/use-keypress";
@@ -38,7 +39,7 @@ export const HelpDialog = (props: React.ComponentProps<"button">) => {
         {...props}
         onClick={() => setOpen(!open)}
       >
-        <HelpCircle /> <span>Help</span>
+        <AnimatedHelpCircle /> <span>Help</span>
       </button>
       <Dialog
         open={open}
