@@ -9,6 +9,7 @@ export function AnimatedLogOut(props: React.SVGProps<SVGSVGElement>) {
   const svgRef = useRef<SVGSVGElement>(null);
   const arrowRef = useRef<SVGGElement>(null);
   const tlRef = useRef<gsap.core.Timeline | null>(null);
+  const delayRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useGSAP(
     () => {
@@ -40,9 +41,20 @@ export function AnimatedLogOut(props: React.SVGProps<SVGSVGElement>) {
     const anchor = wrapper.closest("a, button, [role='menuitem']");
     if (!anchor) return;
 
-    const restart = () => void tlRef.current?.restart();
-    anchor.addEventListener("mouseenter", restart);
-    return () => anchor.removeEventListener("mouseenter", restart);
+    const onEnter = () => {
+      delayRef.current = setTimeout(() => void tlRef.current?.restart(), 150);
+    };
+    const onLeave = () => {
+      if (delayRef.current) clearTimeout(delayRef.current);
+    };
+
+    anchor.addEventListener("mouseenter", onEnter);
+    anchor.addEventListener("mouseleave", onLeave);
+    return () => {
+      anchor.removeEventListener("mouseenter", onEnter);
+      anchor.removeEventListener("mouseleave", onLeave);
+      if (delayRef.current) clearTimeout(delayRef.current);
+    };
   }, []);
 
   return (
