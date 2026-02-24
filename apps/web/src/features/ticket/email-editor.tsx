@@ -147,7 +147,10 @@ export function EmailEditor({ ticketId }: EmailEditorProps) {
 
       <CollapsibleContent>
         <div className="flex flex-col">
-          <CcBccSection ref={ccBccRef} />
+          <CcBccSection
+            ref={ccBccRef}
+            initialCc={ticket?.lastInboundCc ?? []}
+          />
           <RichTextEditor
             key={ticketId}
             content={[] as JSONContent[]}

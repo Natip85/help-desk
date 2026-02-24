@@ -186,10 +186,18 @@ export const ticketRouter = createTRPCRouter({
       fromEmail = defaultMailbox?.email ?? env.SENDER_EMAIL;
     }
 
+    // Fetch the last inbound message's CC so the reply editor can pre-populate it
+    const lastInbound = await ctx.db.query.message.findFirst({
+      where: and(eq(message.conversationId, conv.id), eq(message.direction, "inbound")),
+      orderBy: desc(message.createdAt),
+      columns: { cc: true },
+    });
+
     const { conversationTags, ...rest } = conv;
     return {
       ...rest,
       fromEmail,
+      lastInboundCc: lastInbound?.cc ?? [],
       tags: conversationTags.map((ct) => ct.tag),
     };
   }),

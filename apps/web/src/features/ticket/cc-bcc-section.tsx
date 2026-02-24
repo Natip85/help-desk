@@ -13,9 +13,17 @@ export type CcBccSectionHandle = {
   reset: () => void;
 };
 
-export const CcBccSection = forwardRef<CcBccSectionHandle>(function CcBccSection(_, ref) {
-  const [showCcBcc, setShowCcBcc] = useState(false);
-  const [cc, setCc] = useState<string[]>([]);
+type CcBccSectionProps = {
+  initialCc?: string[];
+};
+
+export const CcBccSection = forwardRef<CcBccSectionHandle, CcBccSectionProps>(function CcBccSection(
+  { initialCc },
+  ref
+) {
+  const hasInitialCc = (initialCc?.length ?? 0) > 0;
+  const [showCcBcc, setShowCcBcc] = useState(hasInitialCc);
+  const [cc, setCc] = useState<string[]>(initialCc ?? []);
   const [bcc, setBcc] = useState<string[]>([]);
 
   useImperativeHandle(
