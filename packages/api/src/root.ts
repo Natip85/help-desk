@@ -1,6 +1,7 @@
 import { automationRouter } from "./routers/automation";
 import { cannedResponseRouter } from "./routers/canned-response";
 import { contactRouter } from "./routers/contact";
+import { dashboardRouter } from "./routers/dashboard";
 import { defaultFilterRouter } from "./routers/default-filter";
 import { domainRouter } from "./routers/domain";
 import { mailboxRouter } from "./routers/mailbox";
@@ -13,6 +14,7 @@ import { userRouter } from "./routers/user";
 import { createCallerFactory, createTRPCRouter } from "./trpc";
 
 export const appRouter = createTRPCRouter({
+  dashboard: dashboardRouter,
   user: userRouter,
   ticket: ticketRouter,
   contact: contactRouter,
