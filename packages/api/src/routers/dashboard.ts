@@ -125,21 +125,28 @@ export const dashboardRouter = createTRPCRouter({
       });
     }
 
-    const orgAndNotDeleted = and(
+    const now = new Date();
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const tomorrowStart = new Date(todayStart);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
+
+    const orgTodayNotDeleted = and(
       eq(conversation.organizationId, organizationId),
-      isNull(conversation.deletedAt)
+      isNull(conversation.deletedAt),
+      gte(conversation.createdAt, todayStart),
+      lt(conversation.createdAt, tomorrowStart)
     );
 
     const [byStatus, byPriority] = await Promise.all([
       ctx.db
         .select({ status: conversation.status, count: count().as("cnt") })
         .from(conversation)
-        .where(orgAndNotDeleted)
+        .where(orgTodayNotDeleted)
         .groupBy(conversation.status),
       ctx.db
         .select({ priority: conversation.priority, count: count().as("cnt") })
         .from(conversation)
-        .where(orgAndNotDeleted)
+        .where(orgTodayNotDeleted)
         .groupBy(conversation.priority),
     ]);
 

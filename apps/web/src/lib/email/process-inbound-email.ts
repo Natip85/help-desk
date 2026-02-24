@@ -120,7 +120,7 @@ function capitalizeHeader(name: string): string {
 // ─── Main Processing Function ────────────────────────────────────────────────
 
 export async function processInboundEmail(event: EmailReceivedEvent) {
-  const { email_id, from, to, cc, bcc, message_id, subject, attachments } = event.data;
+  const { email_id, from, to, message_id, subject, attachments } = event.data;
 
   // 1. Fetch full email content from Resend API (webhook only has metadata)
   const { data: emailContent, error: fetchError } = await resend.emails.receiving.get(email_id);
@@ -132,6 +132,10 @@ export async function processInboundEmail(event: EmailReceivedEvent) {
   }
 
   const headers = emailContent?.headers as Record<string, string> | null | undefined;
+
+  // Webhook payload only carries metadata — CC/BCC come from the full email
+  const cc = emailContent?.cc ?? [];
+  const bcc = emailContent?.bcc ?? [];
 
   // 2. Parse the sender
   const { email: senderEmail, name: senderName } = parseEmailAddress(from);

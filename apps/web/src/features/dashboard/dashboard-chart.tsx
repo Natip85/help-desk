@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useRouter } from "next/navigation";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   CartesianGrid,
@@ -160,6 +161,11 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
 
 // ─── Status Donut Chart ──────────────────────────────────────────────────────
 
+function getTodayISO() {
+  const now = new Date();
+  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate())).toISOString();
+}
+
 const statusColorMap: Record<string, string> = {
   open: "var(--chart-1)",
   pending: "var(--chart-2)",
@@ -178,8 +184,10 @@ const statusChartConfig = {
 } satisfies ChartConfig;
 
 export function DashboardStatusChart() {
+  const router = useRouter();
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.dashboard.ticketBreakdown.queryOptions());
+  const todayISO = getTodayISO();
 
   const chartData = data.byStatus.map((row) => ({
     status: row.status,
@@ -196,7 +204,7 @@ export function DashboardStatusChart() {
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Tickets by Status</CardTitle>
-        <CardDescription>All active tickets</CardDescription>
+        <CardDescription>Today</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -214,6 +222,12 @@ export function DashboardStatusChart() {
               nameKey="status"
               innerRadius={60}
               strokeWidth={5}
+              onClick={(data: { status: string; count: number; fill: string }) => {
+                router.push(
+                  `/tickets?filter={"createdAt":{"from":"${todayISO}","to":"${todayISO}"},"statuses":["${data.status}"]}`
+                );
+              }}
+              className="cursor-pointer"
             >
               <Label
                 content={({ viewBox }) => {
@@ -270,8 +284,10 @@ const priorityChartConfig = {
 } satisfies ChartConfig;
 
 export function DashboardPriorityChart() {
+  const router = useRouter();
   const trpc = useTRPC();
   const { data } = useSuspenseQuery(trpc.dashboard.ticketBreakdown.queryOptions());
+  const todayISO = getTodayISO();
 
   const chartData = data.byPriority.map((row) => ({
     priority: row.priority,
@@ -283,7 +299,7 @@ export function DashboardPriorityChart() {
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
         <CardTitle>Tickets by Priority</CardTitle>
-        <CardDescription>All active tickets</CardDescription>
+        <CardDescription>Today</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -303,6 +319,12 @@ export function DashboardPriorityChart() {
               data={chartData}
               dataKey="count"
               nameKey="priority"
+              onClick={(data: { priority: string; count: number; fill: string }) => {
+                router.push(
+                  `/tickets?filter={"createdAt":{"from":"${todayISO}","to":"${todayISO}"},"priorities":["${data.priority}"]}`
+                );
+              }}
+              className="cursor-pointer"
             >
               <LabelList
                 dataKey="priority"
